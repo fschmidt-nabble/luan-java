@@ -1,11 +1,15 @@
 package luan;
 
 
-public class LuaNumber {
+public final class LuaNumber {
 	final double n;
 
 	public LuaNumber(double n) {
 		this.n = n;
+	}
+
+	public double value() {
+		return n;
 	}
 
 	// convert to Lua format

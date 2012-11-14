@@ -3,12 +3,6 @@ package luan;
 
 public class Lua {
 
-	public static String toString(Object obj) {
-		if( obj == null )
-			return "nil";
-		return obj.toString();
-	}
-
 	public static String type(Object obj) {
 		if( obj == null )
 			return "nil";
@@ -21,19 +15,13 @@ public class Lua {
 		return "userdata";
 	}
 
-	public static int length(Object obj) throws LuaException {
-		if( obj instanceof String ) {
-			String s = (String)obj;
-			return s.length();
-		}
-		if( obj instanceof LuaTable ) {
-			LuaTable t = (LuaTable)obj;
-			return t.length();
-		}
-		throw new LuaException( "attempt to get length of a " + type(obj) + " value" );
+	public static String toString(Object obj) {
+		if( obj == null )
+			return "nil";
+		return obj.toString();
 	}
 
-	static LuaNumber toNumber(Object obj) throws LuaException {
+	public static LuaNumber toNumber(Object obj) throws LuaException {
 		if( obj instanceof LuaNumber )
 			return (LuaNumber)obj;
 		if( obj instanceof String ) {
@@ -45,12 +33,10 @@ public class Lua {
 		throw new LuaException( "attempt to perform arithmetic on a " + type(obj) + " value" );
 	}
 
-	static LuaNumber add(Object n1,Object n2) throws LuaException {
-		return new LuaNumber( toNumber(n1).n + toNumber(n2).n );
-	}
-
-	static LuaNumber sub(Object n1,Object n2) throws LuaException {
-		return new LuaNumber( toNumber(n1).n - toNumber(n2).n );
+	public static LuaFunction toFunction(Object obj) throws LuaException {
+		if( obj instanceof LuaFunction )
+			return (LuaFunction)obj;
+		throw new LuaException( "attempt to call a " + type(obj) + " value" );
 	}
 
 }

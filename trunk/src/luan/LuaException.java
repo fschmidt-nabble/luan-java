@@ -3,7 +3,7 @@ package luan;
 
 public class LuaException extends Exception {
 
-	LuaException(String msg) {
+	public LuaException(String msg) {
 		super(msg);
 	}
 
