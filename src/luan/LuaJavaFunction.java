@@ -17,7 +17,7 @@ public final class LuaJavaFunction extends LuaFunction {
 		argConverters = getArgConverters(method);
 	}
 
-	public Object[] call(Object... args) {
+	@Override public Object[] call(Object... args) {
 		args = fixArgs(args);
 		Object rtn;
 		try {
