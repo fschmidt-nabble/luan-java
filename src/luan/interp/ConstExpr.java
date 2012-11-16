@@ -1,5 +1,7 @@
 package luan.interp;
 
+import luan.LuaState;
+
 
 final class ConstExpr extends Expr {
 	private final Object obj;
@@ -8,7 +10,7 @@ final class ConstExpr extends Expr {
 		this.obj = obj;
 	}
 
-	@Override Object eval() {
+	@Override Object eval(LuaState lua) {
 		return obj;
 	}
 }

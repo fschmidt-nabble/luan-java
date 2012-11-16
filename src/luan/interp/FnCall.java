@@ -5,6 +5,7 @@ import java.util.List;
 import luan.Lua;
 import luan.LuaFunction;
 import luan.LuaException;
+import luan.LuaState;
 
 
 final class FnCall extends Values {
@@ -16,8 +17,8 @@ final class FnCall extends Values {
 		this.args = args;
 	}
 
-	List eval() throws LuaException {
-		LuaFunction fn = Lua.toFunction( fnExpr.eval() );
-		return Arrays.asList( fn.call( args.eval().toArray() ) );
+	List eval(LuaState lua) throws LuaException {
+		LuaFunction fn = Lua.checkFunction( fnExpr.eval(lua) );
+		return Arrays.asList( fn.call( args.eval(lua).toArray() ) );
 	}
 }

@@ -1,8 +1,9 @@
 package luan.interp;
 
+import luan.LuaState;
 import luan.LuaException;
 
 
 abstract class Expr {
-	abstract Object eval() throws LuaException;
+	abstract Object eval(LuaState lua) throws LuaException;
 }

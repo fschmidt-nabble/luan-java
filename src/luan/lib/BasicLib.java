@@ -23,7 +23,7 @@ public class BasicLib {
 		for( int i=0; i<args.length; i++ ) {
 			if( i > 0 )
 				System.out.print('\t');
-			System.out.print( Lua.toString(args[i]) );
+			System.out.print( Lua.checkString(args[i]) );
 		}
 		System.out.println();
 	}
