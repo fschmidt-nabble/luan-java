@@ -21,7 +21,11 @@ public class Lua {
 		return obj.toString();
 	}
 
-	public static LuaNumber toNumber(Object obj) throws LuaException {
+	public static String checkString(Object obj) {
+		return toString(obj);
+	}
+
+	public static LuaNumber toNumber(Object obj) {
 		if( obj instanceof LuaNumber )
 			return (LuaNumber)obj;
 		if( obj instanceof String ) {
@@ -30,10 +34,17 @@ public class Lua {
 				return new LuaNumber( Double.parseDouble(s) );
 			} catch(NumberFormatException e) {}
 		}
-		throw new LuaException( "attempt to perform arithmetic on a " + type(obj) + " value" );
+		return null;
 	}
 
-	public static LuaFunction toFunction(Object obj) throws LuaException {
+	public static LuaNumber checkNumber(Object obj) throws LuaException {
+		LuaNumber n = toNumber(obj);
+		if( n == null )
+			throw new LuaException( "attempt to perform arithmetic on a " + type(obj) + " value" );
+		return n;
+	}
+
+	public static LuaFunction checkFunction(Object obj) throws LuaException {
 		if( obj instanceof LuaFunction )
 			return (LuaFunction)obj;
 		throw new LuaException( "attempt to call a " + type(obj) + " value" );
