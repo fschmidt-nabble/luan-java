@@ -9,6 +9,7 @@ public class BasicLib {
 
 	public static void register(LuaTable t) {
 		add( t, "print", new Object[0].getClass() );
+		add( t, "type", Object.class );
 	}
 
 	private static void add(LuaTable t,String method,Class<?>... parameterTypes) {
@@ -26,6 +27,10 @@ public class BasicLib {
 			System.out.print( Lua.checkString(args[i]) );
 		}
 		System.out.println();
+	}
+
+	public static String type(Object obj) {
+		return Lua.type(obj);
 	}
 
 }
