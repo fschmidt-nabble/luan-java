@@ -6,9 +6,9 @@ import luan.LuaState;
 import luan.LuaTable;
 
 
-final class IndexExpr extends BinaryOpExpr {
+final class GetExpr extends BinaryOpExpr {
 
-	IndexExpr(Expr op1,Expr op2) {
+	GetExpr(Expr op1,Expr op2) {
 		super(op1,op2);
 	}
 
