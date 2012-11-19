@@ -8,66 +8,74 @@ import org.parboiled.parserunners.ReportingParseRunner;
 import org.parboiled.support.ParsingResult;
 import org.parboiled.errors.ErrorUtils;
 import luan.Lua;
+import luan.LuaNumber;
 import luan.LuaState;
 
 
 public class LuaParser extends BaseParser<Object> {
 
-	public Rule Target() {
+	Rule Target() {
 		return Sequence(ConstExpr(), EOI);
 	}
 
-	public Rule ConstExpr() {
+	Rule ConstExpr() {
 		return Sequence(
 			Const(),
 			push(new ConstExpr(pop()))
 		);
 	}
 
-	public Rule Const() {
+	Rule Const() {
 		return FirstOf(
 			NilConst(),
-			BinaryConst(),
-			NumberConst()
+			BooleanConst(),
+			NumberConst(),
+			StringConst()
 		);
 	}
 
-	public Rule NilConst() {
+	Rule NilConst() {
 		return Sequence(
 			String("nil"),
 			push(null)
 		);
 	}
 
-	public Rule BinaryConst() {
+	Rule BooleanConst() {
 		return FirstOf(
-			TrueConst(),
-			FalseConst()
+			Sequence(
+				String("true"),
+				push(true)
+			),
+			Sequence(
+				String("false"),
+				push(false)
+			)
 		);
 	}
 
-	public Rule TrueConst() {
-		return Sequence(
-			String("true"),
-			push(true)
-		);
-	}
-
-	public Rule FalseConst() {
-		return Sequence(
-			String("false"),
-			push(false)
-		);
-	}
-
-	public Rule NumberConst() {
+	Rule NumberConst() {
 		return Sequence(
 			Number(),
-			push(Double.parseDouble(match()))
+			push(new LuaNumber((Double)pop()))
 		);
 	}
 
-	public Rule Number() {
+	Rule Number() {
+		return FirstOf(
+			Sequence(
+				IgnoreCase("0x"),
+				OneOrMore(HexDigit()),
+				push((double)Long.parseLong(match(),16))
+			),
+			Sequence(
+				DecNumber(),
+				push(Double.parseDouble(match()))
+			)
+		);
+	}
+
+	Rule DecNumber() {
 		return FirstOf(
 			Sequence(
 				Int(),
@@ -85,7 +93,7 @@ public class LuaParser extends BaseParser<Object> {
 		);
 	}
 
-	public Rule NumberExp() {
+	Rule NumberExp() {
 		return Optional(
 			IgnoreCase('e'),
 			Optional(AnyOf("+-")),
@@ -93,19 +101,73 @@ public class LuaParser extends BaseParser<Object> {
 		);
 	}
 
-    Rule Int() {
-        return OneOrMore(Digit());
-    }
+	Rule Int() {
+		return OneOrMore(Digit());
+	}
 
-    Rule Digit() {
-        return CharRange('0', '9');
-    }
+	Rule HexDigit() {
+		return FirstOf(
+			Digit(),
+			AnyOf("abcdefABCDEF")
+		);
+	}
+
+	Rule Digit() {
+		return CharRange('0', '9');
+	}
+
+	Rule StringConst() {
+		return FirstOf(
+			QuotedString('"'),
+			QuotedString('\'')
+		);
+	}
+
+	Rule QuotedString(char quote) {
+		return Sequence(
+			Ch(quote),
+			push(new StringBuffer()),
+			ZeroOrMore(
+				FirstOf(
+					Sequence(
+						NoneOf("\\\n"+quote),
+						append(matchedChar())
+					),
+					EscSeq()
+				)
+			),
+			Ch(quote),
+			push(((StringBuffer)pop()).toString())
+		);
+	}
+
+	Rule EscSeq() {
+		return Sequence(
+			Ch('\\'),
+			FirstOf(
+				Sequence( Ch('b'), append('\b') ),
+				Sequence( Ch('f'), append('\f') ),
+				Sequence( Ch('n'), append('\n') ),
+				Sequence( Ch('r'), append('\r') ),
+				Sequence( Ch('t'), append('\t') ),
+				Sequence( Ch('\\'), append('\\') ),
+				Sequence( Ch('"'), append('"') ),
+				Sequence( Ch('\''), append('\'') )
+			)
+		);
+	}
+
+	boolean append(char ch) {
+		StringBuffer sb = (StringBuffer)peek();
+		sb.append(ch);
+		return true;
+	}
 
 	// for testing
 	public static void main(String[] args) throws Exception {
 		LuaParser parser = Parboiled.createParser(LuaParser.class);
 		while( true ) {
-            String input = new Scanner(System.in).nextLine();
+			String input = new Scanner(System.in).nextLine();
 			ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(input);
 			if( result.hasErrors() ) {
 				System.out.println("Parse Errors:\n" + ErrorUtils.printParseErrors(result));
