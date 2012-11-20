@@ -7,9 +7,9 @@ import luan.LuaException;
 import luan.LuaState;
 
 
-final class LengthExpr extends UnaryOpExpr {
+final class LenExpr extends UnaryOpExpr {
 
-	LengthExpr(Expr op) {
+	LenExpr(Expr op) {
 		super(op);
 	}
 
