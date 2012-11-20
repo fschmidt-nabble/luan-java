@@ -15,46 +15,108 @@ import luan.LuaState;
 public class LuaParser extends BaseParser<Object> {
 
 	Rule Target() {
-		return Sequence(ConstExpr(), EOI);
+		return Sequence(Spaces(), Expr(), EOI);
 	}
 
-	Rule ConstExpr() {
+	Rule Expr() {
+		return OrExpr();
+	}
+
+	Rule OrExpr() {
 		return Sequence(
-			Const(),
-			push(new ConstExpr(pop()))
+			AndExpr(),
+			ZeroOrMore( "or", Spaces(), AndExpr(), push( new OrExpr((Expr)pop(1),(Expr)pop()) ) )
 		);
 	}
 
-	Rule Const() {
-		return FirstOf(
-			NilConst(),
-			BooleanConst(),
-			NumberConst(),
-			StringConst()
-		);
-	}
-
-	Rule NilConst() {
+	Rule AndExpr() {
 		return Sequence(
-			String("nil"),
-			push(null)
+			RelExpr(),
+			ZeroOrMore( "and", Spaces(), RelExpr(), push( new AndExpr((Expr)pop(1),(Expr)pop()) ) )
 		);
 	}
 
-	Rule BooleanConst() {
-		return FirstOf(
-			Sequence(
-				String("true"),
-				push(true)
-			),
-			Sequence(
-				String("false"),
-				push(false)
+	Rule RelExpr() {
+		return Sequence(
+			SumExpr(),
+			ZeroOrMore(
+				FirstOf(
+					Sequence( "==", Spaces(), SumExpr(), push( new EqExpr((Expr)pop(1),(Expr)pop()) ) ),
+					Sequence( "~=", Spaces(), SumExpr(), push( new NotExpr(new EqExpr((Expr)pop(1),(Expr)pop())) ) )
+				)
 			)
 		);
 	}
 
-	Rule NumberConst() {
+	Rule SumExpr() {
+		return Sequence(
+			TermExpr(),
+			ZeroOrMore(
+				FirstOf(
+					Sequence( '+', Spaces(), TermExpr(), push( new AddExpr((Expr)pop(1),(Expr)pop()) ) ),
+					Sequence( '-', Spaces(), TermExpr(), push( new SubExpr((Expr)pop(1),(Expr)pop()) ) )
+				)
+			)
+		);
+	}
+
+	Rule TermExpr() {
+		return Sequence(
+			UnaryExpr(),
+			ZeroOrMore(
+				FirstOf(
+					Sequence( '*', Spaces(), UnaryExpr(), push( new MulExpr((Expr)pop(1),(Expr)pop()) ) ),
+					Sequence( '/', Spaces(), UnaryExpr(), push( new DivExpr((Expr)pop(1),(Expr)pop()) ) ),
+					Sequence( '%', Spaces(), UnaryExpr(), push( new ModExpr((Expr)pop(1),(Expr)pop()) ) )
+				)
+			)
+		);
+	}
+
+	Rule UnaryExpr() {
+		return FirstOf(
+			Sequence( '#', Spaces(), SingleExpr(), push( new LenExpr((Expr)pop()) ) ),
+			Sequence( '-', Spaces(), SingleExpr(), push( new UnmExpr((Expr)pop()) ) ),
+			Sequence( "not", Spaces(), SingleExpr(), push( new NotExpr((Expr)pop()) ) ),
+			SingleExpr()
+		);
+	}
+
+	Rule SingleExpr() {
+		return FirstOf(
+			Sequence( '(', Spaces(), Expr(), ')', Spaces() ),
+			LiteralExpr()
+		);
+	}
+
+	Rule LiteralExpr() {
+		return Sequence(
+			Literal(), Spaces(),
+			push(new ConstExpr(pop()))
+		);
+	}
+
+	Rule Literal() {
+		return FirstOf(
+			NilLiteral(),
+			BooleanLiteral(),
+			NumberLiteral(),
+			StringLiteral()
+		);
+	}
+
+	Rule NilLiteral() {
+		return Sequence( "nil", push(null) );
+	}
+
+	Rule BooleanLiteral() {
+		return FirstOf(
+			Sequence( "true", push(true) ),
+			Sequence( "false", push(false) )
+		);
+	}
+
+	Rule NumberLiteral() {
 		return Sequence(
 			Number(),
 			push(new LuaNumber((Double)pop()))
@@ -79,17 +141,10 @@ public class LuaParser extends BaseParser<Object> {
 		return FirstOf(
 			Sequence(
 				Int(),
-				Optional(
-					Ch('.'),
-					Optional(Int())
-				),
+				Optional( '.', Optional(Int()) ),
 				NumberExp()
 			),
-			Sequence(
-				Ch('.'),
-				Int(),
-				NumberExp()
-			)
+			Sequence( '.', Int(), NumberExp() )
 		);
 	}
 
@@ -116,7 +171,7 @@ public class LuaParser extends BaseParser<Object> {
 		return CharRange('0', '9');
 	}
 
-	Rule StringConst() {
+	Rule StringLiteral() {
 		return FirstOf(
 			QuotedString('"'),
 			QuotedString('\'')
@@ -125,7 +180,7 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule QuotedString(char quote) {
 		return Sequence(
-			Ch(quote),
+			quote,
 			push(new StringBuffer()),
 			ZeroOrMore(
 				FirstOf(
@@ -136,23 +191,42 @@ public class LuaParser extends BaseParser<Object> {
 					EscSeq()
 				)
 			),
-			Ch(quote),
+			quote,
 			push(((StringBuffer)pop()).toString())
 		);
 	}
 
 	Rule EscSeq() {
 		return Sequence(
-			Ch('\\'),
+			'\\',
 			FirstOf(
-				Sequence( Ch('b'), append('\b') ),
-				Sequence( Ch('f'), append('\f') ),
-				Sequence( Ch('n'), append('\n') ),
-				Sequence( Ch('r'), append('\r') ),
-				Sequence( Ch('t'), append('\t') ),
-				Sequence( Ch('\\'), append('\\') ),
-				Sequence( Ch('"'), append('"') ),
-				Sequence( Ch('\''), append('\'') )
+				Sequence( 'a', append('\u0007') ),
+				Sequence( 'b', append('\b') ),
+				Sequence( 'f', append('\f') ),
+				Sequence( 'n', append('\n') ),
+				Sequence( 'r', append('\r') ),
+				Sequence( 't', append('\t') ),
+				Sequence( 'v', append('\u000b') ),
+				Sequence( '\\', append('\\') ),
+				Sequence( '"', append('"') ),
+				Sequence( '\'', append('\'') ),
+				Sequence(
+					'x',
+					Sequence( HexDigit(), HexDigit() ),
+					append( (char)Integer.parseInt(match(),16) )
+				),
+				Sequence(
+					Sequence(
+						Digit(),
+						Optional(
+							Digit(),
+							Optional(
+								Digit()
+							)
+						)
+					),
+					append( (char)Integer.parseInt(match()) )
+				)
 			)
 		);
 	}
@@ -161,6 +235,10 @@ public class LuaParser extends BaseParser<Object> {
 		StringBuffer sb = (StringBuffer)peek();
 		sb.append(ch);
 		return true;
+	}
+
+	public Rule Spaces() {
+		return ZeroOrMore(AnyOf(" \t"));
 	}
 
 	// for testing

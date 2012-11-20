@@ -15,6 +15,10 @@ public class Lua {
 		return "userdata";
 	}
 
+	public static boolean toBoolean(Object obj) {
+		return obj != null && !Boolean.FALSE.equals(obj);
+	}
+
 	public static String toString(Object obj) {
 		if( obj == null )
 			return "nil";
