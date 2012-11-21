@@ -1,5 +1,7 @@
 package luan.interp;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Scanner;
 import org.parboiled.BaseParser;
 import org.parboiled.Parboiled;
@@ -102,8 +104,119 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule SingleExpr() {
 		return FirstOf(
-			Sequence( '(', Spaces(), Expr(), ')', Spaces() ),
+			TableExpr(),
+			PrefixExpr(),
 			LiteralExpr()
+		);
+	}
+
+	Rule TableExpr() {
+		return Sequence(
+			'{', Spaces(),
+			push( new ArrayList<TableExpr.Field>() ),
+			push( 1.0 ),  // counter
+			Optional(
+				Field(),
+				ZeroOrMore(
+					FieldSep(),
+					Field()
+				),
+				Optional( FieldSep() )
+			),
+			'}', Spaces(),
+			push( newTableExpr() )
+		);
+	}
+
+	TableExpr newTableExpr() {
+		pop();  // counter
+		@SuppressWarnings("unchecked")
+		List<TableExpr.Field> list = (List<TableExpr.Field>)pop();
+		return new TableExpr(list.toArray(new TableExpr.Field[0]));
+	}
+
+	Rule FieldSep() {
+		return Sequence( AnyOf(",;"), Spaces() );
+	}
+
+	Rule Field() {
+		return FirstOf(
+			Sequence(
+				FirstOf( SubExpr(), Name() ),
+				'=', Spaces(), Expr(),
+				addField()
+			),
+			Sequence(
+				Expr(),
+				addIndexedField()
+			)
+		);
+	}
+
+	boolean addField() {
+		TableExpr.Field field = new TableExpr.Field( (Expr)pop(1), (Expr)pop() );
+		@SuppressWarnings("unchecked")
+		List<TableExpr.Field> list = (List<TableExpr.Field>)peek(1);
+		list.add(field);
+		return true;
+	}
+
+	boolean addIndexedField() {
+		Expr val = (Expr)pop();
+		double i = (Double)pop();
+		TableExpr.Field field = new TableExpr.Field( new ConstExpr(new LuaNumber(i)), val );
+		push( i + 1 );
+		@SuppressWarnings("unchecked")
+		List<TableExpr.Field> list = (List<TableExpr.Field>)peek(1);
+		list.add(field);
+		return true;
+	}
+
+	Rule PrefixExpr() {
+		return Sequence(
+			FirstOf(
+				Sequence( '(', Spaces(), Expr(), ')', Spaces() ),
+				Var()
+			),
+			ZeroOrMore(
+				FirstOf(
+					SubExpr(),
+					Sequence( '.', Spaces(), Name() )
+				),
+				push( new GetExpr( (Expr)pop(1), (Expr)pop() ) )
+			)
+		);
+	}
+
+	Rule SubExpr() {
+		return Sequence( '[', Spaces(), Expr(), ']', Spaces() );
+	}
+
+	Rule Var() {
+		return Sequence(
+			Name(),
+			push( new GetExpr( EnvExpr.INSTANCE, (Expr)pop() ) )
+		);
+	}
+
+	Rule Name() {
+		return Sequence(
+			Sequence(
+				NameStart(),
+				ZeroOrMore(
+					FirstOf( NameStart(), Digit() )
+				)
+			),
+			push( new ConstExpr(match()) ),
+			Spaces()
+		);
+	}
+
+	Rule NameStart() {
+		return FirstOf(
+			CharRange('a', 'z'),
+			CharRange('A', 'Z'),
+			'_'
 		);
 	}
 
