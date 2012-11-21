@@ -38,13 +38,24 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule RelExpr() {
 		return Sequence(
-			SumExpr(),
+			ConcatExpr(),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( "==", Spaces(), SumExpr(), push( new EqExpr((Expr)pop(1),(Expr)pop()) ) ),
-					Sequence( "~=", Spaces(), SumExpr(), push( new NotExpr(new EqExpr((Expr)pop(1),(Expr)pop())) ) )
+					Sequence( "==", Spaces(), ConcatExpr(), push( new EqExpr((Expr)pop(1),(Expr)pop()) ) ),
+					Sequence( "~=", Spaces(), ConcatExpr(), push( new NotExpr(new EqExpr((Expr)pop(1),(Expr)pop())) ) ),
+					Sequence( "<=", Spaces(), ConcatExpr(), push( new LeExpr((Expr)pop(1),(Expr)pop()) ) ),
+					Sequence( ">=", Spaces(), ConcatExpr(), push( new LeExpr((Expr)pop(),(Expr)pop()) ) ),
+					Sequence( "<", Spaces(), ConcatExpr(), push( new LtExpr((Expr)pop(1),(Expr)pop()) ) ),
+					Sequence( ">", Spaces(), ConcatExpr(), push( new LtExpr((Expr)pop(),(Expr)pop()) ) )
 				)
 			)
+		);
+	}
+
+	Rule ConcatExpr() {
+		return Sequence(
+			SumExpr(),
+			Optional( "..", Spaces(), ConcatExpr(), push( new ConcatExpr((Expr)pop(1),(Expr)pop()) ) )
 		);
 	}
 
@@ -75,10 +86,17 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule UnaryExpr() {
 		return FirstOf(
-			Sequence( '#', Spaces(), SingleExpr(), push( new LenExpr((Expr)pop()) ) ),
-			Sequence( '-', Spaces(), SingleExpr(), push( new UnmExpr((Expr)pop()) ) ),
-			Sequence( "not", Spaces(), SingleExpr(), push( new NotExpr((Expr)pop()) ) ),
-			SingleExpr()
+			Sequence( '#', Spaces(), PowExpr(), push( new LenExpr((Expr)pop()) ) ),
+			Sequence( '-', Spaces(), PowExpr(), push( new UnmExpr((Expr)pop()) ) ),
+			Sequence( "not", Spaces(), PowExpr(), push( new NotExpr((Expr)pop()) ) ),
+			PowExpr()
+		);
+	}
+
+	Rule PowExpr() {
+		return Sequence(
+			SingleExpr(),
+			Optional( '^', Spaces(), PowExpr(), push( new PowExpr((Expr)pop(1),(Expr)pop()) ) )
 		);
 	}
 

@@ -1,7 +1,7 @@
 package luan;
 
 
-public final class LuaNumber {
+public final class LuaNumber implements Comparable<LuaNumber> {
 	final double n;
 
 	public LuaNumber(double n) {
@@ -37,6 +37,10 @@ public final class LuaNumber {
 
 	@Override public int hashCode() {
 		return Double.valueOf(n).hashCode();
+	}
+
+	@Override public int compareTo(LuaNumber ln) {
+		return Double.compare(n,ln.n);
 	}
 
 }
