@@ -7,7 +7,7 @@ import luan.LuaException;
 import luan.LuaTable;
 
 
-final class SetStmt extends Stmt {
+final class SetStmt implements Stmt {
 
 	static class Var {
 		final Expr table;
@@ -20,15 +20,15 @@ final class SetStmt extends Stmt {
 	}
 
 	private final Var[] vars;
-	private final Values values;
+	private final Expressions expressions;
 
-	SetStmt(Var[] vars,Values values) {
+	SetStmt(Var[] vars,Expressions expressions) {
 		this.vars = vars;
-		this.values = values;
+		this.expressions = expressions;
 	}
 
-	@Override void eval(LuaState lua) throws LuaException {
-		List vals = values.eval(lua);
+	@Override public void eval(LuaState lua) throws LuaException {
+		List vals = expressions.eval(lua);
 		int n = vals.size();
 		for( int i=0; i<vars.length; i++ ) {
 			Var var = vars[i];

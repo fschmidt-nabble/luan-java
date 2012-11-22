@@ -7,7 +7,7 @@ import luan.LuaException;
 import luan.LuaState;
 
 
-final class ExpList extends Values {
+final class ExpList implements Expressions {
 
 	private interface Adder {
 		public void addTo(LuaState lua,List<Object> list) throws LuaException;
@@ -26,15 +26,15 @@ final class ExpList extends Values {
 
 	}
 
-	private static class ValuesAdder implements Adder {
-		private final Values values;
+	private static class ExpressionsAdder implements Adder {
+		private final Expressions expressions;
 
-		ValuesAdder(Values values) {
-			this.values = values;
+		ExpressionsAdder(Expressions expressions) {
+			this.expressions = expressions;
 		}
 
 		public void addTo(LuaState lua,List<Object> list) throws LuaException {
-			for( Object val : values.eval(lua) ) {
+			for( Object val : expressions.eval(lua) ) {
 				list.add( val );
 			}
 		}
@@ -48,18 +48,18 @@ final class ExpList extends Values {
 			adders.add( new ExprAdder(expr) );
 		}
 
-		void add(Values values) {
-			adders.add( new ValuesAdder(values) );
+		void add(Expressions expressions) {
+			adders.add( new ExpressionsAdder(expressions) );
 		}
 
-		Values build() {
+		Expressions build() {
 			if( adders.isEmpty() )
 				return emptyExpList;
 			if( adders.size() == 1 ) {
 				Adder adder = adders.get(0);
-				if( adder instanceof ValuesAdder ) {
-					ValuesAdder va = (ValuesAdder)adder;
-					return va.values;
+				if( adder instanceof ExpressionsAdder ) {
+					ExpressionsAdder ea = (ExpressionsAdder)adder;
+					return ea.expressions;
 				}
 				ExprAdder ea = (ExprAdder)adder;
 				return new SingleExpList(ea.expr);
@@ -68,20 +68,20 @@ final class ExpList extends Values {
 		}
 	}
 
-	private static final Values emptyExpList = new Values() {
-		List eval(LuaState lua) {
+	static final Expressions emptyExpList = new Expressions() {
+		@Override public List eval(LuaState lua) {
 			return Collections.emptyList();
 		}
 	};
 
-	private static class SingleExpList extends Values {
+	static class SingleExpList implements Expressions {
 		private final Expr expr;
 
 		SingleExpList(Expr expr) {
 			this.expr = expr;
 		}
 
-		List eval(LuaState lua) throws LuaException {
+		@Override public List eval(LuaState lua) throws LuaException {
 			return Collections.singletonList( expr.eval(lua) );
 		}
 	}
@@ -92,7 +92,7 @@ final class ExpList extends Values {
 		this.adders = adders;
 	}
 
-	List eval(LuaState lua) throws LuaException {
+	@Override public List eval(LuaState lua) throws LuaException {
 		List<Object> list = new ArrayList<Object>();
 		for( Adder adder : adders ) {
 			adder.addTo(lua,list);

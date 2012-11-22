@@ -8,16 +8,16 @@ import luan.LuaException;
 import luan.LuaState;
 
 
-final class FnCall extends Values {
+final class FnCall implements Expressions {
 	private final Expr fnExpr;
-	private final Values args;
+	private final Expressions args;
 
-	FnCall(Expr fnExpr,Values args) {
+	FnCall(Expr fnExpr,Expressions args) {
 		this.fnExpr = fnExpr;
 		this.args = args;
 	}
 
-	List eval(LuaState lua) throws LuaException {
+	@Override public List eval(LuaState lua) throws LuaException {
 		LuaFunction fn = Lua.checkFunction( fnExpr.eval(lua) );
 		return Arrays.asList( fn.call( args.eval(lua).toArray() ) );
 	}

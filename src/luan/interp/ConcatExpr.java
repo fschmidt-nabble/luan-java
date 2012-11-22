@@ -12,7 +12,7 @@ final class ConcatExpr extends BinaryOpExpr {
 		super(op1,op2);
 	}
 
-	@Override Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaState lua) throws LuaException {
 		return toString(op1.eval(lua)) + toString(op2.eval(lua));
 	}
 

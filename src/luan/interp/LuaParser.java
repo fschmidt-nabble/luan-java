@@ -16,8 +16,58 @@ import luan.LuaState;
 
 public class LuaParser extends BaseParser<Object> {
 
-	Rule Target() {
-		return Sequence(Spaces(), Expr(), EOI);
+	public Rule Target() {
+		return Sequence(
+			Spaces(),
+			FirstOf(
+				Sequence( Expressions(), EOI ),
+				Sequence( Stmt(), EOI )
+			)
+		);
+	}
+
+	Rule Stmt() {
+		return SetStmt();
+	}
+
+	Rule SetStmt() {
+		return Sequence(
+			VarList(),
+			'=', Spaces(),
+			ExpList(),
+			push( newSetStmt() )
+		);
+	}
+
+	SetStmt newSetStmt() {
+		Expressions values = (Expressions)pop();
+		@SuppressWarnings("unchecked")
+		List<SetStmt.Var> vars = (List<SetStmt.Var>)pop();
+		return new SetStmt( vars.toArray(new SetStmt.Var[0]), values );
+	}
+
+	Rule VarList() {
+		return Sequence(
+			push(new ArrayList<SetStmt.Var>()),
+			Var(),
+			addToVarList(),
+			ZeroOrMore(
+				',', Spaces(), Var(),
+				addToVarList()
+			)
+		);
+	}
+
+	boolean addToVarList() {
+		Object obj = pop();
+		if( obj==null )
+			return false;
+		Expr key = expr(obj);
+		Expr table = expr(pop());
+		@SuppressWarnings("unchecked")
+		List<SetStmt.Var> vars = (List<SetStmt.Var>)peek();
+		vars.add( new SetStmt.Var(table,key) );
+		return true;
 	}
 
 	Rule Expr() {
@@ -27,14 +77,14 @@ public class LuaParser extends BaseParser<Object> {
 	Rule OrExpr() {
 		return Sequence(
 			AndExpr(),
-			ZeroOrMore( "or", Spaces(), AndExpr(), push( new OrExpr((Expr)pop(1),(Expr)pop()) ) )
+			ZeroOrMore( "or", Spaces(), AndExpr(), push( new OrExpr(expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
 	Rule AndExpr() {
 		return Sequence(
 			RelExpr(),
-			ZeroOrMore( "and", Spaces(), RelExpr(), push( new AndExpr((Expr)pop(1),(Expr)pop()) ) )
+			ZeroOrMore( "and", Spaces(), RelExpr(), push( new AndExpr(expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
@@ -43,12 +93,12 @@ public class LuaParser extends BaseParser<Object> {
 			ConcatExpr(),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( "==", Spaces(), ConcatExpr(), push( new EqExpr((Expr)pop(1),(Expr)pop()) ) ),
-					Sequence( "~=", Spaces(), ConcatExpr(), push( new NotExpr(new EqExpr((Expr)pop(1),(Expr)pop())) ) ),
-					Sequence( "<=", Spaces(), ConcatExpr(), push( new LeExpr((Expr)pop(1),(Expr)pop()) ) ),
-					Sequence( ">=", Spaces(), ConcatExpr(), push( new LeExpr((Expr)pop(),(Expr)pop()) ) ),
-					Sequence( "<", Spaces(), ConcatExpr(), push( new LtExpr((Expr)pop(1),(Expr)pop()) ) ),
-					Sequence( ">", Spaces(), ConcatExpr(), push( new LtExpr((Expr)pop(),(Expr)pop()) ) )
+					Sequence( "==", Spaces(), ConcatExpr(), push( new EqExpr(expr(pop(1)),expr(pop())) ) ),
+					Sequence( "~=", Spaces(), ConcatExpr(), push( new NotExpr(new EqExpr(expr(pop(1)),expr(pop()))) ) ),
+					Sequence( "<=", Spaces(), ConcatExpr(), push( new LeExpr(expr(pop(1)),expr(pop())) ) ),
+					Sequence( ">=", Spaces(), ConcatExpr(), push( new LeExpr(expr(pop()),expr(pop())) ) ),
+					Sequence( "<", Spaces(), ConcatExpr(), push( new LtExpr(expr(pop(1)),expr(pop())) ) ),
+					Sequence( ">", Spaces(), ConcatExpr(), push( new LtExpr(expr(pop()),expr(pop())) ) )
 				)
 			)
 		);
@@ -57,7 +107,7 @@ public class LuaParser extends BaseParser<Object> {
 	Rule ConcatExpr() {
 		return Sequence(
 			SumExpr(),
-			Optional( "..", Spaces(), ConcatExpr(), push( new ConcatExpr((Expr)pop(1),(Expr)pop()) ) )
+			Optional( "..", Spaces(), ConcatExpr(), push( new ConcatExpr(expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
@@ -66,8 +116,8 @@ public class LuaParser extends BaseParser<Object> {
 			TermExpr(),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( '+', Spaces(), TermExpr(), push( new AddExpr((Expr)pop(1),(Expr)pop()) ) ),
-					Sequence( '-', Spaces(), TermExpr(), push( new SubExpr((Expr)pop(1),(Expr)pop()) ) )
+					Sequence( '+', Spaces(), TermExpr(), push( new AddExpr(expr(pop(1)),expr(pop())) ) ),
+					Sequence( '-', Spaces(), TermExpr(), push( new SubExpr(expr(pop(1)),expr(pop())) ) )
 				)
 			)
 		);
@@ -78,9 +128,9 @@ public class LuaParser extends BaseParser<Object> {
 			UnaryExpr(),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( '*', Spaces(), UnaryExpr(), push( new MulExpr((Expr)pop(1),(Expr)pop()) ) ),
-					Sequence( '/', Spaces(), UnaryExpr(), push( new DivExpr((Expr)pop(1),(Expr)pop()) ) ),
-					Sequence( '%', Spaces(), UnaryExpr(), push( new ModExpr((Expr)pop(1),(Expr)pop()) ) )
+					Sequence( '*', Spaces(), UnaryExpr(), push( new MulExpr(expr(pop(1)),expr(pop())) ) ),
+					Sequence( '/', Spaces(), UnaryExpr(), push( new DivExpr(expr(pop(1)),expr(pop())) ) ),
+					Sequence( '%', Spaces(), UnaryExpr(), push( new ModExpr(expr(pop(1)),expr(pop())) ) )
 				)
 			)
 		);
@@ -88,9 +138,9 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule UnaryExpr() {
 		return FirstOf(
-			Sequence( '#', Spaces(), PowExpr(), push( new LenExpr((Expr)pop()) ) ),
-			Sequence( '-', Spaces(), PowExpr(), push( new UnmExpr((Expr)pop()) ) ),
-			Sequence( "not", Spaces(), PowExpr(), push( new NotExpr((Expr)pop()) ) ),
+			Sequence( '#', Spaces(), PowExpr(), push( new LenExpr(expr(pop())) ) ),
+			Sequence( '-', Spaces(), PowExpr(), push( new UnmExpr(expr(pop())) ) ),
+			Sequence( "not", Spaces(), PowExpr(), push( new NotExpr(expr(pop())) ) ),
 			PowExpr()
 		);
 	}
@@ -98,14 +148,14 @@ public class LuaParser extends BaseParser<Object> {
 	Rule PowExpr() {
 		return Sequence(
 			SingleExpr(),
-			Optional( '^', Spaces(), PowExpr(), push( new PowExpr((Expr)pop(1),(Expr)pop()) ) )
+			Optional( '^', Spaces(), PowExpr(), push( new PowExpr(expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
 	Rule SingleExpr() {
 		return FirstOf(
 			TableExpr(),
-			PrefixExpr(),
+			VarExp(),
 			LiteralExpr()
 		);
 	}
@@ -154,7 +204,7 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	boolean addField() {
-		TableExpr.Field field = new TableExpr.Field( (Expr)pop(1), (Expr)pop() );
+		TableExpr.Field field = new TableExpr.Field( expr(pop(1)), expr(pop()) );
 		@SuppressWarnings("unchecked")
 		List<TableExpr.Field> list = (List<TableExpr.Field>)peek(1);
 		list.add(field);
@@ -162,7 +212,7 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	boolean addIndexedField() {
-		Expr val = (Expr)pop();
+		Expr val = expr(pop());
 		double i = (Double)pop();
 		TableExpr.Field field = new TableExpr.Field( new ConstExpr(new LuaNumber(i)), val );
 		push( i + 1 );
@@ -172,31 +222,106 @@ public class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
-	Rule PrefixExpr() {
-		return Sequence(
-			FirstOf(
-				Sequence( '(', Spaces(), Expr(), ')', Spaces() ),
-				Var()
-			),
-			ZeroOrMore(
-				FirstOf(
-					SubExpr(),
-					Sequence( '.', Spaces(), Name() )
-				),
-				push( new GetExpr( (Expr)pop(1), (Expr)pop() ) )
-			)
-		);
+	static Expr expr(Object obj) {
+		if( obj instanceof Expressions )
+			return new ExpressionsExpr((Expressions)obj);
+		return (Expr)obj;
 	}
 
-	Rule SubExpr() {
-		return Sequence( '[', Spaces(), Expr(), ']', Spaces() );
+	Rule VarExp() {
+		return Sequence(
+			Var(),
+			makeVarExp()
+		);
 	}
 
 	Rule Var() {
 		return Sequence(
-			Name(),
-			push( new GetExpr( EnvExpr.INSTANCE, (Expr)pop() ) )
+			FirstOf(
+				Sequence(
+					'(', Spaces(), Expr(), ')', Spaces(),
+					push(expr(pop())),
+					push(null)  // marker
+				),
+				Sequence(
+					push(EnvExpr.INSTANCE),
+					Name()
+				)
+			),
+			ZeroOrMore(
+				makeVarExp(),
+				FirstOf(
+					SubExpr(),
+					Sequence( '.', Spaces(), Name() ),
+					Sequence(
+						Args(),
+						push(null)  // marker
+					)
+				)
+			)
 		);
+	}
+
+	boolean makeVarExp() {
+		Object obj = pop();
+		if( obj==null )
+			return true;
+		return push( new GetExpr( expr(pop()), expr(obj) ) );
+	}
+
+	// function should be on top of the stack
+	Rule Args() {
+		return Sequence(
+			FirstOf(
+				Sequence(
+					'(', Spaces(), Expressions(), ')', Spaces()
+				),
+				Sequence(
+					TableExpr(),
+					push( new ExpList.SingleExpList(expr(pop())) )
+				),
+				Sequence(
+					StringLiteral(), Spaces(),
+					push( new ExpList.SingleExpList(new ConstExpr(pop())) )
+				)
+			),
+			push( new FnCall( expr(pop(1)), (Expressions)pop() ) )
+		);
+	}
+
+	Rule Expressions() {
+		return FirstOf(
+			ExpList(),
+			push( ExpList.emptyExpList )
+		);
+	}
+
+	Rule ExpList() {
+		return Sequence(
+			push(new ExpList.Builder()),
+			Expr(),
+			addToExpList(),
+			ZeroOrMore(
+				',', Spaces(), Expr(),
+				addToExpList()
+			),
+			push( ((ExpList.Builder)pop()).build() )
+		);
+	}
+
+	boolean addToExpList() {
+		Object obj = pop();
+		ExpList.Builder bld = (ExpList.Builder)peek();
+		if( obj instanceof Expressions ) {
+			bld.add( (Expressions)obj );
+		} else {
+			bld.add( (Expr)obj );
+		}
+		return true;
+	}
+
+	Rule SubExpr() {
+		return Sequence( '[', Spaces(), Expr(), ']', Spaces() );
 	}
 
 	Rule Name() {
@@ -273,13 +398,13 @@ public class LuaParser extends BaseParser<Object> {
 			Sequence(
 				Int(),
 				Optional( '.', Optional(Int()) ),
-				NumberExp()
+				Exponent()
 			),
-			Sequence( '.', Int(), NumberExp() )
+			Sequence( '.', Int(), Exponent() )
 		);
 	}
 
-	Rule NumberExp() {
+	Rule Exponent() {
 		return Optional(
 			IgnoreCase('e'),
 			Optional(AnyOf("+-")),
@@ -381,7 +506,7 @@ public class LuaParser extends BaseParser<Object> {
 			if( result.hasErrors() ) {
 				System.out.println("Parse Errors:\n" + ErrorUtils.printParseErrors(result));
 			} else {
-				Expr expr = (Expr)result.resultValue;
+				Expr expr = expr(result.resultValue);
 				LuaState lua = new LuaState();
 				Object val = expr.eval(lua);
 				System.out.println("Result: "+Lua.toString(val));

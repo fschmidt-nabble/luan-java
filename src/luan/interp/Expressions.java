@@ -5,6 +5,6 @@ import luan.LuaException;
 import luan.LuaState;
 
 
-abstract class Values {
-	abstract List eval(LuaState lua) throws LuaException;
+public interface Expressions {
+	public List eval(LuaState lua) throws LuaException;
 }

@@ -1,7 +1,7 @@
 package luan.interp;
 
 
-abstract class BinaryOpExpr extends Expr {
+abstract class BinaryOpExpr implements Expr {
 	final Expr op1;
 	final Expr op2;
 
