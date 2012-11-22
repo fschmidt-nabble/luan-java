@@ -11,7 +11,7 @@ final class NotExpr extends UnaryOpExpr {
 		super(op);
 	}
 
-	@Override Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaState lua) throws LuaException {
 		return !Lua.toBoolean(op.eval(lua));
 	}
 }

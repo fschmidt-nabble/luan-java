@@ -11,7 +11,7 @@ final class OrExpr extends BinaryOpExpr {
 		super(op1,op2);
 	}
 
-	@Override Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaState lua) throws LuaException {
 		Object v1 = op1.eval(lua);
 		return Lua.toBoolean(v1) ? v1 : op2.eval(lua);
 	}

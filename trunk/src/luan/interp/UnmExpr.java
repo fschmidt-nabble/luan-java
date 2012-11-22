@@ -13,7 +13,7 @@ final class UnmExpr extends UnaryOpExpr {
 		super(op);
 	}
 
-	@Override Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaState lua) throws LuaException {
 		double n = Lua.checkNumber(op.eval(lua)).value();
 		return new LuaNumber( -n );
 	}

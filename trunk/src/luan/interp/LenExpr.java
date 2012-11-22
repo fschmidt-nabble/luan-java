@@ -13,7 +13,7 @@ final class LenExpr extends UnaryOpExpr {
 		super(op);
 	}
 
-	@Override Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaState lua) throws LuaException {
 		return new LuaNumber( length(op.eval(lua)) );
 	}
 

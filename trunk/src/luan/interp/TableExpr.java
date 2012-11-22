@@ -5,7 +5,7 @@ import luan.LuaState;
 import luan.LuaTable;
 
 
-final class TableExpr extends Expr {
+final class TableExpr implements Expr {
 
 	static class Field {
 		final Expr key;
@@ -23,7 +23,7 @@ final class TableExpr extends Expr {
 		this.fields = fields;
 	}
 
-	@Override Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaState lua) throws LuaException {
 		LuaTable table = new LuaTable();
 		for( Field field : fields ) {
 			table.set( field.key.eval(lua), field.value.eval(lua) );

@@ -12,7 +12,7 @@ final class LeExpr extends BinaryOpExpr {
 		super(op1,op2);
 	}
 
-	@Override Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaState lua) throws LuaException {
 		Object v1 = op1.eval(lua);
 		Object v2 = op2.eval(lua);
 		if( v1 instanceof LuaNumber && v2 instanceof LuaNumber ) {
