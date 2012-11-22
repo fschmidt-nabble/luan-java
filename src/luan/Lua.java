@@ -25,8 +25,17 @@ public class Lua {
 		return obj.toString();
 	}
 
-	public static String checkString(Object obj) {
-		return toString(obj);
+	public static String asString(Object obj) {
+		if( obj instanceof String || obj instanceof LuaNumber )
+			return obj.toString();
+		return null;
+	}
+
+	public static String checkString(Object obj) throws LuaException {
+		String s = asString(obj);
+		if( s == null )
+			throw new LuaException( "attempt to use a " + Lua.type(obj) + " as a string" );
+		return s;
 	}
 
 	public static LuaNumber toNumber(Object obj) {
