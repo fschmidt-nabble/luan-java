@@ -1,5 +1,8 @@
 package luan.interp;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -20,14 +23,64 @@ public class LuaParser extends BaseParser<Object> {
 		return Sequence(
 			Spaces(),
 			FirstOf(
-				Sequence( Expressions(), EOI ),
-				Sequence( Stmt(), EOI )
+				Sequence( ExpList(), EOI ),
+				Sequence( Chunk(), EOI )
 			)
 		);
 	}
 
+	Rule Chunk() {
+		return Sequence(
+			push(new ArrayList<Stmt>()),
+			Optional( Stmt() ),
+			ZeroOrMore(
+				StmtSep(),
+				Optional( Stmt() )
+			),
+			push( newChunk() )
+		);
+	}
+
+	boolean addStmt() {
+		Stmt stmt = (Stmt)pop();
+		@SuppressWarnings("unchecked")
+		List<Stmt> stmts = (List<Stmt>)peek();
+		stmts.add(stmt);
+		return true;
+	}
+
+	Stmt newChunk() {
+		@SuppressWarnings("unchecked")
+		List<Stmt> stmts = (List<Stmt>)peek();
+		switch( stmts.size() ) {
+		case 0:
+			return Stmt.EMPTY;
+		case 1:
+			return stmts.get(0);
+		default:
+			return new Block(stmts.toArray(new Stmt[0]));
+		}
+	}
+
+	Rule StmtSep() {
+		return Sequence( OneOrMore(AnyOf(";\r\n")), Spaces() );
+	}
+
 	Rule Stmt() {
-		return SetStmt();
+		return Sequence(
+			FirstOf(
+				SetStmt(),
+				ExpressionsStmt()
+			),
+			addStmt()
+		);
+	}
+
+	Rule ExpressionsStmt() {
+		return Sequence(
+			ExpList(),
+			push( new ExpressionsStmt((Expressions)pop()) )
+		);
 	}
 
 	Rule SetStmt() {
@@ -332,7 +385,7 @@ public class LuaParser extends BaseParser<Object> {
 					FirstOf( NameStart(), Digit() )
 				)
 			),
-			push( new ConstExpr(match()) ),
+			pushNameExpr(),
 			Spaces()
 		);
 	}
@@ -344,6 +397,38 @@ public class LuaParser extends BaseParser<Object> {
 			'_'
 		);
 	}
+
+	boolean pushNameExpr() {
+		String name = match();
+		if( keywords.contains(name) )
+			return false;
+		return push( new ConstExpr(name) );
+	}
+
+	private static final Set<String> keywords = new HashSet<String>(Arrays.asList(
+		"and",
+		"break",
+		"do",
+		"else",
+		"elseif",
+		"end",
+		"false",
+		"for",
+		"function",
+		"goto",
+		"if",
+		"in",
+		"local",
+		"nil",
+		"not",
+		"or",
+		"repeat",
+		"return",
+		"then",
+		"true",
+		"until",
+		"while"
+	));
 
 	Rule LiteralExpr() {
 		return Sequence(
@@ -493,8 +578,14 @@ public class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
-	public Rule Spaces() {
+	Rule Spaces() {
 		return ZeroOrMore(AnyOf(" \t"));
+	}
+
+	// for debugging
+	boolean print(String s) {
+		System.out.println(s);
+		return true;
 	}
 
 	// for testing

@@ -19,6 +19,6 @@ final class FnCall implements Expressions {
 
 	@Override public List eval(LuaState lua) throws LuaException {
 		LuaFunction fn = Lua.checkFunction( fnExpr.eval(lua) );
-		return Arrays.asList( fn.call( args.eval(lua).toArray() ) );
+		return Arrays.asList( fn.call( lua, args.eval(lua).toArray() ) );
 	}
 }

@@ -25,7 +25,7 @@ public final class LuaJavaFunction extends LuaFunction {
 		}
 	}
 
-	@Override public Object[] call(Object... args) {
+	@Override public Object[] call(LuaState lua,Object... args) {
 		args = fixArgs(args);
 		Object rtn;
 		try {
@@ -76,15 +76,19 @@ public final class LuaJavaFunction extends LuaFunction {
 		public Object[] convert(Object obj);
 	}
 
-	private static final Object[] EMPTY = new Object[0];
-
 	private static final RtnConverter RTN_EMPTY = new RtnConverter() {
 		public Object[] convert(Object obj) {
-			return EMPTY;
+			return EMPTY_RTN;
 		}
 	};
 
-	private static final RtnConverter RTN_SAME = new RtnConverter() {
+	private static final RtnConverter RTN_ARRAY = new RtnConverter() {
+		public Object[] convert(Object obj) {
+			return (Object[])obj;
+		}
+	};
+
+	private static final RtnConverter RTN_ONE = new RtnConverter() {
 		public Object[] convert(Object obj) {
 			return new Object[]{obj};
 		}
@@ -112,7 +116,9 @@ public final class LuaJavaFunction extends LuaFunction {
 			|| rtnType == Double.TYPE
 		)
 			return RTN_NUMBER;
-		return RTN_SAME;
+		if( rtnType.isArray() )
+			return RTN_ARRAY;
+		return RTN_ONE;
 	}
 
 
