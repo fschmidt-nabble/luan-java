@@ -14,7 +14,7 @@ final class ExpressionsExpr implements Expr {
 	}
 
 	@Override public Object eval(LuaState lua) throws LuaException {
-		List list = expressions.eval(lua);
-		return list.isEmpty() ? null : list.get(0);
+		Object[] a = expressions.eval(lua);
+		return a.length==0 ? null : a[0];
 	}
 }

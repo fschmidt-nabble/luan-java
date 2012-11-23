@@ -68,9 +68,11 @@ final class ExpList implements Expressions {
 		}
 	}
 
+	private static final Object[] EMPTY = new Object[0];
+
 	static final Expressions emptyExpList = new Expressions() {
-		@Override public List eval(LuaState lua) {
-			return Collections.emptyList();
+		@Override public Object[] eval(LuaState lua) {
+			return EMPTY;
 		}
 	};
 
@@ -81,8 +83,8 @@ final class ExpList implements Expressions {
 			this.expr = expr;
 		}
 
-		@Override public List eval(LuaState lua) throws LuaException {
-			return Collections.singletonList( expr.eval(lua) );
+		@Override public Object[] eval(LuaState lua) throws LuaException {
+			return new Object[]{expr.eval(lua)};
 		}
 	}
 
@@ -92,11 +94,11 @@ final class ExpList implements Expressions {
 		this.adders = adders;
 	}
 
-	@Override public List eval(LuaState lua) throws LuaException {
+	@Override public Object[] eval(LuaState lua) throws LuaException {
 		List<Object> list = new ArrayList<Object>();
 		for( Adder adder : adders ) {
 			adder.addTo(lua,list);
 		}
-		return list;
+		return list.toArray();
 	}
 }
