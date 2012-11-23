@@ -1,7 +1,5 @@
 package luan.interp;
 
-import java.util.Arrays;
-import java.util.List;
 import luan.Lua;
 import luan.LuaFunction;
 import luan.LuaException;
@@ -17,8 +15,8 @@ final class FnCall implements Expressions {
 		this.args = args;
 	}
 
-	@Override public List eval(LuaState lua) throws LuaException {
+	@Override public Object[] eval(LuaState lua) throws LuaException {
 		LuaFunction fn = Lua.checkFunction( fnExpr.eval(lua) );
-		return Arrays.asList( fn.call( lua, args.eval(lua).toArray() ) );
+		return fn.call( lua, args.eval(lua) );
 	}
 }

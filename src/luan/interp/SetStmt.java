@@ -28,8 +28,7 @@ final class SetStmt implements Stmt {
 	}
 
 	@Override public void eval(LuaState lua) throws LuaException {
-		List vals = expressions.eval(lua);
-		int n = vals.size();
+		final Object[] vals = expressions.eval(lua);
 		for( int i=0; i<vars.length; i++ ) {
 			Var var = vars[i];
 			Object t = var.table.eval(lua);
@@ -37,7 +36,7 @@ final class SetStmt implements Stmt {
 				throw new LuaException( "attempt to index a " + Lua.type(t) + " value" );
 			LuaTable tbl = (LuaTable)t;
 			Object key = var.key.eval(lua);
-			Object val = i < n ? vals.get(i) : null;
+			Object val = i < vals.length ? vals[i] : null;
 			tbl.set(key,val);
 		}
 	}

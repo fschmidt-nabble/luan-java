@@ -57,7 +57,7 @@ public class BasicLib {
 			final Expressions expressions = (Expressions)resultValue;
 			return new LuaFunction() {
 				public Object[] call(LuaState lua,Object... args) throws LuaException {
-					return expressions.eval(lua).toArray();
+					return expressions.eval(lua);
 				}
 			};
 		}
