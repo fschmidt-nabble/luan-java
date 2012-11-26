@@ -50,6 +50,7 @@ public class BasicLib {
 	public static LuaFunction load(String ld) throws LuaException {
 		LuaParser parser = Parboiled.createParser(LuaParser.class);
 		ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(ld);
+//		ParsingResult<?> result = new TracingParseRunner(parser.Target()).run(ld);
 		if( result.hasErrors() )
 			throw new LuaException( ErrorUtils.printParseErrors(result) );
 		Object resultValue = result.resultValue;
