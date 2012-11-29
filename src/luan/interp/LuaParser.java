@@ -669,7 +669,7 @@ public class LuaParser extends BaseParser<Object> {
 		return Sequence(
 			"--[",
 			ZeroOrMore('='),
-			setN(n),
+			n.set(matchLength()),
 			'[',
 			ZeroOrMore(
 				TestNot(CommentEnd(n)),
@@ -680,15 +680,7 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule CommentEnd(Var<Integer> n) {
-		return Sequence( ']', ZeroOrMore('='), eqN(n), ']' );
-	}
-
-	boolean setN(Var<Integer> n) {
-		return n.set(matchLength());
-	}
-
-	boolean eqN(Var<Integer> n) {
-		return n.get()==matchLength();
+		return Sequence( ']', ZeroOrMore('='), n.get()==matchLength(), ']' );
 	}
 
 	// for debugging
