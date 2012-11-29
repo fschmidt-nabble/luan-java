@@ -21,7 +21,23 @@ import luan.LuaState;
 
 
 public class LuaParser extends BaseParser<Object> {
-	static final Object PAREN = new Object();
+	int nEquals;
+	int parens = 0;
+
+	boolean nEquals(int n) {
+		nEquals = n;
+		return true;
+	}
+
+	boolean incParens() {
+		parens++;
+		return true;
+	}
+
+	boolean decParens() {
+		parens--;
+		return true;
+	}
 
 	public Rule Target() {
 		return Sequence(
@@ -277,8 +293,7 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule TableExpr() {
 		return Sequence(
-			'{', Spaces(),
-			push(PAREN),
+			'{', incParens(), Spaces(),
 			push( new ArrayList<TableExpr.Field>() ),
 			push( 1.0 ),  // counter
 			Optional(
@@ -289,9 +304,8 @@ public class LuaParser extends BaseParser<Object> {
 				),
 				Optional( FieldSep() )
 			),
-			'}',
+			'}', decParens(),
 			push( newTableExpr() ),
-			drop(1),
 			Spaces()
 		);
 	}
@@ -357,7 +371,7 @@ public class LuaParser extends BaseParser<Object> {
 		return Sequence(
 			FirstOf(
 				Sequence(
-					'(', Spaces(), push(PAREN), Expr(), ')', drop(1), Spaces(),
+					'(', incParens(), Spaces(), Expr(), ')', decParens(), Spaces(),
 					push(expr(pop())),
 					push(null)  // marker
 				),
@@ -392,7 +406,7 @@ public class LuaParser extends BaseParser<Object> {
 		return Sequence(
 			FirstOf(
 				Sequence(
-					'(', Spaces(), push(PAREN), Expressions(), ')', drop(1), Spaces()
+					'(', incParens(), Spaces(), Expressions(), ')', decParens(), Spaces()
 				),
 				Sequence(
 					TableExpr(),
@@ -439,7 +453,7 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule SubExpr() {
-		return Sequence( '[', Spaces(), push(PAREN), Expr(), ']', drop(1), Spaces() );
+		return Sequence( '[', incParens(), Spaces(), Expr(), ']', decParens(), Spaces() );
 	}
 
 	Rule Name() {
@@ -533,8 +547,7 @@ public class LuaParser extends BaseParser<Object> {
 		return FirstOf(
 			Sequence(
 				IgnoreCase("0x"),
-				OneOrMore(HexDigit()),
-				push((double)Long.parseLong(match(),16))
+				HexNumber()
 			),
 			Sequence(
 				DecNumber(),
@@ -566,6 +579,45 @@ public class LuaParser extends BaseParser<Object> {
 		return OneOrMore(Digit());
 	}
 
+	Rule Digit() {
+		return CharRange('0', '9');
+	}
+
+	Rule HexNumber() {
+		return FirstOf(
+			Sequence(
+				HexInt(),
+				push( (double)Long.parseLong(match(),16) ),
+				Optional( '.', Optional(HexDec()) ),
+				HexExponent()
+			),
+			Sequence( push(0.0), '.', HexDec(), HexExponent() )
+		);
+	}
+
+	Rule HexDec() {
+		return Sequence(
+			HexInt(),
+			push( (Double)pop() + (double)Long.parseLong(match(),16) / Math.pow(16,matchLength()) )
+		);
+	}
+
+	Rule HexExponent() {
+		return Optional(
+			IgnoreCase('p'),
+			Sequence(
+				Optional(AnyOf("+-")),
+				HexInt()
+			),
+			push( (Double)pop() * Math.pow(2,(double)Long.parseLong(match())) )
+		);
+	}
+
+	Rule HexInt() {
+		return OneOrMore(Digit());
+	}
+
+
 	Rule HexDigit() {
 		return FirstOf(
 			Digit(),
@@ -573,14 +625,26 @@ public class LuaParser extends BaseParser<Object> {
 		);
 	}
 
-	Rule Digit() {
-		return CharRange('0', '9');
-	}
-
 	Rule StringLiteral() {
 		return FirstOf(
 			QuotedString('"'),
-			QuotedString('\'')
+			QuotedString('\''),
+			LongString()
+		);
+	}
+
+	Rule LongString() {
+		return Sequence(
+			"[",
+			ZeroOrMore('='),
+			nEquals(matchLength()),
+			'[',
+			ZeroOrMore(
+				TestNot(LongBracketsEnd()),
+				ANY
+			),
+			push( match() ),
+			LongBracketsEnd()
 		);
 	}
 
@@ -649,38 +713,27 @@ public class LuaParser extends BaseParser<Object> {
 				AnyOf(" \t"),
 				Comment(),
 				Sequence( '\\', EndOfLine() ),
-				Sequence( AnyOf("\r\n"), inParen() )
+				Sequence( AnyOf("\r\n"), parens > 0 )
 			)
 		);
 	}
 
-	boolean inParen() {
-		ValueStack stack = getContext().getValueStack();
-		int size = stack.size();
-		for( int i=0; i<size; i++ ) {
-			if( peek(i) == PAREN )
-				return true;
-		}
-		return false;
-	}
-
 	Rule Comment() {
-		Var<Integer> n = new Var<Integer>();
 		return Sequence(
 			"--[",
 			ZeroOrMore('='),
-			n.set(matchLength()),
+			nEquals(matchLength()),
 			'[',
 			ZeroOrMore(
-				TestNot(CommentEnd(n)),
+				TestNot(LongBracketsEnd()),
 				ANY
 			),
-			CommentEnd(n)
+			LongBracketsEnd()
 		);
 	}
 
-	Rule CommentEnd(Var<Integer> n) {
-		return Sequence( ']', ZeroOrMore('='), n.get()==matchLength(), ']' );
+	Rule LongBracketsEnd() {
+		return Sequence( ']', ZeroOrMore('='), nEquals==matchLength(), ']' );
 	}
 
 	// for debugging
