@@ -13,6 +13,7 @@ import org.parboiled.parserunners.ReportingParseRunner;
 import org.parboiled.support.ParsingResult;
 import org.parboiled.support.Var;
 import org.parboiled.support.StringVar;
+import org.parboiled.support.StringBuilderVar;
 import org.parboiled.support.ValueStack;
 import org.parboiled.errors.ErrorUtils;
 import luan.Lua;
@@ -23,6 +24,8 @@ import luan.LuaState;
 public class LuaParser extends BaseParser<Object> {
 	int nEquals;
 	int parens = 0;
+	List<String> symbols = new ArrayList<String>();
+	int stackSize = 0;
 
 	boolean nEquals(int n) {
 		nEquals = n;
@@ -39,6 +42,15 @@ public class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
+	int index(String name) {
+		int i = symbols.size();
+		while( --i >= 0 ) {
+			if( symbols.get(i).equals(name) )
+				return i;
+		}
+		return -1;
+	}
+
 	public Rule Target() {
 		return Sequence(
 			Spaces(),
@@ -51,35 +63,36 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule Chunk() {
 		return Sequence(
-			push(new ArrayList<Stmt>()),
-			Optional( Stmt() ),
-			ZeroOrMore(
-				StmtSep(),
-				Optional( Stmt() )
-			),
-			push( newChunk() )
+			Block(),
+			push( new Chunk( (Stmt)pop(), stackSize ) )
 		);
 	}
 
-	boolean addStmt() {
-		Stmt stmt = (Stmt)pop();
-		@SuppressWarnings("unchecked")
-		List<Stmt> stmts = (List<Stmt>)peek();
-		stmts.add(stmt);
-		return true;
+	Rule Block() {
+		Var<List<Stmt>> stmts = new Var<List<Stmt>>(new ArrayList<Stmt>());
+		return Sequence(
+			push(0),  // stackCount
+			Optional( Stmt(stmts) ),
+			ZeroOrMore(
+				StmtSep(),
+				Optional( Stmt(stmts) )
+			),
+			push( newBlock(stmts.get()) )
+		);
 	}
 
-	Stmt newChunk() {
-		@SuppressWarnings("unchecked")
-		List<Stmt> stmts = (List<Stmt>)pop();
-		switch( stmts.size() ) {
-		case 0:
-			return Stmt.EMPTY;
-		case 1:
-			return stmts.get(0);
-		default:
-			return new Block(stmts.toArray(new Stmt[0]));
+	Stmt newBlock(List<Stmt> stmts) {
+		if( stackSize < symbols.size() )
+			stackSize = symbols.size();
+		int stackN = (Integer)pop();
+		for( int i=0; i<stackN; i++ ) {
+			symbols.remove(symbols.size()-1);  // pop
 		}
+		if( stmts.isEmpty() )
+			return Stmt.EMPTY;
+		if( stmts.size()==1 && stackN==0 )
+			return stmts.get(0);
+		return new Block( stmts.toArray(new Stmt[0]), symbols.size(), symbols.size()+stackN );
 	}
 
 	Rule StmtSep() {
@@ -99,29 +112,74 @@ public class LuaParser extends BaseParser<Object> {
 		return FirstOf("\r\n", '\r', '\n');
 	}
 
-	Rule Stmt() {
-		return Sequence(
-			FirstOf(
-				WhileStmt(),
-				RepeatStmt(),
-				IfStmt(),
-				SetStmt(),
-				ExpressionsStmt()
-			),
-			addStmt()
+	Rule Stmt(Var<List<Stmt>> stmts) {
+		return FirstOf(
+			LocalStmt(stmts),
+			Sequence(
+				FirstOf(
+					DoStmt(),
+					WhileStmt(),
+					RepeatStmt(),
+					IfStmt(),
+					SetStmt(),
+					ExpressionsStmt()
+				),
+				stmts.get().add( (Stmt)pop() )
+			)
 		);
+	}
+
+	Rule DoStmt() {
+		return Sequence(
+			Keyword("do"), Block(), Keyword("end")
+		);
+	}
+
+	Rule LocalStmt(Var<List<Stmt>> stmts) {
+		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
+		return Sequence(
+			Keyword("local"),
+			Name(),
+			newName(names.get()),
+			ZeroOrMore(
+				',', Spaces(), Name(),
+				newName(names.get())
+			),
+			Optional(
+				'=', Spaces(),
+				ExpList(),
+				stmts.get().add( newSetLocalStmt(names.get()) )
+			)
+		);
+	}
+
+	boolean newName(List<String> names) {
+		String name = (String)pop();
+		names.add(name);
+		symbols.add(name);
+		push( ((Integer)pop()) + 1 );
+		return true;
+	}
+
+	SetStmt newSetLocalStmt(List<String> names) {
+		Expressions values = (Expressions)pop();
+		SetLocalVar[] vars = new SetLocalVar[names.size()];
+		for( int i=0; i<vars.length; i++ ) {
+			vars[i] = new SetLocalVar(index(names.get(i)));
+		}
+		return new SetStmt( vars, values );
 	}
 
 	Rule WhileStmt() {
 		return Sequence(
-			"while", Spaces(), Expr(), "do", Spaces(), Chunk(), "end", Spaces(),
+			Keyword("while"), Expr(), Keyword("do"), Block(), Keyword("end"),
 			push( new WhileStmt( expr(pop(1)), (Stmt)pop() ) )
 		);
 	}
 
 	Rule RepeatStmt() {
 		return Sequence(
-			"repeat", Spaces(), Chunk(), "until", Spaces(), Expr(),
+			Keyword("repeat"), Block(), Keyword("until"), Expr(),
 			push( new RepeatStmt( (Stmt)pop(1), expr(pop()) ) )
 		);
 	}
@@ -129,17 +187,17 @@ public class LuaParser extends BaseParser<Object> {
 	Rule IfStmt() {
 		Var<Integer> n = new Var<Integer>(1);
 		return Sequence(
-			"if", Spaces(), Expr(), "then", Spaces(), Chunk(),
+			Keyword("if"), Expr(), Keyword("then"), Block(),
 			push(Stmt.EMPTY),
 			ZeroOrMore(
-				"elseif", Spaces(), drop(), Expr(), "then", Spaces(), Chunk(),
+				Keyword("elseif"), drop(), Expr(), Keyword("then"), Block(),
 				push(Stmt.EMPTY),
 				n.set(n.get()+1)
 			),
 			Optional(
-				"else", Spaces(), drop(), Chunk()
+				Keyword("else"), drop(), Block()
 			),
-			"end", Spaces(),
+			Keyword("end"),
 			buildIfStmt(n.get())
 		);
 	}
@@ -173,13 +231,13 @@ public class LuaParser extends BaseParser<Object> {
 	SetStmt newSetStmt() {
 		Expressions values = (Expressions)pop();
 		@SuppressWarnings("unchecked")
-		List<SetStmt.Var> vars = (List<SetStmt.Var>)pop();
-		return new SetStmt( vars.toArray(new SetStmt.Var[0]), values );
+		List<Settable> vars = (List<Settable>)pop();
+		return new SetStmt( vars.toArray(new Settable[0]), values );
 	}
 
 	Rule VarList() {
 		return Sequence(
-			push(new ArrayList<SetStmt.Var>()),
+			push(new ArrayList<Settable>()),
 			Var(),
 			addToVarList(),
 			ZeroOrMore(
@@ -190,14 +248,25 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	boolean addToVarList() {
-		Object obj = pop();
-		if( obj==null )
+		Object obj2 = pop();
+		if( obj2==null )
 			return false;
-		Expr key = expr(obj);
-		Expr table = expr(pop());
+		Object obj1 = pop();
 		@SuppressWarnings("unchecked")
-		List<SetStmt.Var> vars = (List<SetStmt.Var>)peek();
-		vars.add( new SetStmt.Var(table,key) );
+		List<Settable> vars = (List<Settable>)peek();
+		if( obj1==null ) {
+			String name = (String)obj2;
+			int index = index(name);
+			if( index == -1 ) {
+				vars.add( new SetTableEntry( EnvExpr.INSTANCE, new ConstExpr(name) ) );
+			} else {
+				vars.add( new SetLocalVar(index) );
+			}
+		} else {
+			Expr key = expr(obj2);
+			Expr table = expr(obj1);
+			vars.add( new SetTableEntry(table,key) );
+		}
 		return true;
 	}
 
@@ -324,7 +393,7 @@ public class LuaParser extends BaseParser<Object> {
 	Rule Field() {
 		return FirstOf(
 			Sequence(
-				FirstOf( SubExpr(), Name() ),
+				FirstOf( SubExpr(), NameExpr() ),
 				'=', Spaces(), Expr(),
 				addField()
 			),
@@ -376,7 +445,7 @@ public class LuaParser extends BaseParser<Object> {
 					push(null)  // marker
 				),
 				Sequence(
-					push(EnvExpr.INSTANCE),
+					push(null),  // marker
 					Name()
 				)
 			),
@@ -384,7 +453,7 @@ public class LuaParser extends BaseParser<Object> {
 				makeVarExp(),
 				FirstOf(
 					SubExpr(),
-					Sequence( '.', Spaces(), Name() ),
+					Sequence( '.', Spaces(), NameExpr() ),
 					Sequence(
 						Args(),
 						push(null)  // marker
@@ -395,10 +464,20 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	boolean makeVarExp() {
-		Object obj = pop();
-		if( obj==null )
+		Object obj2 = pop();
+		if( obj2==null )
 			return true;
-		return push( new GetExpr( expr(pop()), expr(obj) ) );
+		Object obj1 = pop();
+		if( obj1==null ) {
+			String name = (String)obj2;
+			int index = index(name);
+			if( index == -1 ) {
+				return push( new GetExpr( EnvExpr.INSTANCE, new ConstExpr(name) ) );
+			} else {
+				return push( new GetLocalVar(index) );
+			}
+		}
+		return push( new GetExpr( expr(obj1), expr(obj2) ) );
 	}
 
 	// function should be on top of the stack
@@ -429,21 +508,20 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule ExpList() {
+		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
 		return Sequence(
-			push(new ExpList.Builder()),
 			Expr(),
-			addToExpList(),
+			addToExpList(builder.get()),
 			ZeroOrMore(
 				',', Spaces(), Expr(),
-				addToExpList()
+				addToExpList(builder.get())
 			),
-			push( ((ExpList.Builder)pop()).build() )
+			push( builder.get().build() )
 		);
 	}
 
-	boolean addToExpList() {
+	boolean addToExpList(ExpList.Builder bld) {
 		Object obj = pop();
-		ExpList.Builder bld = (ExpList.Builder)peek();
 		if( obj instanceof Expressions ) {
 			bld.add( (Expressions)obj );
 		} else {
@@ -452,24 +530,35 @@ public class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
+
 	Rule SubExpr() {
 		return Sequence( '[', incParens(), Spaces(), Expr(), ']', decParens(), Spaces() );
+	}
+
+	Rule NameExpr() {
+		return Sequence(
+			Name(),
+			push( new ConstExpr((String)pop()) )
+		);
 	}
 
 	Rule Name() {
 		return Sequence(
 			Sequence(
-				NameStart(),
-				ZeroOrMore(
-					FirstOf( NameStart(), Digit() )
-				)
+				NameFirstChar(),
+				ZeroOrMore( NameChar() )
 			),
-			pushNameExpr(),
+			!keywords.contains(match()),
+			push(match()),
 			Spaces()
 		);
 	}
 
-	Rule NameStart() {
+	Rule NameChar() {
+		return FirstOf( NameFirstChar(), Digit() );
+	}
+
+	Rule NameFirstChar() {
 		return FirstOf(
 			CharRange('a', 'z'),
 			CharRange('A', 'Z'),
@@ -477,14 +566,15 @@ public class LuaParser extends BaseParser<Object> {
 		);
 	}
 
-	boolean pushNameExpr() {
-		String name = match();
-		if( keywords.contains(name) )
-			return false;
-		return push( new ConstExpr(name) );
+	Rule Keyword(String keyword) {
+		return Sequence(
+			keyword,
+			TestNot( NameChar() ),
+			Spaces()
+		);
 	}
 
-	private static final Set<String> keywords = new HashSet<String>(Arrays.asList(
+	static final Set<String> keywords = new HashSet<String>(Arrays.asList(
 		"and",
 		"break",
 		"do",
@@ -635,7 +725,7 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule LongString() {
 		return Sequence(
-			"[",
+			'[',
 			ZeroOrMore('='),
 			nEquals(matchLength()),
 			'[',
@@ -649,41 +739,41 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule QuotedString(char quote) {
+		StringBuilderVar buf = new StringBuilderVar();
 		return Sequence(
 			quote,
-			push(new StringBuffer()),
 			ZeroOrMore(
 				FirstOf(
 					Sequence(
 						NoneOf("\\\n"+quote),
-						append(matchedChar())
+						buf.append(matchedChar())
 					),
-					EscSeq()
+					EscSeq(buf)
 				)
 			),
 			quote,
-			push(((StringBuffer)pop()).toString())
+			push( buf.getString() )
 		);
 	}
 
-	Rule EscSeq() {
+	Rule EscSeq(StringBuilderVar buf) {
 		return Sequence(
 			'\\',
 			FirstOf(
-				Sequence( 'a', append('\u0007') ),
-				Sequence( 'b', append('\b') ),
-				Sequence( 'f', append('\f') ),
-				Sequence( 'n', append('\n') ),
-				Sequence( 'r', append('\r') ),
-				Sequence( 't', append('\t') ),
-				Sequence( 'v', append('\u000b') ),
-				Sequence( '\\', append('\\') ),
-				Sequence( '"', append('"') ),
-				Sequence( '\'', append('\'') ),
+				Sequence( 'a', buf.append('\u0007') ),
+				Sequence( 'b', buf.append('\b') ),
+				Sequence( 'f', buf.append('\f') ),
+				Sequence( 'n', buf.append('\n') ),
+				Sequence( 'r', buf.append('\r') ),
+				Sequence( 't', buf.append('\t') ),
+				Sequence( 'v', buf.append('\u000b') ),
+				Sequence( '\\', buf.append('\\') ),
+				Sequence( '"', buf.append('"') ),
+				Sequence( '\'', buf.append('\'') ),
 				Sequence(
 					'x',
 					Sequence( HexDigit(), HexDigit() ),
-					append( (char)Integer.parseInt(match(),16) )
+					buf.append( (char)Integer.parseInt(match(),16) )
 				),
 				Sequence(
 					Sequence(
@@ -695,16 +785,10 @@ public class LuaParser extends BaseParser<Object> {
 							)
 						)
 					),
-					append( (char)Integer.parseInt(match()) )
+					buf.append( (char)Integer.parseInt(match()) )
 				)
 			)
 		);
-	}
-
-	boolean append(char ch) {
-		StringBuffer sb = (StringBuffer)peek();
-		sb.append(ch);
-		return true;
 	}
 
 	Rule Spaces() {
