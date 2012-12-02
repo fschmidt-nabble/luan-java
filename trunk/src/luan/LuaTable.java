@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 
 public class LuaTable {
-	private final Map<Object,Object> map = new HashMap<Object,Object>();
+	public final Map<Object,Object> map = new HashMap<Object,Object>();
 
 	@Override public String toString() {
 		return "table: " + Integer.toHexString(hashCode());

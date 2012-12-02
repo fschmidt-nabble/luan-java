@@ -17,9 +17,8 @@ final class SetStmt implements Stmt {
 	@Override public void eval(LuaState lua) throws LuaException {
 		final Object[] vals = expressions.eval(lua);
 		for( int i=0; i<vars.length; i++ ) {
-			Settable var = vars[i];
 			Object val = i < vals.length ? vals[i] : null;
-			var.set(lua,val);
+			vars[i].set(lua,val);
 		}
 	}
 

@@ -45,11 +45,17 @@ public class LuaParser extends BaseParser<Object> {
 	int index(String name) {
 		int i = symbols.size();
 		while( --i >= 0 ) {
-System.out.println("index ["+name+"] ["+symbols.get(i)+"] "+symbols.get(i).equals(name));
 			if( symbols.get(i).equals(name) )
 				return i;
 		}
 		return -1;
+	}
+
+	boolean popSymbols(int n) {
+		while( n-- > 0 ) {
+			symbols.remove(symbols.size()-1);
+		}
+		return true;
 	}
 
 	public Rule Target() {
@@ -71,28 +77,27 @@ System.out.println("index ["+name+"] ["+symbols.get(i)+"] "+symbols.get(i).equal
 
 	Rule Block() {
 		Var<List<Stmt>> stmts = new Var<List<Stmt>>(new ArrayList<Stmt>());
-		Var<Integer> stackCount = new Var<Integer>(0);
+		Var<Integer> stackStart = new Var<Integer>(symbols.size());
 		return Sequence(
-			Optional( Stmt(stmts,stackCount) ),
+			Optional( Stmt(stmts) ),
 			ZeroOrMore(
 				StmtSep(),
-				Optional( Stmt(stmts,stackCount) )
+				Optional( Stmt(stmts) )
 			),
-			push( newBlock(stmts.get(),stackCount.get()) )
+			push( newBlock(stmts.get(),stackStart.get()) )
 		);
 	}
 
-	Stmt newBlock(List<Stmt> stmts,int stackN) {
+	Stmt newBlock(List<Stmt> stmts,int stackStart) {
 		if( stackSize < symbols.size() )
 			stackSize = symbols.size();
-		for( int i=0; i<stackN; i++ ) {
-			symbols.remove(symbols.size()-1);  // pop
-		}
+		int stackEnd = symbols.size();
+		popSymbols( stackEnd - stackStart );
 		if( stmts.isEmpty() )
 			return Stmt.EMPTY;
-		if( stmts.size()==1 && stackN==0 )
+		if( stmts.size()==1 && stackStart==stackEnd )
 			return stmts.get(0);
-		return new Block( stmts.toArray(new Stmt[0]), symbols.size(), symbols.size()+stackN );
+		return new Block( stmts.toArray(new Stmt[0]), stackStart, stackEnd );
 	}
 
 	Rule StmtSep() {
@@ -112,11 +117,12 @@ System.out.println("index ["+name+"] ["+symbols.get(i)+"] "+symbols.get(i).equal
 		return FirstOf("\r\n", '\r', '\n');
 	}
 
-	Rule Stmt(Var<List<Stmt>> stmts,Var<Integer> stackCount) {
+	Rule Stmt(Var<List<Stmt>> stmts) {
 		return FirstOf(
-			LocalStmt(stmts,stackCount),
+			LocalStmt(stmts),
 			Sequence(
 				FirstOf(
+					GenericForStmt(),
 					NumericForStmt(),
 					DoStmt(),
 					WhileStmt(),
@@ -127,6 +133,15 @@ System.out.println("index ["+name+"] ["+symbols.get(i)+"] "+symbols.get(i).equal
 				),
 				stmts.get().add( (Stmt)pop() )
 			)
+		);
+	}
+
+	Rule GenericForStmt() {
+		Var<Integer> stackStart = new Var<Integer>(symbols.size());
+		return Sequence(
+			Keyword("for"), NameList(), Keyword("in"), Expr(), Keyword("do"), Block(), Keyword("end"),
+			push( new GenericForStmt( stackStart.get(), symbols.size() - stackStart.get(), expr(pop(1)), (Stmt)pop() ) ),
+			popSymbols( symbols.size() - stackStart.get() )
 		);
 	}
 
@@ -142,7 +157,7 @@ System.out.println("index ["+name+"] ["+symbols.get(i)+"] "+symbols.get(i).equal
 			symbols.add( (String)pop(3) ),  // add "for" var to symbols
 			Keyword("do"), Block(), Keyword("end"),
 			push( new NumericForStmt( symbols.size()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
-			action( symbols.remove(symbols.size()-1) )  // pop
+			popSymbols(1)
 		);
 	}
 
@@ -152,37 +167,33 @@ System.out.println("index ["+name+"] ["+symbols.get(i)+"] "+symbols.get(i).equal
 		);
 	}
 
-	Rule LocalStmt(Var<List<Stmt>> stmts,Var<Integer> stackCount) {
-		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
+	Rule LocalStmt(Var<List<Stmt>> stmts) {
+		Var<Integer> stackStart = new Var<Integer>(symbols.size());
 		return Sequence(
-			Keyword("local"),
-			Name(),
-			newName(names.get(),stackCount),
-			ZeroOrMore(
-				',', Spaces(), Name(),
-				newName(names.get(),stackCount)
-			),
+			Keyword("local"), NameList(),
 			Optional(
-				'=', Spaces(),
-				ExpList(),
-				stmts.get().add( newSetLocalStmt(names.get()) )
+				'=', Spaces(), ExpList(),
+				stmts.get().add( newSetLocalStmt(stackStart.get()) )
 			)
 		);
 	}
 
-	boolean newName(List<String> names,Var<Integer> stackCount) {
-		String name = (String)pop();
-		names.add(name);
-		symbols.add(name);
-		stackCount.set( stackCount.get() + 1 );
-		return true;
+	Rule NameList() {
+		return Sequence(
+			Name(),
+			symbols.add( (String)pop() ),
+			ZeroOrMore(
+				',', Spaces(), Name(),
+				symbols.add( (String)pop() )
+			)
+		);
 	}
 
-	SetStmt newSetLocalStmt(List<String> names) {
+	SetStmt newSetLocalStmt(int stackStart) {
 		Expressions values = (Expressions)pop();
-		SetLocalVar[] vars = new SetLocalVar[names.size()];
+		SetLocalVar[] vars = new SetLocalVar[symbols.size()-stackStart];
 		for( int i=0; i<vars.length; i++ ) {
-			vars[i] = new SetLocalVar(index(names.get(i)));
+			vars[i] = new SetLocalVar(stackStart+i);
 		}
 		return new SetStmt( vars, values );
 	}

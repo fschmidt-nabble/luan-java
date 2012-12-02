@@ -2,6 +2,9 @@ package luan.lib;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.Map;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;
@@ -10,6 +13,7 @@ import org.parboiled.support.ParsingResult;
 import luan.Lua;
 import luan.LuaState;
 import luan.LuaTable;
+import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaJavaFunction;
 import luan.LuaException;
@@ -24,6 +28,10 @@ public class BasicLib {
 		LuaTable t = lua.env();
 		add( t, "print", new Object[0].getClass() );
 		add( t, "type", Object.class );
+		add( t, "load", String.class );
+		add( t, "loadFile", String.class );
+		add( t, "pairs", LuaTable.class );
+		add( t, "ipairs", LuaTable.class );
 	}
 
 	private static void add(LuaTable t,String method,Class<?>... parameterTypes) {
@@ -86,4 +94,55 @@ public class BasicLib {
 		return load(readFile(fileName));
 	}
 
+	private static class TableIter {
+		private final Iterator<Map.Entry<Object,Object>> iter;
+
+		TableIter(LuaTable t) {
+			this.iter = t.map.entrySet().iterator();
+		}
+
+		public Object[] next() {
+			if( !iter.hasNext() )
+				return LuaFunction.EMPTY_RTN;
+			Map.Entry<Object,Object> entry = iter.next();
+			return new Object[]{entry.getKey(),entry.getValue()};
+		}
+	}
+
+	public static LuaFunction pairs(LuaTable t) {
+		try {
+			TableIter ti = new TableIter(t);
+			Method m = TableIter.class.getMethod("next");
+			m.setAccessible(true);
+			return new LuaJavaFunction(m,ti);
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static class ArrayIter {
+		private final LuaTable t;
+		private double i = 0.0;
+
+		ArrayIter(LuaTable t) {
+			this.t = t;
+		}
+
+		public Object[] next() {
+			LuaNumber n = new LuaNumber(++i);
+			Object val = t.get(n);
+			return val==null ? LuaFunction.EMPTY_RTN : new Object[]{n,val};
+		}
+	}
+
+	public static LuaFunction ipairs(LuaTable t) {
+		try {
+			ArrayIter ai = new ArrayIter(t);
+			Method m = ArrayIter.class.getMethod("next");
+			m.setAccessible(true);
+			return new LuaJavaFunction(m,ai);
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }
