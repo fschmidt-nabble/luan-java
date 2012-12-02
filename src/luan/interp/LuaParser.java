@@ -45,6 +45,7 @@ public class LuaParser extends BaseParser<Object> {
 	int index(String name) {
 		int i = symbols.size();
 		while( --i >= 0 ) {
+System.out.println("index ["+name+"] ["+symbols.get(i)+"] "+symbols.get(i).equals(name));
 			if( symbols.get(i).equals(name) )
 				return i;
 		}
@@ -70,21 +71,20 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule Block() {
 		Var<List<Stmt>> stmts = new Var<List<Stmt>>(new ArrayList<Stmt>());
+		Var<Integer> stackCount = new Var<Integer>(0);
 		return Sequence(
-			push(0),  // stackCount
-			Optional( Stmt(stmts) ),
+			Optional( Stmt(stmts,stackCount) ),
 			ZeroOrMore(
 				StmtSep(),
-				Optional( Stmt(stmts) )
+				Optional( Stmt(stmts,stackCount) )
 			),
-			push( newBlock(stmts.get()) )
+			push( newBlock(stmts.get(),stackCount.get()) )
 		);
 	}
 
-	Stmt newBlock(List<Stmt> stmts) {
+	Stmt newBlock(List<Stmt> stmts,int stackN) {
 		if( stackSize < symbols.size() )
 			stackSize = symbols.size();
-		int stackN = (Integer)pop();
 		for( int i=0; i<stackN; i++ ) {
 			symbols.remove(symbols.size()-1);  // pop
 		}
@@ -112,11 +112,12 @@ public class LuaParser extends BaseParser<Object> {
 		return FirstOf("\r\n", '\r', '\n');
 	}
 
-	Rule Stmt(Var<List<Stmt>> stmts) {
+	Rule Stmt(Var<List<Stmt>> stmts,Var<Integer> stackCount) {
 		return FirstOf(
-			LocalStmt(stmts),
+			LocalStmt(stmts,stackCount),
 			Sequence(
 				FirstOf(
+					NumericForStmt(),
 					DoStmt(),
 					WhileStmt(),
 					RepeatStmt(),
@@ -129,21 +130,37 @@ public class LuaParser extends BaseParser<Object> {
 		);
 	}
 
+	Rule NumericForStmt() {
+		return Sequence(
+			Keyword("for"), Name(), '=', Spaces(), Expr(), ',', Spaces(), Expr(),
+			push( new ConstExpr(new LuaNumber(1)) ),  // default step
+			Optional(
+				',', Spaces(),
+				drop(),
+				Expr()
+			),
+			symbols.add( (String)pop(3) ),  // add "for" var to symbols
+			Keyword("do"), Block(), Keyword("end"),
+			push( new NumericForStmt( symbols.size()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
+			action( symbols.remove(symbols.size()-1) )  // pop
+		);
+	}
+
 	Rule DoStmt() {
 		return Sequence(
 			Keyword("do"), Block(), Keyword("end")
 		);
 	}
 
-	Rule LocalStmt(Var<List<Stmt>> stmts) {
+	Rule LocalStmt(Var<List<Stmt>> stmts,Var<Integer> stackCount) {
 		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
 			Keyword("local"),
 			Name(),
-			newName(names.get()),
+			newName(names.get(),stackCount),
 			ZeroOrMore(
 				',', Spaces(), Name(),
-				newName(names.get())
+				newName(names.get(),stackCount)
 			),
 			Optional(
 				'=', Spaces(),
@@ -153,11 +170,11 @@ public class LuaParser extends BaseParser<Object> {
 		);
 	}
 
-	boolean newName(List<String> names) {
+	boolean newName(List<String> names,Var<Integer> stackCount) {
 		String name = (String)pop();
 		names.add(name);
 		symbols.add(name);
-		push( ((Integer)pop()) + 1 );
+		stackCount.set( stackCount.get() + 1 );
 		return true;
 	}
 
@@ -818,6 +835,10 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule LongBracketsEnd() {
 		return Sequence( ']', ZeroOrMore('='), nEquals==matchLength(), ']' );
+	}
+
+	static boolean action(Object obj) {
+		return true;
 	}
 
 	// for debugging
