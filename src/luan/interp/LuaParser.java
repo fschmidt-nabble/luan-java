@@ -26,6 +26,7 @@ public class LuaParser extends BaseParser<Object> {
 	int parens = 0;
 	List<String> symbols = new ArrayList<String>();
 	int stackSize = 0;
+	int loops = 0;
 
 	boolean nEquals(int n) {
 		nEquals = n;
@@ -57,6 +58,17 @@ public class LuaParser extends BaseParser<Object> {
 		}
 		return true;
 	}
+
+	boolean incLoops() {
+		loops++;
+		return true;
+	}
+
+	boolean decLoops() {
+		loops--;
+		return true;
+	}
+
 
 	public Rule Target() {
 		return Sequence(
@@ -122,6 +134,7 @@ public class LuaParser extends BaseParser<Object> {
 			LocalStmt(stmts),
 			Sequence(
 				FirstOf(
+					BreakStmt(),
 					GenericForStmt(),
 					NumericForStmt(),
 					DoStmt(),
@@ -136,10 +149,18 @@ public class LuaParser extends BaseParser<Object> {
 		);
 	}
 
+	Rule BreakStmt() {
+		return Sequence(
+			Keyword("break"),
+			loops > 0,
+			push( new BreakStmt() )
+		);
+	}
+
 	Rule GenericForStmt() {
 		Var<Integer> stackStart = new Var<Integer>(symbols.size());
 		return Sequence(
-			Keyword("for"), NameList(), Keyword("in"), Expr(), Keyword("do"), Block(), Keyword("end"),
+			Keyword("for"), NameList(), Keyword("in"), Expr(), Keyword("do"), LoopBlock(), Keyword("end"),
 			push( new GenericForStmt( stackStart.get(), symbols.size() - stackStart.get(), expr(pop(1)), (Stmt)pop() ) ),
 			popSymbols( symbols.size() - stackStart.get() )
 		);
@@ -155,7 +176,7 @@ public class LuaParser extends BaseParser<Object> {
 				Expr()
 			),
 			symbols.add( (String)pop(3) ),  // add "for" var to symbols
-			Keyword("do"), Block(), Keyword("end"),
+			Keyword("do"), LoopBlock(), Keyword("end"),
 			push( new NumericForStmt( symbols.size()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
 			popSymbols(1)
 		);
@@ -200,16 +221,20 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule WhileStmt() {
 		return Sequence(
-			Keyword("while"), Expr(), Keyword("do"), Block(), Keyword("end"),
+			Keyword("while"), Expr(), Keyword("do"), LoopBlock(), Keyword("end"),
 			push( new WhileStmt( expr(pop(1)), (Stmt)pop() ) )
 		);
 	}
 
 	Rule RepeatStmt() {
 		return Sequence(
-			Keyword("repeat"), Block(), Keyword("until"), Expr(),
+			Keyword("repeat"), LoopBlock(), Keyword("until"), Expr(),
 			push( new RepeatStmt( (Stmt)pop(1), expr(pop()) ) )
 		);
+	}
+
+	Rule LoopBlock() {
+		return Sequence( incLoops(), Block(), decLoops() );
 	}
 
 	Rule IfStmt() {

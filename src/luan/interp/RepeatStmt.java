@@ -15,8 +15,10 @@ final class RepeatStmt implements Stmt {
 	}
 
 	@Override public void eval(LuaState lua) throws LuaException {
-		do {
-			doStmt.eval(lua);
-		} while( !Lua.toBoolean( cnd.eval(lua) ) );
+		try {
+			do {
+				doStmt.eval(lua);
+			} while( !Lua.toBoolean( cnd.eval(lua) ) );
+		} catch(BreakException e) {}
 	}
 }

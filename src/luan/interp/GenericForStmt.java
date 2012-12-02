@@ -32,6 +32,7 @@ final class GenericForStmt implements Stmt {
 				}
 				block.eval(lua);
 			}
+		} catch(BreakException e) {
 		} finally {
 			for( int i=iVars; i<iVars+nVars; i++ ) {
 				stack[i] = null;
