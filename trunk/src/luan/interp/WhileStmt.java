@@ -15,8 +15,10 @@ final class WhileStmt implements Stmt {
 	}
 
 	@Override public void eval(LuaState lua) throws LuaException {
-		while( Lua.toBoolean( cnd.eval(lua) ) ) {
-			doStmt.eval(lua);
-		}
+		try {
+			while( Lua.toBoolean( cnd.eval(lua) ) ) {
+				doStmt.eval(lua);
+			}
+		} catch(BreakException e) {}
 	}
 }

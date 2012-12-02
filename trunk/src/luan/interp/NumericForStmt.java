@@ -32,6 +32,7 @@ final class NumericForStmt implements Stmt {
 				block.eval(lua);
 				v += step;
 			}
+		} catch(BreakException e) {
 		} finally {
 			stack[iVar] = null;
 		}
