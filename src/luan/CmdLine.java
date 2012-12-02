@@ -30,7 +30,8 @@ public class CmdLine {
 				LuaFunction fn = BasicLib.loadFile(file);
 				fn.call(lua);
 			} catch(LuaException e) {
-				System.out.println(e.getMessage());
+//				System.out.println(e.getMessage());
+				e.printStackTrace();
 				return;
 			}
 		}
