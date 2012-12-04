@@ -5,7 +5,7 @@ import luan.LuaException;
 
 
 final class Block implements Stmt {
-	private final Stmt[] stmts;
+	final Stmt[] stmts;
 	private final int stackStart;
 	private final int stackEnd;
 

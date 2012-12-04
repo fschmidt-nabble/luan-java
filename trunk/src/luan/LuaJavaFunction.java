@@ -9,6 +9,7 @@ public final class LuaJavaFunction extends LuaFunction {
 	private final Method method;
 	private final Object obj;
 	private final RtnConverter rtnConverter;
+	private final boolean takesLuaState;
 	private final ArgConverter[] argConverters;
 	private final Class<?> varArgCls;
 
@@ -16,7 +17,8 @@ public final class LuaJavaFunction extends LuaFunction {
 		this.method = method;
 		this.obj = obj;
 		this.rtnConverter = getRtnConverter(method);
-		this.argConverters = getArgConverters(method);
+		this.takesLuaState = takesLuaState(method);
+		this.argConverters = getArgConverters(takesLuaState,method);
 		if( method.isVarArgs() ) {
 			Class<?>[] paramTypes = method.getParameterTypes();
 			this.varArgCls = paramTypes[paramTypes.length-1].getComponentType();
@@ -26,7 +28,7 @@ public final class LuaJavaFunction extends LuaFunction {
 	}
 
 	@Override public Object[] call(LuaState lua,Object... args) {
-		args = fixArgs(args);
+		args = fixArgs(lua,args);
 		Object rtn;
 		try {
 			rtn = method.invoke(obj,args);
@@ -38,37 +40,39 @@ public final class LuaJavaFunction extends LuaFunction {
 		return rtnConverter.convert(rtn);
 	}
 
-	private Object[] fixArgs(Object[] args) {
-		if( varArgCls==null ) {
-			if( args.length != argConverters.length ) {
-				Object[] t = new Object[argConverters.length];
-				System.arraycopy(args,0,t,0,Math.min(args.length,t.length));
-				args = t;
+	private Object[] fixArgs(LuaState lua,Object[] args) {
+		int n = argConverters.length;
+		Object[] rtn;
+		int start = 0;
+		if( !takesLuaState && varArgCls==null && args.length == n ) {
+			rtn = args;
+		} else {
+			if( takesLuaState )
+				n++;
+			rtn = new Object[n];
+			if( takesLuaState ) {
+				rtn[start++] = lua;
 			}
-			for( int i=0; i<args.length; i++ ) {
-				args[i] = argConverters[i].convert(args[i]);
-			}
-			return args;
-		} else {  // varargs
-			Object[] rtn = new Object[argConverters.length];
-			int n = argConverters.length - 1;
-			if( args.length < argConverters.length ) {
-				System.arraycopy(args,0,rtn,0,args.length);
-				rtn[rtn.length-1] = Array.newInstance(varArgCls,0);
-			} else {
-				System.arraycopy(args,0,rtn,0,n);
-				Object[] varArgs = (Object[])Array.newInstance(varArgCls,args.length-n);
-				ArgConverter ac = argConverters[n];
-				for( int i=0; i<varArgs.length; i++ ) {
-					varArgs[i] = ac.convert(args[n+i]);
+			n = argConverters.length;
+			if( varArgCls != null ) {
+				n--;
+				if( args.length < argConverters.length ) {
+					rtn[rtn.length-1] = Array.newInstance(varArgCls,0);
+				} else {
+					Object[] varArgs = (Object[])Array.newInstance(varArgCls,args.length-n);
+					ArgConverter ac = argConverters[n];
+					for( int i=0; i<varArgs.length; i++ ) {
+						varArgs[i] = ac.convert(args[n+i]);
+					}
+					rtn[rtn.length-1] = varArgs;
 				}
-				rtn[rtn.length-1] = varArgs;
 			}
-			for( int i=0; i<n; i++ ) {
-				rtn[i] = argConverters[i].convert(rtn[i]);
-			}
-			return rtn;
+			System.arraycopy(args,0,rtn,start,Math.min(args.length,n));
 		}
+		for( int i=0; i<n; i++ ) {
+			rtn[start+i] = argConverters[i].convert(rtn[start+i]);
+		}
+		return rtn;
 	}
 
 
@@ -218,9 +222,19 @@ public final class LuaJavaFunction extends LuaFunction {
 		}
 	};
 
-	private static ArgConverter[] getArgConverters(Method m) {
+	private static boolean takesLuaState(Method m) {
+		Class<?>[] paramTypes = m.getParameterTypes();
+		return paramTypes.length > 0 && paramTypes[0].equals(LuaState.class);
+	}
+
+	private static ArgConverter[] getArgConverters(boolean takesLuaState,Method m) {
 		final boolean isVarArgs = m.isVarArgs();
 		Class<?>[] paramTypes = m.getParameterTypes();
+		if( takesLuaState ) {
+			Class<?>[] t = new Class<?>[paramTypes.length-1];
+			System.arraycopy(paramTypes,1,t,0,t.length);
+			paramTypes = t;
+		}
 		ArgConverter[] a = new ArgConverter[paramTypes.length];
 		for( int i=0; i<a.length; i++ ) {
 			Class<?> paramType = paramTypes[i];

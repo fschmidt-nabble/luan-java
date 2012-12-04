@@ -9,6 +9,10 @@ final class SetStmt implements Stmt {
 	private final Settable[] vars;
 	private final Expressions expressions;
 
+	SetStmt(Settable var,Expr expr) {
+		this( new Settable[]{var}, new ExpList.SingleExpList(expr) );
+	}
+
 	SetStmt(Settable[] vars,Expressions expressions) {
 		this.vars = vars;
 		this.expressions = expressions;
