@@ -27,7 +27,7 @@ public class CmdLine {
 		} else {
 			String file = args[i++];
 			try {
-				LuaFunction fn = BasicLib.loadFile(file);
+				LuaFunction fn = BasicLib.loadFile(lua,file);
 				fn.call(lua);
 			} catch(LuaException e) {
 //				System.out.println(e.getMessage());
@@ -44,7 +44,7 @@ public class CmdLine {
 			System.out.print("> ");
 			String input = new Scanner(System.in).nextLine();
 			try {
-				LuaFunction fn = BasicLib.load(input);
+				LuaFunction fn = BasicLib.load(lua,input);
 				Object[] rtn = fn.call(lua);
 				if( rtn.length > 0 )
 					BasicLib.print(rtn);

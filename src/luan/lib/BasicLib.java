@@ -19,7 +19,7 @@ import luan.LuaJavaFunction;
 import luan.LuaException;
 import luan.interp.LuaParser;
 import luan.interp.Expressions;
-import luan.interp.Stmt;
+import luan.interp.Chunk;
 
 
 public class BasicLib {
@@ -28,8 +28,8 @@ public class BasicLib {
 		LuaTable t = lua.env();
 		add( t, "print", new Object[0].getClass() );
 		add( t, "type", Object.class );
-		add( t, "load", String.class );
-		add( t, "loadFile", String.class );
+		add( t, "load", LuaState.class, String.class );
+		add( t, "loadFile", LuaState.class, String.class );
 		add( t, "pairs", LuaTable.class );
 		add( t, "ipairs", LuaTable.class );
 	}
@@ -55,7 +55,7 @@ public class BasicLib {
 		return Lua.type(obj);
 	}
 
-	public static LuaFunction load(String ld) throws LuaException {
+	public static LuaFunction load(LuaState lua,String ld) throws LuaException {
 		LuaParser parser = Parboiled.createParser(LuaParser.class);
 		ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(ld);
 //		ParsingResult<?> result = new TracingParseRunner(parser.Target()).run(ld);
@@ -70,13 +70,8 @@ public class BasicLib {
 				}
 			};
 		}
-		final Stmt stmt = (Stmt)resultValue;
-		return new LuaFunction() {
-			public Object[] call(LuaState lua,Object... args) throws LuaException {
-				stmt.eval(lua);
-				return LuaFunction.EMPTY_RTN;
-			}
-		};
+		Chunk chunk = (Chunk)resultValue;
+		return chunk.newClosure(lua);
 	}
 
 	public static String readFile(String fileName) throws IOException {
@@ -90,8 +85,8 @@ public class BasicLib {
 		return sb.toString();
 	}
 
-	public static LuaFunction loadFile(String fileName) throws LuaException,IOException {
-		return load(readFile(fileName));
+	public static LuaFunction loadFile(LuaState lua,String fileName) throws LuaException,IOException {
+		return load(lua,readFile(fileName));
 	}
 
 	private static class TableIter {
