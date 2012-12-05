@@ -7,8 +7,8 @@ import luan.LuaState;
 
 
 final class FnCall implements Expressions {
-	private final Expr fnExpr;
-	private final Expressions args;
+	final Expr fnExpr;
+	final Expressions args;
 
 	FnCall(Expr fnExpr,Expressions args) {
 		this.fnExpr = fnExpr;
