@@ -12,18 +12,28 @@ public final class LuaClosure extends LuaFunction {
 	}
 
 	public Object[] call(LuaState lua,Object... args) throws LuaException {
-		Object[] stack = lua.newStack(chunk.stackSize);
-		final int n = Math.min(args.length,chunk.numArgs);
-		for( int i=0; i<n; i++ ) {
-			stack[i] = args[i];
+		Chunk chunk = this.chunk;
+		while(true) {
+			Object[] stack = lua.newStack(chunk.stackSize);
+			final int n = Math.min(args.length,chunk.numArgs);
+			for( int i=0; i<n; i++ ) {
+				stack[i] = args[i];
+			}
+			Object[] returnValues;
+			LuaClosure tailFn;
+			try {
+				chunk.block.eval(lua);
+			} catch(ReturnException e) {
+			} finally {
+				returnValues = lua.returnValues;
+				tailFn = lua.tailFn;
+				lua.popStack();
+			}
+			if( tailFn == null )
+				return returnValues;
+			chunk = tailFn.chunk;
+			args = returnValues;
 		}
-		try {
-			chunk.block.eval(lua);
-		} catch(ReturnException e) {
-		} finally {
-			lua.popStack();
-		}
-		return lua.returnValues;
 	}
 
 }

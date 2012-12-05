@@ -21,14 +21,16 @@ public class LuaState {
 
 	private LuaStack stack = null;
 	public Object[] returnValues;
+	public LuaClosure tailFn;
 
 	Object[] newStack(int stackSize) {
-		returnValues = LuaFunction.EMPTY_RTN;
 		stack = new LuaStack(stack,stackSize);
 		return stack.a;
 	}
 
 	void popStack() {
+		returnValues = LuaFunction.EMPTY_RTN;
+		tailFn = null;
 		stack = stack.previousStack;
 	}
 
