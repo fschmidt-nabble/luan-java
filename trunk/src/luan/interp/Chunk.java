@@ -14,16 +14,20 @@ public final class Chunk implements Expr {
 		this.block = block;
 		this.stackSize = stackSize;
 		this.numArgs = numArgs;
-		Stmt stmt = block;
-		while( stmt instanceof Block ) {
-			Block b = (Block)stmt;
-			if( b.stmts.length==0 )
-				break;
-			stmt = b.stmts[b.stmts.length-1];
-		}
+		fixReturns(block);
+	}
+
+	private static void fixReturns(Stmt stmt) {
 		if( stmt instanceof ReturnStmt ) {
 			ReturnStmt rs = (ReturnStmt)stmt;
 			rs.throwReturnException = false;
+		} else if( stmt instanceof Block ) {
+			Block b = (Block)stmt;
+			fixReturns( b.stmts[b.stmts.length-1] );
+		} else if( stmt instanceof IfStmt ) {
+			IfStmt is = (IfStmt)stmt;
+			fixReturns( is.thenStmt );
+			fixReturns( is.elseStmt );
 		}
 	}
 

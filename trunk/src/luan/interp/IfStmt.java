@@ -7,8 +7,8 @@ import luan.LuaException;
 
 final class IfStmt implements Stmt {
 	private final Expr cnd;
-	private final Stmt thenStmt;
-	private final Stmt elseStmt;
+	final Stmt thenStmt;
+	final Stmt elseStmt;
 
 	IfStmt(Expr cnd,Stmt thenStmt,Stmt elseStmt) {
 		this.cnd = cnd;
