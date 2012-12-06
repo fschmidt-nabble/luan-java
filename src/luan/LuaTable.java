@@ -1,11 +1,12 @@
 package luan;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 
 
 public class LuaTable {
-	public final Map<Object,Object> map = new HashMap<Object,Object>();
+	private final Map<Object,Object> map = new HashMap<Object,Object>();
 
 	@Override public String toString() {
 		return "table: " + Integer.toHexString(hashCode());
@@ -29,6 +30,10 @@ public class LuaTable {
 			i++;
 		}
 		return i;
+	}
+
+	public Iterator<Map.Entry<Object,Object>> iterator() {
+		return map.entrySet().iterator();
 	}
 
 }
