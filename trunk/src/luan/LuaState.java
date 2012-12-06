@@ -12,10 +12,12 @@ public class LuaState {
 	private static class LuaStack {
 		final LuaStack previousStack;
 		final Object[] a;
+		final Object[] varArgs;
 
-		LuaStack( LuaStack previousStack, int stackSize) {
+		LuaStack( LuaStack previousStack, int stackSize, Object[] varArgs) {
 			this.previousStack = previousStack;
 			this.a = new Object[stackSize];
+			this.varArgs = varArgs;
 		}
 	}
 
@@ -23,8 +25,8 @@ public class LuaState {
 	public Object[] returnValues;
 	public LuaClosure tailFn;
 
-	Object[] newStack(int stackSize) {
-		stack = new LuaStack(stack,stackSize);
+	Object[] newStack(int stackSize, Object[] varArgs) {
+		stack = new LuaStack(stack,stackSize,varArgs);
 		return stack.a;
 	}
 
@@ -38,4 +40,7 @@ public class LuaState {
 		return stack.a;
 	}
 
+	public Object[] varArgs() {
+		return stack.varArgs;
+	}
 }

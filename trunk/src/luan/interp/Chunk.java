@@ -9,11 +9,13 @@ public final class Chunk implements Expr {
 	public final Stmt block;
 	public final int stackSize;
 	public final int numArgs;
+	public final boolean isVarArg;
 
-	Chunk(Stmt block,int stackSize,int numArgs) {
+	Chunk(Stmt block,int stackSize,int numArgs,boolean isVarArg) {
 		this.block = block;
 		this.stackSize = stackSize;
 		this.numArgs = numArgs;
+		this.isVarArg = isVarArg;
 		fixReturns(block);
 	}
 

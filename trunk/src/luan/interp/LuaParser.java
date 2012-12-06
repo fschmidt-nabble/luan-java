@@ -28,6 +28,7 @@ public class LuaParser extends BaseParser<Object> {
 		final List<String> symbols = new ArrayList<String>();
 		int stackSize = 0;
 		int loops = 0;
+		boolean isVarArg = false;
 
 		Frame(Frame parent) {
 			this.parent = parent;
@@ -105,7 +106,7 @@ public class LuaParser extends BaseParser<Object> {
 				Sequence(
 					Block(),
 					EOI,
-					push( new Chunk( (Stmt)pop(), frame.stackSize, 0 ) )
+					push( new Chunk( (Stmt)pop(), frame.stackSize, 0, false ) )
 				)
 			)
 		);
@@ -391,7 +392,10 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule Expr() {
-		return OrExpr();
+		return FirstOf(
+			VarArgs(),
+			OrExpr()
+		);
 	}
 
 	Rule OrExpr() {
@@ -488,9 +492,31 @@ public class LuaParser extends BaseParser<Object> {
 	Rule Function() {
 		return Sequence(
 			action( frame = new Frame(frame) ),
-			'(', incParens(), Spaces(), Optional(NameList()), ')', decParens(), Spaces(), Block(), Keyword("end"),
-			push( new Chunk( (Stmt)pop(), frame.stackSize, symbolsSize() ) ),
+			'(', incParens(), Spaces(),
+			Optional(
+				FirstOf(
+					Sequence( NameList(), Optional( ',', Spaces(), VarArgName() ) ),
+					VarArgName()
+				)
+			),
+			')', decParens(), Spaces(), Block(), Keyword("end"),
+			push( new Chunk( (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg ) ),
 			action( frame = frame.parent )
+		);
+	}
+
+	Rule VarArgName() {
+		return Sequence(
+			"...", Spaces(),
+			action( frame.isVarArg = true )
+		);
+	}
+
+	Rule VarArgs() {
+		return Sequence(
+			"...", Spaces(),
+			frame.isVarArg,
+			push( VarArgs.INSTANCE )
 		);
 	}
 
