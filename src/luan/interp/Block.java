@@ -10,6 +10,8 @@ final class Block implements Stmt {
 	private final int stackEnd;
 
 	Block(Stmt[] stmts,int stackStart,int stackEnd) {
+		if( stmts.length==0 )
+			throw new RuntimeException("empty block");
 		this.stmts = stmts;
 		this.stackStart = stackStart;
 		this.stackEnd = stackEnd;
