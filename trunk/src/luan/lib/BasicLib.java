@@ -93,7 +93,7 @@ public class BasicLib {
 		private final Iterator<Map.Entry<Object,Object>> iter;
 
 		TableIter(LuaTable t) {
-			this.iter = t.map.entrySet().iterator();
+			this.iter = t.iterator();
 		}
 
 		public Object[] next() {
