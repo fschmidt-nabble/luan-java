@@ -1,5 +1,6 @@
 package luan;
 
+import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
 
@@ -26,9 +27,16 @@ public class CmdLine {
 			interactive = true;
 		} else {
 			String file = args[i++];
+			Object[] varArgs = new Object[args.length-1];
+			System.arraycopy(args,1,varArgs,0,varArgs.length);
+			LuaTable argsTable = new LuaTable();
+			for( int j=0; j<args.length; j++ ) {
+				argsTable.set( new LuaNumber(j), args[j] );
+			}
+			lua.env().set("arg",argsTable);
 			try {
 				LuaFunction fn = BasicLib.loadFile(lua,file);
-				fn.call(lua);
+				fn.call(lua,varArgs);
 			} catch(LuaException e) {
 //				System.out.println(e.getMessage());
 				e.printStackTrace();
