@@ -14,7 +14,18 @@ public final class LuaClosure extends LuaFunction {
 	public Object[] call(LuaState lua,Object... args) throws LuaException {
 		Chunk chunk = this.chunk;
 		while(true) {
-			Object[] stack = lua.newStack(chunk.stackSize);
+			Object[] varArgs = null;
+			if( chunk.isVarArg ) {
+				if( args.length > chunk.numArgs ) {
+					varArgs = new Object[ args.length - chunk.numArgs ];
+					for( int i=0; i<varArgs.length; i++ ) {
+						varArgs[i] = args[chunk.numArgs+i];
+					}
+				} else {
+					varArgs = LuaFunction.EMPTY_RTN;
+				}
+			}
+			Object[] stack = lua.newStack(chunk.stackSize,varArgs);
 			final int n = Math.min(args.length,chunk.numArgs);
 			for( int i=0; i<n; i++ ) {
 				stack[i] = args[i];
