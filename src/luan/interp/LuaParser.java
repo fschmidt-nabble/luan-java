@@ -521,66 +521,40 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule TableExpr() {
+		Var<List<TableExpr.Field>> fields = new Var<List<TableExpr.Field>>(new ArrayList<TableExpr.Field>());
+		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
 		return Sequence(
 			'{', incParens(), Spaces(),
-			push( new ArrayList<TableExpr.Field>() ),
-			push( 1.0 ),  // counter
 			Optional(
-				Field(),
+				Field(fields,builder),
 				ZeroOrMore(
 					FieldSep(),
-					Field()
+					Field(fields,builder)
 				),
 				Optional( FieldSep() )
 			),
 			'}', decParens(),
-			push( newTableExpr() ),
-			Spaces()
+			Spaces(),
+			push( new TableExpr( fields.get().toArray(new TableExpr.Field[0]), builder.get().build() ) )
 		);
-	}
-
-	TableExpr newTableExpr() {
-		pop();  // counter
-		@SuppressWarnings("unchecked")
-		List<TableExpr.Field> list = (List<TableExpr.Field>)pop();
-		return new TableExpr(list.toArray(new TableExpr.Field[0]));
 	}
 
 	Rule FieldSep() {
 		return Sequence( AnyOf(",;"), Spaces() );
 	}
 
-	Rule Field() {
+	Rule Field(Var<List<TableExpr.Field>> fields,Var<ExpList.Builder> builder) {
 		return FirstOf(
 			Sequence(
 				FirstOf( SubExpr(), NameExpr() ),
 				'=', Spaces(), Expr(),
-				addField()
+				fields.get().add( new TableExpr.Field( expr(pop(1)), expr(pop()) ) )
 			),
 			Sequence(
 				Expr(),
-				addIndexedField()
+				addToExpList(builder.get())
 			)
 		);
-	}
-
-	boolean addField() {
-		TableExpr.Field field = new TableExpr.Field( expr(pop(1)), expr(pop()) );
-		@SuppressWarnings("unchecked")
-		List<TableExpr.Field> list = (List<TableExpr.Field>)peek(1);
-		list.add(field);
-		return true;
-	}
-
-	boolean addIndexedField() {
-		Expr val = expr(pop());
-		double i = (Double)pop();
-		TableExpr.Field field = new TableExpr.Field( new ConstExpr(new LuaNumber(i)), val );
-		push( i + 1 );
-		@SuppressWarnings("unchecked")
-		List<TableExpr.Field> list = (List<TableExpr.Field>)peek(1);
-		list.add(field);
-		return true;
 	}
 
 	static Expr expr(Object obj) {
@@ -689,7 +663,6 @@ public class LuaParser extends BaseParser<Object> {
 		}
 		return true;
 	}
-
 
 	Rule SubExpr() {
 		return Sequence( '[', incParens(), Spaces(), Expr(), ']', decParens(), Spaces() );

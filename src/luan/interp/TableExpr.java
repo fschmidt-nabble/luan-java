@@ -3,6 +3,7 @@ package luan.interp;
 import luan.LuaException;
 import luan.LuaState;
 import luan.LuaTable;
+import luan.LuaNumber;
 
 
 final class TableExpr implements Expr {
@@ -18,15 +19,21 @@ final class TableExpr implements Expr {
 	}
 
 	private final Field[] fields;
+	private final Expressions expressions;
 
-	TableExpr(Field[] fields) {
+	TableExpr(Field[] fields,Expressions expressions) {
 		this.fields = fields;
+		this.expressions = expressions;
 	}
 
 	@Override public Object eval(LuaState lua) throws LuaException {
 		LuaTable table = new LuaTable();
 		for( Field field : fields ) {
 			table.set( field.key.eval(lua), field.value.eval(lua) );
+		}
+		Object[] a = expressions.eval(lua);
+		for( int i=0; i<a.length; i++ ) {
+			table.set( new LuaNumber(i+1), a[i] );
 		}
 		return table;
 	}
