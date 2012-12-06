@@ -104,9 +104,10 @@ public class LuaParser extends BaseParser<Object> {
 			FirstOf(
 				Sequence( ExpList(), EOI ),
 				Sequence(
+					action( frame.isVarArg = true ),
 					Block(),
 					EOI,
-					push( new Chunk( (Stmt)pop(), frame.stackSize, 0, false ) )
+					push( new Chunk( (Stmt)pop(), frame.stackSize, 0, frame.isVarArg ) )
 				)
 			)
 		);
