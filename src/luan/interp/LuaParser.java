@@ -21,7 +21,7 @@ import luan.LuaNumber;
 import luan.LuaState;
 
 
-public class LuaParser extends BaseParser<Object> {
+class LuaParser extends BaseParser<Object> {
 
 	static final class Frame {
 		final Frame parent;
@@ -105,7 +105,7 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 
-	public Rule Target() {
+	Rule Target() {
 		return Sequence(
 			Spaces(),
 			FirstOf(
