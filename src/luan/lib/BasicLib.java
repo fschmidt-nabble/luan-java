@@ -1,5 +1,7 @@
 package luan.lib;
 
+import java.io.File;
+import java.io.Reader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -29,7 +31,7 @@ public class BasicLib {
 		add( t, "print", new Object[0].getClass() );
 		add( t, "type", Object.class );
 		add( t, "load", LuaState.class, String.class );
-		add( t, "loadFile", LuaState.class, String.class );
+		add( t, "loadfile", LuaState.class, String.class );
 		add( t, "pairs", LuaTable.class );
 		add( t, "ipairs", LuaTable.class );
 	}
@@ -74,19 +76,30 @@ public class BasicLib {
 		return chunk.newClosure(lua);
 	}
 
-	public static String readFile(String fileName) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		FileReader in = new FileReader(fileName);
-		char[] buf = new char[8192];
+	public static String readAll(Reader in)
+		throws IOException
+	{
+		char[] a = new char[8192];
+		StringBuilder buf = new StringBuilder();
 		int n;
-		while( (n=in.read(buf)) != -1 ) {
-			sb.append(buf,0,n);
+		while( (n=in.read(a)) != -1 ) {
+			buf.append(a,0,n);
 		}
-		return sb.toString();
+		return buf.toString();
 	}
 
-	public static LuaFunction loadFile(LuaState lua,String fileName) throws LuaException,IOException {
-		return load(lua,readFile(fileName));
+	public static String read(File file)
+		throws IOException
+	{
+		Reader in = new FileReader(file);
+		String s = readAll(in);
+		in.close();
+		return s;
+	}
+
+
+	public static LuaFunction loadfile(LuaState lua,String fileName) throws LuaException,IOException {
+		return load(lua,read(new File(fileName)));
 	}
 
 	private static class TableIter {
