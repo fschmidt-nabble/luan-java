@@ -7,11 +7,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
-import org.parboiled.Parboiled;
-import org.parboiled.errors.ErrorUtils;
-import org.parboiled.parserunners.ReportingParseRunner;
-import org.parboiled.parserunners.TracingParseRunner;
-import org.parboiled.support.ParsingResult;
 import luan.Lua;
 import luan.LuaState;
 import luan.LuaTable;
@@ -19,9 +14,7 @@ import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaJavaFunction;
 import luan.LuaException;
-import luan.interp.LuaParser;
-import luan.interp.Expressions;
-import luan.interp.Chunk;
+import luan.interp.LuaCompiler;
 
 
 public class BasicLib {
@@ -58,22 +51,7 @@ public class BasicLib {
 	}
 
 	public static LuaFunction load(LuaState lua,String ld) throws LuaException {
-		LuaParser parser = Parboiled.createParser(LuaParser.class);
-		ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(ld);
-//		ParsingResult<?> result = new TracingParseRunner(parser.Target()).run(ld);
-		if( result.hasErrors() )
-			throw new LuaException( ErrorUtils.printParseErrors(result) );
-		Object resultValue = result.resultValue;
-		if( resultValue instanceof Expressions ) {
-			final Expressions expressions = (Expressions)resultValue;
-			return new LuaFunction() {
-				public Object[] call(LuaState lua,Object... args) throws LuaException {
-					return expressions.eval(lua);
-				}
-			};
-		}
-		Chunk chunk = (Chunk)resultValue;
-		return chunk.newClosure(lua);
+		return LuaCompiler.compile(lua,ld);
 	}
 
 	public static String readAll(Reader in)

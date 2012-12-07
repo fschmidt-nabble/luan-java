@@ -20,7 +20,7 @@ public class CmdLine {
 			showVersion = true;
 		} else {
 			while( i < args.length ) {
-				String arg = args[i++];
+				String arg = args[i];
 				if( !arg.startsWith("-") || arg.equals("--") )
 					break;
 				if( arg.equals("-i") ) {
@@ -28,9 +28,9 @@ public class CmdLine {
 				} else if( arg.equals("-v") ) {
 					showVersion = true;
 				} else if( arg.equals("-e") ) {
-					if( i == args.length )
+					if( ++i == args.length )
 						error("'-e' needs argument");
-					String cmd = args[i++];
+					String cmd = args[i];
 					try {
 						LuaFunction fn = BasicLib.load(lua,cmd);
 						fn.call(lua);
@@ -51,6 +51,7 @@ public class CmdLine {
 				} else {
 					error("unrecognized option '"+arg+"'");
 				}
+				i++;
 			}
 		}
 		if( showVersion )
