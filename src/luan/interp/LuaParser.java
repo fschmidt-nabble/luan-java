@@ -69,6 +69,13 @@ public class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
+	boolean addSymbols(List<String> names) {
+		frame.symbols.addAll(names);
+		if( frame.stackSize < symbolsSize() )
+			frame.stackSize = symbolsSize();
+		return true;
+	}
+
 	int index(String name) {
 		List<String> symbols = frame.symbols;
 		int i = symbols.size();
@@ -205,7 +212,10 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule LocalFunctionStmt() {
 		return Sequence(
-			Keyword("local"), Keyword("function"), LocalName(), Function(),
+			Keyword("local"), Keyword("function"),
+			Name(),
+			addSymbol( (String)pop() ),
+			Function(),
 			push( new SetStmt( new SetLocalVar(symbolsSize()-1), expr(pop()) ) )
 		);
 	}
@@ -220,8 +230,11 @@ public class LuaParser extends BaseParser<Object> {
 
 	Rule GenericForStmt() {
 		Var<Integer> stackStart = new Var<Integer>(symbolsSize());
+		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
-			Keyword("for"), NameList(), Keyword("in"), Expr(), Keyword("do"), LoopBlock(), Keyword("end"),
+			Keyword("for"), NameList(names), Keyword("in"), Expr(), Keyword("do"),
+			addSymbols(names.get()),
+			LoopBlock(), Keyword("end"),
 			push( new GenericForStmt( stackStart.get(), symbolsSize() - stackStart.get(), expr(pop(1)), (Stmt)pop() ) ),
 			popSymbols( symbolsSize() - stackStart.get() )
 		);
@@ -250,35 +263,32 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule LocalStmt(Var<List<Stmt>> stmts) {
-		Var<Integer> stackStart = new Var<Integer>(symbolsSize());
+		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
-			Keyword("local"), NameList(),
+			Keyword("local"), NameList(names),
 			Optional(
 				'=', Spaces(), ExpList(),
-				stmts.get().add( newSetLocalStmt(stackStart.get()) )
-			)
+				stmts.get().add( newSetLocalStmt(names.get().size()) )
+			),
+			addSymbols(names.get())
 		);
 	}
 
-	Rule NameList() {
-		return Sequence(
-			LocalName(),
-			ZeroOrMore(
-				',', Spaces(), LocalName()
-			)
-		);
-	}
-
-	Rule LocalName() {
+	Rule NameList(Var<List<String>> names) {
 		return Sequence(
 			Name(),
-			addSymbol( (String)pop() )
+			names.get().add( (String)pop() ),
+			ZeroOrMore(
+				',', Spaces(), Name(),
+				names.get().add( (String)pop() )
+			)
 		);
 	}
 
-	SetStmt newSetLocalStmt(int stackStart) {
+	SetStmt newSetLocalStmt(int nVars) {
 		Expressions values = (Expressions)pop();
-		SetLocalVar[] vars = new SetLocalVar[symbolsSize()-stackStart];
+		SetLocalVar[] vars = new SetLocalVar[nVars];
+		int stackStart = symbolsSize();
 		for( int i=0; i<vars.length; i++ ) {
 			vars[i] = new SetLocalVar(stackStart+i);
 		}
@@ -491,12 +501,16 @@ public class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule Function() {
+		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
 			action( frame = new Frame(frame) ),
 			'(', incParens(), Spaces(),
 			Optional(
 				FirstOf(
-					Sequence( NameList(), Optional( ',', Spaces(), VarArgName() ) ),
+					Sequence(
+						NameList(names), addSymbols(names.get()),
+						Optional( ',', Spaces(), VarArgName() )
+					),
 					VarArgName()
 				)
 			),
