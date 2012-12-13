@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaState;
 import luan.LuaException;
 
 
@@ -14,7 +13,7 @@ final class WhileStmt implements Stmt {
 		this.doStmt = doStmt;
 	}
 
-	@Override public void eval(LuaState lua) throws LuaException {
+	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		try {
 			while( Lua.toBoolean( cnd.eval(lua) ) ) {
 				doStmt.eval(lua);

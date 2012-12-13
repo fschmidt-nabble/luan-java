@@ -1,17 +1,19 @@
-package luan;
+package luan.interp;
 
-import luan.interp.Chunk;
-import luan.interp.ReturnException;
+import luan.LuaFunction;
+import luan.LuaState;
+import luan.LuaException;
 
 
-public final class LuaClosure extends LuaFunction {
+final class LuaClosure extends LuaFunction {
 	private final Chunk chunk;
 
-	public LuaClosure(Chunk chunk,LuaState lua) {
+	LuaClosure(Chunk chunk,LuaStateImpl lua) {
 		this.chunk = chunk;
 	}
 
-	public Object[] call(LuaState lua,Object... args) throws LuaException {
+	public Object[] call(LuaState luaState,Object... args) throws LuaException {
+		LuaStateImpl lua = (LuaStateImpl)luaState;
 		Chunk chunk = this.chunk;
 		while(true) {
 			Object[] varArgs = null;

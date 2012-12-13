@@ -1,11 +1,9 @@
 package luan.interp;
 
-import luan.LuaState;
 import luan.LuaException;
-import luan.LuaClosure;
 
 
-public final class Chunk implements Expr {
+final class Chunk implements Expr {
 	public final Stmt block;
 	public final int stackSize;
 	public final int numArgs;
@@ -33,11 +31,11 @@ public final class Chunk implements Expr {
 		}
 	}
 
-	public LuaClosure newClosure(LuaState lua) {
+	LuaClosure newClosure(LuaStateImpl lua) {
 		return new LuaClosure(this,lua);
 	}
 
-	@Override public Object eval(LuaState lua) {
+	@Override public Object eval(LuaStateImpl lua) {
 		return newClosure(lua);
 	}
 

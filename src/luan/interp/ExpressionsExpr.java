@@ -3,7 +3,6 @@ package luan.interp;
 import java.util.List;
 import luan.Lua;
 import luan.LuaException;
-import luan.LuaState;
 
 
 final class ExpressionsExpr implements Expr {
@@ -13,7 +12,7 @@ final class ExpressionsExpr implements Expr {
 		this.expressions = expressions;
 	}
 
-	@Override public Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		Object[] a = expressions.eval(lua);
 		return a.length==0 ? null : a[0];
 	}

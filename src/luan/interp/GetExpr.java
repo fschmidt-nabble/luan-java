@@ -2,7 +2,6 @@ package luan.interp;
 
 import luan.Lua;
 import luan.LuaException;
-import luan.LuaState;
 import luan.LuaTable;
 
 
@@ -12,7 +11,7 @@ final class GetExpr extends BinaryOpExpr {
 		super(op1,op2);
 	}
 
-	@Override public Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		Object t = op1.eval(lua);
 		if( t instanceof LuaTable ) {
 			LuaTable tbl = (LuaTable)t;

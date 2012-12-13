@@ -4,7 +4,6 @@ import luan.Lua;
 import luan.LuaNumber;
 import luan.LuaTable;
 import luan.LuaException;
-import luan.LuaState;
 
 
 final class LenExpr extends UnaryOpExpr {
@@ -13,7 +12,7 @@ final class LenExpr extends UnaryOpExpr {
 		super(op);
 	}
 
-	@Override public Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		return new LuaNumber( length(op.eval(lua)) );
 	}
 

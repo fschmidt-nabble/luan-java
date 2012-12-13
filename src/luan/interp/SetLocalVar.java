@@ -1,7 +1,5 @@
 package luan.interp;
 
-import luan.LuaState;
-
 
 final class SetLocalVar implements Settable {
 	private final int index;
@@ -10,7 +8,7 @@ final class SetLocalVar implements Settable {
 		this.index = index;
 	}
 
-	@Override public void set(LuaState lua,Object value) {
+	@Override public void set(LuaStateImpl lua,Object value) {
 		lua.stack()[index] = value;
 	}
 }

@@ -24,11 +24,15 @@ public final class LuaCompiler {
 			final Expressions expressions = (Expressions)resultValue;
 			return new LuaFunction() {
 				public Object[] call(LuaState lua,Object... args) throws LuaException {
-					return expressions.eval(lua);
+					return expressions.eval((LuaStateImpl)lua);
 				}
 			};
 		}
 		Chunk chunk = (Chunk)resultValue;
-		return chunk.newClosure(lua);
+		return chunk.newClosure((LuaStateImpl)lua);
+	}
+
+	public static LuaState newLuaState() {
+		return new LuaStateImpl();
 	}
 }

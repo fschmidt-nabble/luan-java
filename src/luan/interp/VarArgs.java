@@ -1,14 +1,12 @@
 package luan.interp;
 
-import luan.LuaState;
-
 
 final class VarArgs implements Expressions {
 	static final VarArgs INSTANCE = new VarArgs();
 
 	private VarArgs() {}
 
-	@Override public Object[] eval(LuaState lua) {
+	@Override public Object[] eval(LuaStateImpl lua) {
 		return lua.varArgs();
 	}
 }

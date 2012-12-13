@@ -1,7 +1,5 @@
 package luan.interp;
 
-import luan.LuaState;
-
 
 final class GetLocalVar implements Expr {
 	private final int index;
@@ -10,7 +8,7 @@ final class GetLocalVar implements Expr {
 		this.index = index;
 	}
 
-	@Override public Object eval(LuaState lua) {
+	@Override public Object eval(LuaStateImpl lua) {
 		return lua.stack()[index];
 	}
 }
