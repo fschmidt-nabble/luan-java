@@ -2,7 +2,6 @@ package luan.interp;
 
 import luan.Lua;
 import luan.LuaException;
-import luan.LuaState;
 
 
 final class OrExpr extends BinaryOpExpr {
@@ -11,7 +10,7 @@ final class OrExpr extends BinaryOpExpr {
 		super(op1,op2);
 	}
 
-	@Override public Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		Object v1 = op1.eval(lua);
 		return Lua.toBoolean(v1) ? v1 : op2.eval(lua);
 	}

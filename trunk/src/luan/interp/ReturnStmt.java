@@ -1,10 +1,8 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaState;
 import luan.LuaException;
 import luan.LuaFunction;
-import luan.LuaClosure;
 
 
 final class ReturnStmt implements Stmt {
@@ -23,7 +21,7 @@ final class ReturnStmt implements Stmt {
 		}
 	}
 
-	@Override public void eval(LuaState lua) throws LuaException {
+	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		lua.returnValues = expressions.eval(lua);
 		if( tailFnExpr != null ) {
 			LuaFunction tailFn = Lua.checkFunction( tailFnExpr.eval(lua) );

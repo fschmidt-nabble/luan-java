@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaState;
 import luan.LuaException;
 import luan.LuaFunction;
 
@@ -19,7 +18,7 @@ final class GenericForStmt implements Stmt {
 		this.block = block;
 	}
 
-	@Override public void eval(LuaState lua) throws LuaException {
+	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		LuaFunction iter = Lua.checkFunction( iterExpr.eval(lua) );
 		Object[] stack = lua.stack();
 		try {

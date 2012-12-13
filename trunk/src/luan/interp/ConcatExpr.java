@@ -3,7 +3,6 @@ package luan.interp;
 import luan.Lua;
 import luan.LuaNumber;
 import luan.LuaException;
-import luan.LuaState;
 
 
 final class ConcatExpr extends BinaryOpExpr {
@@ -12,7 +11,7 @@ final class ConcatExpr extends BinaryOpExpr {
 		super(op1,op2);
 	}
 
-	@Override public Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		return toString(op1.eval(lua)) + toString(op2.eval(lua));
 	}
 

@@ -1,6 +1,5 @@
 package luan.interp;
 
-import luan.LuaState;
 import luan.LuaException;
 import luan.LuaTable;
 import luan.Lua;
@@ -15,7 +14,7 @@ final class SetTableEntry implements Settable {
 		this.keyExpr = keyExpr;
 	}
 
-	@Override public void set(LuaState lua,Object value) throws LuaException {
+	@Override public void set(LuaStateImpl lua,Object value) throws LuaException {
 		Object t = tableExpr.eval(lua);
 		if( !(t instanceof LuaTable) )
 			throw new LuaException( "attempt to index a " + Lua.type(t) + " value" );

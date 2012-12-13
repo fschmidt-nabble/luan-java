@@ -4,13 +4,14 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
+import luan.interp.LuaCompiler;
 
 
 public class CmdLine {
 	static final String version = "Luan 0.0";
 
 	public static void main(String[] args) throws Exception {
-		LuaState lua = new LuaState();
+		LuaState lua = LuaCompiler.newLuaState();
 		BasicLib.register(lua);
 		boolean interactive = false;
 		boolean showVersion = false;

@@ -2,7 +2,6 @@ package luan.interp;
 
 import luan.Lua;
 import luan.LuaException;
-import luan.LuaState;
 
 
 final class NotExpr extends UnaryOpExpr {
@@ -11,7 +10,7 @@ final class NotExpr extends UnaryOpExpr {
 		super(op);
 	}
 
-	@Override public Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		return !Lua.toBoolean(op.eval(lua));
 	}
 }

@@ -1,6 +1,5 @@
 package luan.interp;
 
-import luan.LuaState;
 import luan.LuaException;
 
 
@@ -17,7 +16,7 @@ final class Block implements Stmt {
 		this.stackEnd = stackEnd;
 	}
 
-	@Override public void eval(LuaState lua) throws LuaException {
+	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		try {
 			for( Stmt stmt : stmts ) {
 				stmt.eval(lua);

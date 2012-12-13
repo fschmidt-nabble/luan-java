@@ -2,7 +2,6 @@ package luan.interp;
 
 import luan.Lua;
 import luan.LuaNumber;
-import luan.LuaState;
 import luan.LuaException;
 
 
@@ -21,7 +20,7 @@ final class NumericForStmt implements Stmt {
 		this.block = block;
 	}
 
-	@Override public void eval(LuaState lua) throws LuaException {
+	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		double v = Lua.checkNumber( fromExpr.eval(lua) ).value();
 		double limit = Lua.checkNumber( toExpr.eval(lua) ).value();
 		double step = Lua.checkNumber( stepExpr.eval(lua) ).value();

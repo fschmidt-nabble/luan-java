@@ -978,20 +978,4 @@ class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
-	// for testing
-	public static void main(String[] args) throws Exception {
-		LuaParser parser = Parboiled.createParser(LuaParser.class);
-		while( true ) {
-			String input = new Scanner(System.in).nextLine();
-			ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(input);
-			if( result.hasErrors() ) {
-				System.out.println("Parse Errors:\n" + ErrorUtils.printParseErrors(result));
-			} else {
-				Expr expr = expr(result.resultValue);
-				LuaState lua = new LuaState();
-				Object val = expr.eval(lua);
-				System.out.println("Result: "+Lua.toString(val));
-			}
-		}
-	}
 }

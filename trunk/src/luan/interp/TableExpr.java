@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.LuaException;
-import luan.LuaState;
 import luan.LuaTable;
 import luan.LuaNumber;
 
@@ -26,7 +25,7 @@ final class TableExpr implements Expr {
 		this.expressions = expressions;
 	}
 
-	@Override public Object eval(LuaState lua) throws LuaException {
+	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		LuaTable table = new LuaTable();
 		for( Field field : fields ) {
 			table.set( field.key.eval(lua), field.value.eval(lua) );

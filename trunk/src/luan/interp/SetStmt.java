@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaState;
 import luan.LuaException;
 
 
@@ -18,7 +17,7 @@ final class SetStmt implements Stmt {
 		this.expressions = expressions;
 	}
 
-	@Override public void eval(LuaState lua) throws LuaException {
+	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		final Object[] vals = expressions.eval(lua);
 		for( int i=0; i<vars.length; i++ ) {
 			Object val = i < vals.length ? vals[i] : null;
