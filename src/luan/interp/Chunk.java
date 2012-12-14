@@ -4,16 +4,18 @@ import luan.LuaException;
 
 
 final class Chunk implements Expr {
-	public final Stmt block;
-	public final int stackSize;
-	public final int numArgs;
-	public final boolean isVarArg;
+	final Stmt block;
+	final int stackSize;
+	final int numArgs;
+	final boolean isVarArg;
+	final UpValue.Getter[] upValueGetters;
 
-	Chunk(Stmt block,int stackSize,int numArgs,boolean isVarArg) {
+	Chunk(Stmt block,int stackSize,int numArgs,boolean isVarArg,UpValue.Getter[] upValueGetters) {
 		this.block = block;
 		this.stackSize = stackSize;
 		this.numArgs = numArgs;
 		this.isVarArg = isVarArg;
+		this.upValueGetters = upValueGetters;
 		fixReturns(block);
 	}
 

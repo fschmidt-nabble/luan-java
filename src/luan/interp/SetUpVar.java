@@ -1,14 +1,14 @@
 package luan.interp;
 
 
-final class SetLocalVar implements Settable {
+final class SetUpVar implements Settable {
 	private final int index;
 
-	SetLocalVar(int index) {
+	SetUpVar(int index) {
 		this.index = index;
 	}
 
 	@Override public void set(LuaStateImpl lua,Object value) {
-		lua.stackSet( index, value );
+		lua.closure().upValues[index].set(value);
 	}
 }

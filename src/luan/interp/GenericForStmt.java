@@ -20,22 +20,19 @@ final class GenericForStmt implements Stmt {
 
 	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		LuaFunction iter = Lua.checkFunction( iterExpr.eval(lua) );
-		Object[] stack = lua.stack();
 		try {
 			while(true) {
 				Object[] vals = iter.call(lua);
 				if( vals.length==0 || vals[0]==null )
 					break;
 				for( int i=0; i<nVars; i++ ) {
-					stack[iVars+i] = i < vals.length ? vals[i] : null;
+					lua.stackSet( iVars+i, i < vals.length ? vals[i] : null );
 				}
 				block.eval(lua);
 			}
 		} catch(BreakException e) {
 		} finally {
-			for( int i=iVars; i<iVars+nVars; i++ ) {
-				stack[i] = null;
-			}
+			lua.stackClear(iVars,iVars+nVars);
 		}
 	}
 

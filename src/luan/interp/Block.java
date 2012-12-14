@@ -22,10 +22,7 @@ final class Block implements Stmt {
 				stmt.eval(lua);
 			}
 		} finally {
-			Object[] stack = lua.stack();
-			for( int i=stackStart; i<stackEnd; i++ ) {
-				stack[i] = null;
-			}
+			lua.stackClear(stackStart,stackEnd);
 		}
 	}
 
