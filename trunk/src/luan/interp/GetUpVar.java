@@ -1,14 +1,14 @@
 package luan.interp;
 
 
-final class GetLocalVar implements Expr {
+final class GetUpVar implements Expr {
 	private final int index;
 
-	GetLocalVar(int index) {
+	GetUpVar(int index) {
 		this.index = index;
 	}
 
 	@Override public Object eval(LuaStateImpl lua) {
-		return lua.stackGet(index);
+		return lua.closure().upValues[index].get();
 	}
 }

@@ -24,16 +24,15 @@ final class NumericForStmt implements Stmt {
 		double v = Lua.checkNumber( fromExpr.eval(lua) ).value();
 		double limit = Lua.checkNumber( toExpr.eval(lua) ).value();
 		double step = Lua.checkNumber( stepExpr.eval(lua) ).value();
-		Object[] stack = lua.stack();
 		try {
 			while( step > 0.0 && v <= limit || step < 0.0 && v >= limit ) {
-				stack[iVar] = new LuaNumber(v);
+				lua.stackSet( iVar, new LuaNumber(v) );
 				block.eval(lua);
 				v += step;
 			}
 		} catch(BreakException e) {
 		} finally {
-			stack[iVar] = null;
+			lua.stackClear(iVar,iVar+1);
 		}
 	}
 

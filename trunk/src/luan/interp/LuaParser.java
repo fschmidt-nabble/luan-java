@@ -29,11 +29,45 @@ class LuaParser extends BaseParser<Object> {
 		int stackSize = 0;
 		int loops = 0;
 		boolean isVarArg = false;
+		final List<String> upValueSymbols = new ArrayList<String>();
+		final List<UpValue.Getter> upValueGetters = new ArrayList<UpValue.Getter>();
 
 		Frame(Frame parent) {
 			this.parent = parent;
 		}
+
+		int stackIndex(String name) {
+			int i = symbols.size();
+			while( --i >= 0 ) {
+				if( symbols.get(i).equals(name) )
+					return i;
+			}
+			return -1;
+		}
+
+		int upValueIndex(String name) {
+			int i = upValueSymbols.size();
+			while( --i >= 0 ) {
+				if( upValueSymbols.get(i).equals(name) )
+					return i;
+			}
+			if( parent==null )
+				return -1;
+			i = parent.stackIndex(name);
+			if( i != -1 ) {
+				upValueGetters.add(new UpValue.StackGetter(i));
+			} else {
+				i = parent.upValueIndex(name);
+				if( i == -1 )
+					return -1;
+				upValueGetters.add(new UpValue.NestedGetter(i));
+			}
+			upValueSymbols.add(name);
+			return upValueSymbols.size() - 1;
+		}
 	}
+
+	static final UpValue.Getter[] NO_UP_VALUE_GETTERS = new UpValue.Getter[0];
 
 	int nEquals;
 	int parens = 0;
@@ -76,14 +110,8 @@ class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
-	int index(String name) {
-		List<String> symbols = frame.symbols;
-		int i = symbols.size();
-		while( --i >= 0 ) {
-			if( symbols.get(i).equals(name) )
-				return i;
-		}
-		return -1;
+	int stackIndex(String name) {
+		return frame.stackIndex(name);
 	}
 
 	boolean popSymbols(int n) {
@@ -92,6 +120,10 @@ class LuaParser extends BaseParser<Object> {
 			symbols.remove(symbols.size()-1);
 		}
 		return true;
+	}
+
+	int upValueIndex(String name) {
+		return frame.upValueIndex(name);
 	}
 
 	boolean incLoops() {
@@ -104,6 +136,9 @@ class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
+	Chunk newChunk() {
+		return new Chunk( (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
+	}
 
 	Rule Target() {
 		return Sequence(
@@ -114,7 +149,7 @@ class LuaParser extends BaseParser<Object> {
 					action( frame.isVarArg = true ),
 					Block(),
 					EOI,
-					push( new Chunk( (Stmt)pop(), frame.stackSize, 0, frame.isVarArg ) )
+					push( newChunk() )
 				)
 			)
 		);
@@ -386,20 +421,19 @@ class LuaParser extends BaseParser<Object> {
 		if( obj2==null )
 			return false;
 		Object obj1 = pop();
-		if( obj1==null ) {
-			String name = (String)obj2;
-			int index = index(name);
-			if( index == -1 ) {
-				push( new SetTableEntry( EnvExpr.INSTANCE, new ConstExpr(name) ) );
-			} else {
-				push( new SetLocalVar(index) );
-			}
-		} else {
+		if( obj1!=null ) {
 			Expr key = expr(obj2);
 			Expr table = expr(obj1);
-			push( new SetTableEntry(table,key) );
+			return push( new SetTableEntry(table,key) );
 		}
-		return true;
+		String name = (String)obj2;
+		int index = stackIndex(name);
+		if( index != -1 )
+			return push( new SetLocalVar(index) );
+		index = upValueIndex(name);
+		if( index != -1 )
+			return push( new SetUpVar(index) );
+		return push( new SetTableEntry( EnvExpr.INSTANCE, new ConstExpr(name) ) );
 	}
 
 	Rule Expr() {
@@ -515,7 +549,7 @@ class LuaParser extends BaseParser<Object> {
 				)
 			),
 			')', decParens(), Spaces(), Block(), Keyword("end"),
-			push( new Chunk( (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg ) ),
+			push( newChunk() ),
 			action( frame = frame.parent )
 		);
 	}
@@ -617,16 +651,16 @@ class LuaParser extends BaseParser<Object> {
 		if( obj2==null )
 			return true;
 		Object obj1 = pop();
-		if( obj1==null ) {
-			String name = (String)obj2;
-			int index = index(name);
-			if( index == -1 ) {
-				return push( new GetExpr( EnvExpr.INSTANCE, new ConstExpr(name) ) );
-			} else {
-				return push( new GetLocalVar(index) );
-			}
-		}
-		return push( new GetExpr( expr(obj1), expr(obj2) ) );
+		if( obj1 != null )
+			return push( new GetExpr( expr(obj1), expr(obj2) ) );
+		String name = (String)obj2;
+		int index = stackIndex(name);
+		if( index != -1 )
+			return push( new GetLocalVar(index) );
+		index = upValueIndex(name);
+		if( index != -1 )
+			return push( new GetUpVar(index) );
+		return push( new GetExpr( EnvExpr.INSTANCE, new ConstExpr(name) ) );
 	}
 
 	// function should be on top of the stack
