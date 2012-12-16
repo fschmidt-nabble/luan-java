@@ -20,7 +20,7 @@ import luan.interp.LuaCompiler;
 public class BasicLib {
 
 	public static void register(LuaState lua) {
-		LuaTable t = lua.env();
+		LuaTable t = lua.global();
 		add( t, "print", new Object[0].getClass() );
 		add( t, "type", Object.class );
 		add( t, "load", LuaState.class, String.class );

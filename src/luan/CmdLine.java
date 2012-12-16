@@ -65,7 +65,7 @@ public class CmdLine {
 			for( int j=0; j<args.length; j++ ) {
 				argsTable.set( new LuaNumber(j), args[j] );
 			}
-			lua.env().set("arg",argsTable);
+			lua.global().set("arg",argsTable);
 			try {
 				LuaFunction fn = BasicLib.loadfile(lua,file);
 				fn.call(lua,varArgs);

@@ -4,23 +4,35 @@ package luan.interp;
 final class UpValue {
 	private Object[] stack;
 	private int index;
+	private boolean isClosed = false;
+	private Object value;
 
 	UpValue(Object[] stack,int index) {
 		this.stack = stack;
 		this.index = index;
 	}
 
+	UpValue(Object value) {
+		this.value = value;
+		this.isClosed = true;
+	}
+
 	Object get() {
-		return stack[index];
+		return isClosed ? value : stack[index];
 	}
 
 	void set(Object value) {
-		stack[index] = value;
+		if( isClosed ) {
+			this.value = value;
+		} else {
+			stack[index] = value;
+		}
 	}
 
 	void close() {
-		stack = new Object[]{get()};
-		index = 0;
+		value = stack[index];
+		isClosed = true;
+		stack = null;
 	}
 
 	static interface Getter {
@@ -50,5 +62,11 @@ final class UpValue {
 			return lua.closure().upValues[index];
 		}
 	}
+
+	static final Getter globalGetter = new Getter() {
+		public UpValue get(LuaStateImpl lua) {
+			return new UpValue(lua.global());
+		}
+	};
 
 }

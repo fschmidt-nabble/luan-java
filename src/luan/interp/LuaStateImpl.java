@@ -6,10 +6,10 @@ import luan.LuaFunction;
 
 
 final class LuaStateImpl implements LuaState {
-	private final LuaTable env = new LuaTable();
+	private final LuaTable global = new LuaTable();
 
-	@Override public LuaTable env() {
-		return env;
+	@Override public LuaTable global() {
+		return global;
 	}
 
 
