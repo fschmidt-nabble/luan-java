@@ -277,10 +277,10 @@ class LuaParser extends BaseParser<Object> {
 
 	Rule NumericForStmt() {
 		return Sequence(
-			Keyword("for"), Name(), '=', Spaces(), Expr(), ',', Spaces(), Expr(),
+			Keyword("for"), Name(), '=', Spaces(), Expr(), Keyword("to"), Expr(),
 			push( new ConstExpr(new LuaNumber(1)) ),  // default step
 			Optional(
-				',', Spaces(),
+				Keyword("step"),
 				drop(),
 				Expr()
 			),
@@ -775,7 +775,9 @@ class LuaParser extends BaseParser<Object> {
 		"or",
 		"repeat",
 		"return",
+		"step",
 		"then",
+		"to",
 		"true",
 		"until",
 		"while"
