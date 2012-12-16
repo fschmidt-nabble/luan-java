@@ -23,6 +23,9 @@ import luan.LuaState;
 
 class LuaParser extends BaseParser<Object> {
 
+	static final String _G = "_G";
+	static final String _ENV = "_ENV";
+
 	static final class Frame {
 		final Frame parent;
 		final List<String> symbols = new ArrayList<String>();
@@ -31,6 +34,14 @@ class LuaParser extends BaseParser<Object> {
 		boolean isVarArg = false;
 		final List<String> upValueSymbols = new ArrayList<String>();
 		final List<UpValue.Getter> upValueGetters = new ArrayList<UpValue.Getter>();
+
+		Frame() {
+			this.parent = null;
+			upValueSymbols.add(_G);
+			upValueGetters.add(UpValue.globalGetter);
+			upValueSymbols.add(_ENV);
+			upValueGetters.add(UpValue.globalGetter);
+		}
 
 		Frame(Frame parent) {
 			this.parent = parent;
@@ -71,7 +82,7 @@ class LuaParser extends BaseParser<Object> {
 
 	int nEquals;
 	int parens = 0;
-	Frame frame = new Frame(null);
+	Frame frame = new Frame();
 
 	boolean nEquals(int n) {
 		nEquals = n;
@@ -433,7 +444,7 @@ class LuaParser extends BaseParser<Object> {
 		index = upValueIndex(name);
 		if( index != -1 )
 			return push( new SetUpVar(index) );
-		return push( new SetTableEntry( EnvExpr.INSTANCE, new ConstExpr(name) ) );
+		return push( new SetTableEntry( env(), new ConstExpr(name) ) );
 	}
 
 	Rule Expr() {
@@ -537,8 +548,8 @@ class LuaParser extends BaseParser<Object> {
 	Rule Function() {
 		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
-			action( frame = new Frame(frame) ),
 			'(', incParens(), Spaces(),
+			action( frame = new Frame(frame) ),
 			Optional(
 				FirstOf(
 					Sequence(
@@ -646,6 +657,16 @@ class LuaParser extends BaseParser<Object> {
 		);
 	}
 
+	Expr env() {
+		int index = stackIndex(_ENV);
+		if( index != -1 )
+			return new GetLocalVar(index);
+		index = upValueIndex(_ENV);
+		if( index != -1 )
+			return new GetUpVar(index);
+		throw new RuntimeException("_ENV not found");
+	}
+
 	boolean makeVarExp() {
 		Object obj2 = pop();
 		if( obj2==null )
@@ -660,7 +681,7 @@ class LuaParser extends BaseParser<Object> {
 		index = upValueIndex(name);
 		if( index != -1 )
 			return push( new GetUpVar(index) );
-		return push( new GetExpr( EnvExpr.INSTANCE, new ConstExpr(name) ) );
+		return push( new GetExpr( env(), new ConstExpr(name) ) );
 	}
 
 	// function should be on top of the stack
