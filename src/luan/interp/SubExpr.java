@@ -12,8 +12,12 @@ final class SubExpr extends BinaryOpExpr {
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
-		double n1 = Lua.checkNumber(op1.eval(lua)).value();
-		double n2 = Lua.checkNumber(op2.eval(lua)).value();
-		return new LuaNumber( n1 - n2 );
+		Object o1 = op1.eval(lua);
+		Object o2 = op2.eval(lua);
+		LuaNumber n1 = Lua.toNumber(o1);
+		LuaNumber n2 = Lua.toNumber(o2);
+		if( n1 != null && n2 != null )
+			return new LuaNumber( n1.value() - n2.value() );
+		return arithmetic(lua,"__sub",o1,o2);
 	}
 }

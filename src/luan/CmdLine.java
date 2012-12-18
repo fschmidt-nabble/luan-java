@@ -8,7 +8,6 @@ import luan.interp.LuaCompiler;
 
 
 public class CmdLine {
-	static final String version = "Luan 0.0";
 
 	public static void main(String[] args) throws Exception {
 		LuaState lua = LuaCompiler.newLuaState();
@@ -56,16 +55,16 @@ public class CmdLine {
 			}
 		}
 		if( showVersion )
-			System.out.println(version);
+			System.out.println(Lua.version);
 		if( i < args.length ) {
 			String file = args[i++];
 			Object[] varArgs = new Object[args.length-1];
 			System.arraycopy(args,1,varArgs,0,varArgs.length);
 			LuaTable argsTable = new LuaTable();
 			for( int j=0; j<args.length; j++ ) {
-				argsTable.set( new LuaNumber(j), args[j] );
+				argsTable.put( new LuaNumber(j), args[j] );
 			}
-			lua.global().set("arg",argsTable);
+			lua.global().put("arg",argsTable);
 			try {
 				LuaFunction fn = BasicLib.loadfile(lua,file);
 				fn.call(lua,varArgs);

@@ -21,17 +21,21 @@ public class BasicLib {
 
 	public static void register(LuaState lua) {
 		LuaTable t = lua.global();
-		add( t, "print", new Object[0].getClass() );
-		add( t, "type", Object.class );
+		t.put( "_G", t );
+		add( t, "getmetatable", Object.class );
+		add( t, "ipairs", LuaTable.class );
 		add( t, "load", LuaState.class, String.class );
 		add( t, "loadfile", LuaState.class, String.class );
 		add( t, "pairs", LuaTable.class );
-		add( t, "ipairs", LuaTable.class );
+		add( t, "print", new Object[0].getClass() );
+		add( t, "setmetatable", LuaTable.class, LuaTable.class );
+		add( t, "type", Object.class );
+		t.put( "_VERSION", Lua.version );
 	}
 
 	private static void add(LuaTable t,String method,Class<?>... parameterTypes) {
 		try {
-			t.set( method, new LuaJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
+			t.put( method, new LuaJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
@@ -130,5 +134,14 @@ public class BasicLib {
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static LuaTable getmetatable(Object obj) {
+		return Lua.getMetatable(obj);
+	}
+
+	public static LuaTable setmetatable(LuaTable table,LuaTable metatable) {
+		table.setMetatable(metatable);
+		return table;
 	}
 }

@@ -2,6 +2,7 @@ package luan.interp;
 
 import luan.Lua;
 import luan.LuaNumber;
+import luan.LuaFunction;
 import luan.LuaException;
 
 
@@ -12,18 +13,21 @@ final class LtExpr extends BinaryOpExpr {
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
-		Object v1 = op1.eval(lua);
-		Object v2 = op2.eval(lua);
-		if( v1 instanceof LuaNumber && v2 instanceof LuaNumber ) {
-			LuaNumber n1 = (LuaNumber)v1;
-			LuaNumber n2 = (LuaNumber)v2;
+		Object o1 = op1.eval(lua);
+		Object o2 = op2.eval(lua);
+		if( o1 instanceof LuaNumber && o2 instanceof LuaNumber ) {
+			LuaNumber n1 = (LuaNumber)o1;
+			LuaNumber n2 = (LuaNumber)o2;
 			return n1.compareTo(n2) < 0;
 		}
-		if( v1 instanceof String && v2 instanceof String ) {
-			String s1 = (String)v1;
-			String s2 = (String)v2;
+		if( o1 instanceof String && o2 instanceof String ) {
+			String s1 = (String)o1;
+			String s2 = (String)o2;
 			return s1.compareTo(s2) < 0;
 		}
-		throw new LuaException( "attempt to compare " + Lua.type(v1) + " with " + Lua.type(v2) );
+		LuaFunction fn = getBinHandler("__lt",o1,o2);
+		if( fn != null )
+			return Lua.toBoolean( Utils.first(fn.call(lua,o1,o2)) );
+		throw new LuaException( "attempt to compare " + Lua.type(o1) + " with " + Lua.type(o2) );
 	}
 }
