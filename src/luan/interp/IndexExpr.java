@@ -23,11 +23,11 @@ final class IndexExpr extends BinaryOpExpr {
 			Object value = tbl.get(key);
 			if( value != null )
 				return value;
-			h = Utils.getHandlerObject("__index",t);
+			h = Utils.getHandler("__index",t);
 			if( h==null )
 				return null;
 		} else {
-			h = Utils.getHandlerObject("__index",t);
+			h = Utils.getHandler("__index",t);
 			if( h==null )
 				throw new LuaException( "attempt to index a " + Lua.type(t) + " value" );
 		}

@@ -1,6 +1,5 @@
 package luan;
 
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
@@ -39,10 +38,8 @@ public class CmdLine {
 						System.exit(-1);
 					}
 				} else if( arg.equals("-") ) {
-					String cmd = BasicLib.readAll(new InputStreamReader(System.in));
 					try {
-						LuaFunction fn = BasicLib.load(lua,cmd);
-						fn.call(lua);
+						BasicLib.dofile(lua,null);
 					} catch(LuaException e) {
 						System.err.println(e.getMessage());
 						System.exit(-1);
@@ -100,7 +97,7 @@ public class CmdLine {
 				LuaFunction fn = BasicLib.load(lua,input);
 				Object[] rtn = fn.call(lua);
 				if( rtn.length > 0 )
-					BasicLib.print(rtn);
+					BasicLib.print(lua,rtn);
 			} catch(LuaException e) {
 				System.out.println(e.getMessage());
 			}

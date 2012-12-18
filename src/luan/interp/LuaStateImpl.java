@@ -1,8 +1,10 @@
 package luan.interp;
 
+import luan.Lua;
 import luan.LuaState;
 import luan.LuaTable;
 import luan.LuaFunction;
+import luan.LuaException;
 
 
 final class LuaStateImpl implements LuaState {
@@ -12,6 +14,14 @@ final class LuaStateImpl implements LuaState {
 		return global;
 	}
 
+	@Override public String toString(Object obj) throws LuaException {
+		LuaFunction fn = Utils.getHandlerFunction("__tostring",obj);
+		if( fn != null )
+			return Lua.checkString( Utils.first( fn.call(this,obj) ) );
+		if( obj == null )
+			return "nil";
+		return obj.toString();
+	}
 
 	private static class Frame {
 		final Frame previousFrame;

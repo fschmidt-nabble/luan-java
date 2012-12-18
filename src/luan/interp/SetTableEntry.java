@@ -26,12 +26,12 @@ final class SetTableEntry implements Settable {
 			Object old = table.put(key,value);
 			if( old != null )
 				return;
-			h = Utils.getHandlerObject("__newindex",t);
+			h = Utils.getHandler("__newindex",t);
 			if( h==null )
 				return;
 			table.put(key,old);
 		} else {
-			h = Utils.getHandlerObject("__newindex",t);
+			h = Utils.getHandler("__newindex",t);
 			if( h==null )
 				throw new LuaException( "attempt to index a " + Lua.type(t) + " value" );
 		}
