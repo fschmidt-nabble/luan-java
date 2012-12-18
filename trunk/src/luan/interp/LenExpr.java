@@ -19,7 +19,7 @@ final class LenExpr extends UnaryOpExpr {
 			String s = (String)o;
 			return new LuaNumber( s.length() );
 		}
-		LuaFunction fn = Utils.getHandler("__len",o);
+		LuaFunction fn = Utils.getHandlerFunction("__len",o);
 		if( fn != null )
 			return Utils.first(fn.call(lua,o));
 		if( o instanceof LuaTable ) {

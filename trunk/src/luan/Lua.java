@@ -20,12 +20,6 @@ public class Lua {
 		return obj != null && !Boolean.FALSE.equals(obj);
 	}
 
-	public static String toString(Object obj) {
-		if( obj == null )
-			return "nil";
-		return obj.toString();
-	}
-
 	public static String asString(Object obj) {
 		if( obj instanceof String || obj instanceof LuaNumber )
 			return obj.toString();
@@ -40,12 +34,19 @@ public class Lua {
 	}
 
 	public static LuaNumber toNumber(Object obj) {
+		return toNumber(obj,null);
+	}
+
+	public static LuaNumber toNumber(Object obj,Integer base) {
 		if( obj instanceof LuaNumber )
 			return (LuaNumber)obj;
 		if( obj instanceof String ) {
 			String s = (String)obj;
 			try {
-				return new LuaNumber( Double.parseDouble(s) );
+				if( base==null )
+					return new LuaNumber( Double.parseDouble(s) );
+				else
+					return new LuaNumber( Long.parseLong(s,base) );
 			} catch(NumberFormatException e) {}
 		}
 		return null;

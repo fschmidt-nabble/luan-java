@@ -23,7 +23,7 @@ final class FnCall implements Expressions {
 			LuaFunction fn = (LuaFunction)o;
 			return fn.call( lua, args.eval(lua) );
 		}
-		Object h = Utils.getHandlerObject("__call",o);
+		Object h = Utils.getHandler("__call",o);
 		if( h != null )
 			return call(lua,h);
 		throw new LuaException( "attempt to call a " + Lua.type(o) + " value" );

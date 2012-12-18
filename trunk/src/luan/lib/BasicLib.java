@@ -3,6 +3,7 @@ package luan.lib;
 import java.io.File;
 import java.io.Reader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
@@ -27,8 +28,14 @@ public class BasicLib {
 		add( t, "load", LuaState.class, String.class );
 		add( t, "loadfile", LuaState.class, String.class );
 		add( t, "pairs", LuaTable.class );
-		add( t, "print", new Object[0].getClass() );
+		add( t, "print", LuaState.class, new Object[0].getClass() );
+		add( t, "rawequal", Object.class, Object.class );
+		add( t, "rawget", LuaTable.class, Object.class );
+		add( t, "rawlen", Object.class );
+		add( t, "rawset", LuaTable.class, Object.class, Object.class );
 		add( t, "setmetatable", LuaTable.class, LuaTable.class );
+		add( t, "tonumber", Object.class, Integer.class );
+		add( t, "tostring", LuaState.class, Object.class );
 		add( t, "type", Object.class );
 		t.put( "_VERSION", Lua.version );
 	}
@@ -41,11 +48,11 @@ public class BasicLib {
 		}
 	}
 
-	public static void print(Object... args) {
+	public static void print(LuaState lua,Object... args) throws LuaException {
 		for( int i=0; i<args.length; i++ ) {
 			if( i > 0 )
 				System.out.print('\t');
-			System.out.print( Lua.toString(args[i]) );
+			System.out.print( lua.toString(args[i]) );
 		}
 		System.out.println();
 	}
@@ -81,7 +88,12 @@ public class BasicLib {
 
 
 	public static LuaFunction loadfile(LuaState lua,String fileName) throws LuaException,IOException {
-		return load(lua,read(new File(fileName)));
+		String src = fileName==null ? readAll(new InputStreamReader(System.in)) : read(new File(fileName));
+		return load(lua,src);
+	}
+
+	public static Object[] dofile(LuaState lua,String fileName) throws LuaException,IOException {
+		return loadfile(lua,fileName).call(lua);
 	}
 
 	private static class TableIter {
@@ -143,5 +155,38 @@ public class BasicLib {
 	public static LuaTable setmetatable(LuaTable table,LuaTable metatable) {
 		table.setMetatable(metatable);
 		return table;
+	}
+
+	public static boolean rawequal(Object v1,Object v2) {
+		return v1 == v2 || v1 != null && v1.equals(v2);
+	}
+
+	public static Object rawget(LuaTable table,Object index) {
+		return table.get(index);
+	}
+
+	public static LuaTable rawset(LuaTable table,Object index,Object value) {
+		table.put(index,value);
+		return table;
+	}
+
+	public static int rawlen(Object v) throws LuaException {
+		if( v instanceof String ) {
+			String s = (String)v;
+			return s.length();
+		}
+		if( v instanceof LuaTable ) {
+			LuaTable t = (LuaTable)v;
+			return t.length();
+		}
+		throw new LuaException( "bad argument #1 to 'rawlen' (table or string expected)" );
+	}
+
+	public static LuaNumber tonumber(Object e,Integer base) {
+		return Lua.toNumber(e,base);
+	}
+
+	public static String tostring(LuaState lua,Object v) throws LuaException {
+		return lua.toString(v);
 	}
 }

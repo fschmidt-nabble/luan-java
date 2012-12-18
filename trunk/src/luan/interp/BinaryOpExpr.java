@@ -16,10 +16,10 @@ abstract class BinaryOpExpr implements Expr {
 	}
 
 	static final LuaFunction getBinHandler(String op,Object o1,Object o2) throws LuaException {
-		LuaFunction f1 = Utils.getHandler(op,o1);
+		LuaFunction f1 = Utils.getHandlerFunction(op,o1);
 		if( f1 != null )
 			return f1;
-		return Utils.getHandler(op,o2);
+		return Utils.getHandlerFunction(op,o2);
 	}
 
 	static final Object arithmetic(LuaStateImpl lua,String op,Object o1,Object o2) throws LuaException {
