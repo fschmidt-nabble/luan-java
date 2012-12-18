@@ -2,6 +2,7 @@ package luan;
 
 
 public class Lua {
+	public static final String version = "Luan 0.0";
 
 	public static String type(Object obj) {
 		if( obj == null )
@@ -61,6 +62,13 @@ public class Lua {
 		if( obj instanceof LuaFunction )
 			return (LuaFunction)obj;
 		throw new LuaException( "attempt to call a " + type(obj) + " value" );
+	}
+
+	public static LuaTable getMetatable(Object obj) {
+		if( !(obj instanceof LuaTable) )
+			return null;
+		LuaTable table = (LuaTable)obj;
+		return table.getMetatable();
 	}
 
 }

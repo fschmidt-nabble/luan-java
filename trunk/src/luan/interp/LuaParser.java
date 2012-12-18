@@ -23,7 +23,6 @@ import luan.LuaState;
 
 class LuaParser extends BaseParser<Object> {
 
-	static final String _G = "_G";
 	static final String _ENV = "_ENV";
 
 	static final class Frame {
@@ -37,8 +36,6 @@ class LuaParser extends BaseParser<Object> {
 
 		Frame() {
 			this.parent = null;
-			upValueSymbols.add(_G);
-			upValueGetters.add(UpValue.globalGetter);
 			upValueSymbols.add(_ENV);
 			upValueGetters.add(UpValue.globalGetter);
 		}
@@ -673,7 +670,7 @@ class LuaParser extends BaseParser<Object> {
 			return true;
 		Object obj1 = pop();
 		if( obj1 != null )
-			return push( new GetExpr( expr(obj1), expr(obj2) ) );
+			return push( new IndexExpr( expr(obj1), expr(obj2) ) );
 		String name = (String)obj2;
 		int index = stackIndex(name);
 		if( index != -1 )
@@ -681,7 +678,7 @@ class LuaParser extends BaseParser<Object> {
 		index = upValueIndex(name);
 		if( index != -1 )
 			return push( new GetUpVar(index) );
-		return push( new GetExpr( env(), new ConstExpr(name) ) );
+		return push( new IndexExpr( env(), new ConstExpr(name) ) );
 	}
 
 	// function should be on top of the stack

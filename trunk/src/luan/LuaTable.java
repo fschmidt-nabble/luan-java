@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 public class LuaTable {
 	private final Map<Object,Object> map = new HashMap<Object,Object>();
+	private LuaTable metatable;
 
 	@Override public String toString() {
 		return "table: " + Integer.toHexString(hashCode());
@@ -16,11 +17,11 @@ public class LuaTable {
 		return map.get(key);
 	}
 
-	public void set(Object key,Object val) {
+	public Object put(Object key,Object val) {
 		if( val == null ) {
-			map.remove(key);
+			return map.remove(key);
 		} else {
-			map.put(key,val);
+			return map.put(key,val);
 		}
 	}
 
@@ -36,4 +37,11 @@ public class LuaTable {
 		return map.entrySet().iterator();
 	}
 
+	public LuaTable getMetatable() {
+		return metatable;
+	}
+
+	public void setMetatable(LuaTable metatable) {
+		this.metatable = metatable;
+	}
 }

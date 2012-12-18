@@ -15,7 +15,17 @@ final class FnCall implements Expressions {
 	}
 
 	@Override public Object[] eval(LuaStateImpl lua) throws LuaException {
-		LuaFunction fn = Lua.checkFunction( fnExpr.eval(lua) );
-		return fn.call( lua, args.eval(lua) );
+		return call( lua, fnExpr.eval(lua) );
+	}
+
+	private Object[] call(LuaStateImpl lua,Object o) throws LuaException {
+		if( o instanceof LuaFunction ) {
+			LuaFunction fn = (LuaFunction)o;
+			return fn.call( lua, args.eval(lua) );
+		}
+		Object h = Utils.getHandlerObject("__call",o);
+		if( h != null )
+			return call(lua,h);
+		throw new LuaException( "attempt to call a " + Lua.type(o) + " value" );
 	}
 }

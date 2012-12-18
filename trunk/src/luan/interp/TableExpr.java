@@ -28,11 +28,11 @@ final class TableExpr implements Expr {
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		LuaTable table = new LuaTable();
 		for( Field field : fields ) {
-			table.set( field.key.eval(lua), field.value.eval(lua) );
+			table.put( field.key.eval(lua), field.value.eval(lua) );
 		}
 		Object[] a = expressions.eval(lua);
 		for( int i=0; i<a.length; i++ ) {
-			table.set( new LuaNumber(i+1), a[i] );
+			table.put( new LuaNumber(i+1), a[i] );
 		}
 		return table;
 	}

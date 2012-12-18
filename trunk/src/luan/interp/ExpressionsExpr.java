@@ -13,7 +13,6 @@ final class ExpressionsExpr implements Expr {
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
-		Object[] a = expressions.eval(lua);
-		return a.length==0 ? null : a[0];
+		return Utils.first( expressions.eval(lua) );
 	}
 }
