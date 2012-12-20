@@ -1,9 +1,15 @@
-package luan;
+package luan.tools;
 
 import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
 import luan.lib.JavaLib;
+import luan.Lua;
+import luan.LuaState;
+import luan.LuaFunction;
+import luan.LuaTable;
+import luan.LuaNumber;
+import luan.LuaException;
 import luan.interp.LuaCompiler;
 
 
