@@ -18,7 +18,7 @@ final class ConcatExpr extends BinaryOpExpr {
 		String s2 = Lua.asString(o2);
 		if( s1 != null && s2 != null )
 			return s1 + s2;
-		LuaFunction fn = getBinHandler("__concat",o1,o2);
+		LuaFunction fn = lua.getBinHandler("__concat",o1,o2);
 		if( fn != null )
 			return Utils.first(fn.call(lua,o1,o2));
 		String type = s1==null ? Lua.type(o1) : Lua.type(o2);

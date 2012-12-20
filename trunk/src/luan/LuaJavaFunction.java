@@ -2,11 +2,12 @@ package luan;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 
 public final class LuaJavaFunction extends LuaFunction {
-	private final Method method;
+	private final JavaMethod method;
 	private final Object obj;
 	private final RtnConverter rtnConverter;
 	private final boolean takesLuaState;
@@ -14,6 +15,14 @@ public final class LuaJavaFunction extends LuaFunction {
 	private final Class<?> varArgCls;
 
 	public LuaJavaFunction(Method method,Object obj) {
+		this( JavaMethod.of(method), obj );
+	}
+
+	public LuaJavaFunction(Constructor constr,Object obj) {
+		this( JavaMethod.of(constr), obj );
+	}
+
+	LuaJavaFunction(JavaMethod method,Object obj) {
 		this.method = method;
 		this.obj = obj;
 		this.rtnConverter = getRtnConverter(method);
@@ -27,6 +36,10 @@ public final class LuaJavaFunction extends LuaFunction {
 		}
 	}
 
+	public Class<?>[] getParameterTypes() {
+		return method.getParameterTypes();
+	}
+
 	@Override public Object[] call(LuaState lua,Object... args) {
 		args = fixArgs(lua,args);
 		Object rtn;
@@ -35,6 +48,8 @@ public final class LuaJavaFunction extends LuaFunction {
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch(InvocationTargetException e) {
+			throw new RuntimeException(e);
+		} catch(InstantiationException e) {
 			throw new RuntimeException(e);
 		}
 		return rtnConverter.convert(rtn);
@@ -108,7 +123,7 @@ public final class LuaJavaFunction extends LuaFunction {
 		}
 	};
 
-	private static RtnConverter getRtnConverter(Method m) {
+	private static RtnConverter getRtnConverter(JavaMethod m) {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_EMPTY;
@@ -222,12 +237,12 @@ public final class LuaJavaFunction extends LuaFunction {
 		}
 	};
 
-	private static boolean takesLuaState(Method m) {
+	private static boolean takesLuaState(JavaMethod m) {
 		Class<?>[] paramTypes = m.getParameterTypes();
 		return paramTypes.length > 0 && paramTypes[0].equals(LuaState.class);
 	}
 
-	private static ArgConverter[] getArgConverters(boolean takesLuaState,Method m) {
+	private static ArgConverter[] getArgConverters(boolean takesLuaState,JavaMethod m) {
 		final boolean isVarArgs = m.isVarArgs();
 		Class<?>[] paramTypes = m.getParameterTypes();
 		if( takesLuaState ) {
@@ -257,6 +272,55 @@ public final class LuaJavaFunction extends LuaFunction {
 		if( cls == Short.TYPE || cls.equals(Short.class) )
 			return ARG_SHORT;
 		return ARG_SAME;
+	}
+
+
+
+	private static abstract class JavaMethod {
+		abstract boolean isVarArgs();
+		abstract Class<?>[] getParameterTypes();
+		abstract Object invoke(Object obj,Object... args)
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException;
+		abstract Class<?> getReturnType();
+	
+		static JavaMethod of(final Method m) {
+			return new JavaMethod() {
+				boolean isVarArgs() {
+					return m.isVarArgs();
+				}
+				Class<?>[] getParameterTypes() {
+					return m.getParameterTypes();
+				}
+				Object invoke(Object obj,Object... args)
+					throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
+				{
+					return m.invoke(obj,args);
+				}
+				Class<?> getReturnType() {
+					return m.getReturnType();
+				}
+			};
+		}
+	
+		static JavaMethod of(final Constructor c) {
+			return new JavaMethod() {
+				boolean isVarArgs() {
+					return c.isVarArgs();
+				}
+				Class<?>[] getParameterTypes() {
+					return c.getParameterTypes();
+				}
+				Object invoke(Object obj,Object... args)
+					throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException
+				{
+					return c.newInstance(args);
+				}
+				Class<?> getReturnType() {
+					return c.getDeclaringClass();
+				}
+			};
+		}
+	
 	}
 
 }

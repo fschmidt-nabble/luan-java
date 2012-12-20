@@ -7,4 +7,8 @@ public class LuaException extends Exception {
 		super(msg);
 	}
 
+	public LuaException(Exception e) {
+		super(e);
+	}
+
 }

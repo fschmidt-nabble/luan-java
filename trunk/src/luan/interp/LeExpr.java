@@ -25,10 +25,10 @@ final class LeExpr extends BinaryOpExpr {
 			String s2 = (String)o2;
 			return s1.compareTo(s2) <= 0;
 		}
-		LuaFunction fn = getBinHandler("__le",o1,o2);
+		LuaFunction fn = lua.getBinHandler("__le",o1,o2);
 		if( fn != null )
 			return Lua.toBoolean( Utils.first(fn.call(lua,o1,o2)) );
-		fn = getBinHandler("__lt",o1,o2);
+		fn = lua.getBinHandler("__lt",o1,o2);
 		if( fn != null )
 			return !Lua.toBoolean( Utils.first(fn.call(lua,o2,o1)) );
 		throw new LuaException( "attempt to compare " + Lua.type(o1) + " with " + Lua.type(o2) );

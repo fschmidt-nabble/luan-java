@@ -18,6 +18,6 @@ final class SubExpr extends BinaryOpExpr {
 		LuaNumber n2 = Lua.toNumber(o2);
 		if( n1 != null && n2 != null )
 			return new LuaNumber( n1.value() - n2.value() );
-		return arithmetic(lua,"__sub",o1,o2);
+		return lua.arithmetic("__sub",o1,o2);
 	}
 }

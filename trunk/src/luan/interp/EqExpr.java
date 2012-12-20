@@ -20,8 +20,8 @@ final class EqExpr extends BinaryOpExpr {
 			return true;
 		if( !o1.getClass().equals(o2.getClass()) )
 			return false;
-		LuaTable mt1 = Lua.getMetatable(o1);
-		LuaTable mt2 = Lua.getMetatable(o2);
+		LuaTable mt1 = lua.getMetatable(o1);
+		LuaTable mt2 = lua.getMetatable(o2);
 		if( mt1==null || mt2==null )
 			return false;
 		Object f = mt1.get("__eq");
