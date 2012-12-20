@@ -18,26 +18,26 @@ import luan.LuaException;
 import luan.interp.LuaCompiler;
 
 
-public class BasicLib {
+public final class BasicLib {
 
 	public static void register(LuaState lua) {
-		LuaTable t = lua.global();
-		t.put( "_G", t );
-		add( t, "getmetatable", Object.class );
-		add( t, "ipairs", LuaTable.class );
-		add( t, "load", LuaState.class, String.class );
-		add( t, "loadfile", LuaState.class, String.class );
-		add( t, "pairs", LuaTable.class );
-		add( t, "print", LuaState.class, new Object[0].getClass() );
-		add( t, "rawequal", Object.class, Object.class );
-		add( t, "rawget", LuaTable.class, Object.class );
-		add( t, "rawlen", Object.class );
-		add( t, "rawset", LuaTable.class, Object.class, Object.class );
-		add( t, "setmetatable", LuaTable.class, LuaTable.class );
-		add( t, "tonumber", Object.class, Integer.class );
-		add( t, "tostring", LuaState.class, Object.class );
-		add( t, "type", Object.class );
-		t.put( "_VERSION", Lua.version );
+		LuaTable global = lua.global();
+		global.put( "_G", global );
+		add( global, "getmetatable", LuaState.class, Object.class );
+		add( global, "ipairs", LuaTable.class );
+		add( global, "load", LuaState.class, String.class );
+		add( global, "loadfile", LuaState.class, String.class );
+		add( global, "pairs", LuaTable.class );
+		add( global, "print", LuaState.class, new Object[0].getClass() );
+		add( global, "rawequal", Object.class, Object.class );
+		add( global, "rawget", LuaTable.class, Object.class );
+		add( global, "rawlen", Object.class );
+		add( global, "rawset", LuaTable.class, Object.class, Object.class );
+		add( global, "setmetatable", LuaTable.class, LuaTable.class );
+		add( global, "tonumber", Object.class, Integer.class );
+		add( global, "tostring", LuaState.class, Object.class );
+		add( global, "type", Object.class );
+		global.put( "_VERSION", Lua.version );
 	}
 
 	private static void add(LuaTable t,String method,Class<?>... parameterTypes) {
@@ -99,8 +99,8 @@ public class BasicLib {
 	private static class TableIter {
 		private final Iterator<Map.Entry<Object,Object>> iter;
 
-		TableIter(LuaTable t) {
-			this.iter = t.iterator();
+		TableIter(Iterator<Map.Entry<Object,Object>> iter) {
+			this.iter = iter;
 		}
 
 		public Object[] next() {
@@ -110,16 +110,23 @@ public class BasicLib {
 			return new Object[]{entry.getKey(),entry.getValue()};
 		}
 	}
-
-	public static LuaFunction pairs(LuaTable t) {
+	private static final Method nextTableIter;
+	static {
 		try {
-			TableIter ti = new TableIter(t);
-			Method m = TableIter.class.getMethod("next");
-			m.setAccessible(true);
-			return new LuaJavaFunction(m,ti);
+			nextTableIter = TableIter.class.getMethod("next");
+			nextTableIter.setAccessible(true);
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	static LuaFunction pairs(Iterator<Map.Entry<Object,Object>> iter) {
+		TableIter ti = new TableIter(iter);
+		return new LuaJavaFunction(nextTableIter,ti);
+	}
+
+	public static LuaFunction pairs(LuaTable t) {
+		return pairs(t.iterator());
 	}
 
 	private static class ArrayIter {
@@ -136,20 +143,23 @@ public class BasicLib {
 			return val==null ? LuaFunction.EMPTY_RTN : new Object[]{n,val};
 		}
 	}
-
-	public static LuaFunction ipairs(LuaTable t) {
+	private static final Method nextArrayIter;
+	static {
 		try {
-			ArrayIter ai = new ArrayIter(t);
-			Method m = ArrayIter.class.getMethod("next");
-			m.setAccessible(true);
-			return new LuaJavaFunction(m,ai);
+			nextArrayIter = ArrayIter.class.getMethod("next");
+			nextArrayIter.setAccessible(true);
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public static LuaTable getmetatable(Object obj) {
-		return Lua.getMetatable(obj);
+	public static LuaFunction ipairs(LuaTable t) {
+		ArrayIter ai = new ArrayIter(t);
+		return new LuaJavaFunction(nextArrayIter,ai);
+	}
+
+	public static LuaTable getmetatable(LuaState lua,Object obj) {
+		return lua.getMetatable(obj);
 	}
 
 	public static LuaTable setmetatable(LuaTable table,LuaTable metatable) {

@@ -65,11 +65,4 @@ public class Lua {
 		throw new LuaException( "attempt to call a " + type(obj) + " value" );
 	}
 
-	public static LuaTable getMetatable(Object obj) {
-		if( !(obj instanceof LuaTable) )
-			return null;
-		LuaTable table = (LuaTable)obj;
-		return table.getMetatable();
-	}
-
 }

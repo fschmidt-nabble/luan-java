@@ -18,7 +18,7 @@ final class UnmExpr extends UnaryOpExpr {
 		LuaNumber n = Lua.toNumber(o);
 		if( n != null )
 			return new LuaNumber( -n.value() );
-		LuaFunction fn = Utils.getHandlerFunction("__unm",o);
+		LuaFunction fn = lua.getHandlerFunction("__unm",o);
 		if( fn != null )
 			return Utils.first(fn.call(lua,o));
 		throw new LuaException("attempt to perform arithmetic on a "+Lua.type(o)+" value");

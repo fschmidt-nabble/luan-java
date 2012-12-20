@@ -3,6 +3,7 @@ package luan;
 import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
+import luan.lib.JavaLib;
 import luan.interp.LuaCompiler;
 
 
@@ -11,6 +12,7 @@ public class CmdLine {
 	public static void main(String[] args) throws Exception {
 		LuaState lua = LuaCompiler.newLuaState();
 		BasicLib.register(lua);
+		JavaLib.register(lua);
 		boolean interactive = false;
 		boolean showVersion = false;
 		int i = 0;
