@@ -47,7 +47,7 @@ public class CmdLine {
 					}
 				} else if( arg.equals("-") ) {
 					try {
-						BasicLib.dofile(lua,null);
+						BasicLib.do_file(lua,null);
 					} catch(LuaException e) {
 						System.err.println(e.getMessage());
 						System.exit(-1);
@@ -71,7 +71,7 @@ public class CmdLine {
 			}
 			lua.global().put("arg",argsTable);
 			try {
-				LuaFunction fn = BasicLib.loadfile(lua,file);
+				LuaFunction fn = BasicLib.load_file(lua,file);
 				fn.call(lua,varArgs);
 			} catch(LuaException e) {
 //				System.err.println(e.getMessage());
