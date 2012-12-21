@@ -26,6 +26,7 @@ public final class BasicLib {
 		LuaTable global = lua.global();
 		global.put( "_G", global );
 		add( global, "do_file", LuaState.class, String.class );
+		add( global, "error", LuaState.class, String.class );
 		add( global, "get_metatable", LuaState.class, Object.class );
 		add( global, "ipairs", LuaTable.class );
 		add( global, "load", LuaState.class, String.class, String.class );
@@ -223,4 +224,9 @@ public final class BasicLib {
 	public static String to_string(LuaState lua,Object v) throws LuaException {
 		return lua.toString(LuaElement.JAVA,v);
 	}
+
+	public static void error(LuaState lua,String msg) throws LuaException {
+		throw new LuaException(lua,LuaElement.JAVA,msg);
+	}
+
 }

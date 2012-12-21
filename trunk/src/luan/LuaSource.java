@@ -27,8 +27,8 @@ public final class LuaSource {
 			return source.text.substring(start,end);
 		}
 
-		@Override public String toString(String fnName) {
-			return source.name + ':' + lineNumber() + ": in " + function(fnName);
+		@Override String location() {
+			return source.name + ':' + lineNumber();
 		}
 
 		private int lineNumber() {
