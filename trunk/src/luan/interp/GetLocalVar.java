@@ -1,10 +1,13 @@
 package luan.interp;
 
+import luan.LuaSource;
 
-final class GetLocalVar implements Expr {
+
+final class GetLocalVar extends CodeImpl implements Expr {
 	private final int index;
 
-	GetLocalVar(int index) {
+	GetLocalVar(LuaSource.Element se,int index) {
+		super(se);
 		this.index = index;
 	}
 

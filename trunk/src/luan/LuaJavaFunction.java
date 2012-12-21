@@ -40,7 +40,7 @@ public final class LuaJavaFunction extends LuaFunction {
 		return method.getParameterTypes();
 	}
 
-	@Override public Object[] call(LuaState lua,Object... args) {
+	@Override public Object[] call(LuaState lua,Object[] args) throws LuaException {
 		args = fixArgs(lua,args);
 		Object rtn;
 		try {
@@ -48,6 +48,13 @@ public final class LuaJavaFunction extends LuaFunction {
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch(InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			if( cause instanceof Error )
+				throw (Error)cause;
+			if( cause instanceof RuntimeException )
+				throw (RuntimeException)cause;
+			if( cause instanceof LuaException )
+				throw (LuaException)cause;
 			throw new RuntimeException(e);
 		} catch(InstantiationException e) {
 			throw new RuntimeException(e);

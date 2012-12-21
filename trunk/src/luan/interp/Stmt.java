@@ -7,6 +7,6 @@ interface Stmt {
 	public void eval(LuaStateImpl lua) throws LuaException;
 
 	static final Stmt EMPTY = new Stmt() {
-		public void eval(LuaStateImpl lua) {}
+		@Override public void eval(LuaStateImpl lua) {}
 	};
 }

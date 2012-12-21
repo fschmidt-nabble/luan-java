@@ -19,9 +19,16 @@ import org.parboiled.errors.ErrorUtils;
 import luan.Lua;
 import luan.LuaNumber;
 import luan.LuaState;
+import luan.LuaSource;
 
 
 class LuaParser extends BaseParser<Object> {
+
+	LuaSource source;
+
+	LuaSource.Element se(int start) {
+		return new LuaSource.Element(source,start,currentIndex());
+	}
 
 	static final String _ENV = "_ENV";
 
@@ -144,20 +151,22 @@ class LuaParser extends BaseParser<Object> {
 		return true;
 	}
 
-	Chunk newChunk() {
-		return new Chunk( (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
+	Chunk newChunk(int start) {
+		return new Chunk( se(start), (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
 	}
 
 	Rule Target() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			Spaces(),
 			FirstOf(
 				Sequence( ExpList(), EOI ),
 				Sequence(
+					start.set(currentIndex()),
 					action( frame.isVarArg = true ),
 					Block(),
 					EOI,
-					push( newChunk() )
+					push( newChunk(start.get()) )
 				)
 			)
 		);
@@ -227,9 +236,11 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule ReturnStmt() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			Keyword("return"), Expressions(),
-			push( new ReturnStmt( (Expressions)pop() ) )
+			push( new ReturnStmt( se(start.get()), (Expressions)pop() ) )
 		);
 	}
 
@@ -241,15 +252,17 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule FnName() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			push(null),  // marker
 			Name(),
 			ZeroOrMore(
 				'.', Spaces(),
-				makeVarExp(),
+				makeVarExp(start.get()),
 				NameExpr()
 			),
-			makeSettableVar()
+			makeSettableVar(start.get())
 		);
 	}
 
@@ -272,19 +285,23 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule GenericForStmt() {
+		Var<Integer> start = new Var<Integer>();
 		Var<Integer> stackStart = new Var<Integer>(symbolsSize());
 		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
+			start.set(currentIndex()),
 			Keyword("for"), NameList(names), Keyword("in"), Expr(), Keyword("do"),
 			addSymbols(names.get()),
 			LoopBlock(), Keyword("end"),
-			push( new GenericForStmt( stackStart.get(), symbolsSize() - stackStart.get(), expr(pop(1)), (Stmt)pop() ) ),
+			push( new GenericForStmt( se(start.get()), stackStart.get(), symbolsSize() - stackStart.get(), expr(pop(1)), (Stmt)pop() ) ),
 			popSymbols( symbolsSize() - stackStart.get() )
 		);
 	}
 
 	Rule NumericForStmt() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			Keyword("for"), Name(), '=', Spaces(), Expr(), Keyword("to"), Expr(),
 			push( new ConstExpr(new LuaNumber(1)) ),  // default step
 			Optional(
@@ -294,7 +311,7 @@ class LuaParser extends BaseParser<Object> {
 			),
 			addSymbol( (String)pop(3) ),  // add "for" var to symbols
 			Keyword("do"), LoopBlock(), Keyword("end"),
-			push( new NumericForStmt( symbolsSize()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
+			push( new NumericForStmt( se(start.get()), symbolsSize()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
 			popSymbols(1)
 		);
 	}
@@ -421,10 +438,15 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule SettableVar() {
-		return Sequence( Var(), makeSettableVar() );
+		Var<Integer> start = new Var<Integer>();
+		return Sequence(
+			start.set(currentIndex()),
+			Var(),
+			makeSettableVar(start.get())
+		);
 	}
 
-	boolean makeSettableVar() {
+	boolean makeSettableVar(int start) {
 		Object obj2 = pop();
 		if( obj2==null )
 			return false;
@@ -432,7 +454,7 @@ class LuaParser extends BaseParser<Object> {
 		if( obj1!=null ) {
 			Expr key = expr(obj2);
 			Expr table = expr(obj1);
-			return push( new SetTableEntry(table,key) );
+			return push( new SetTableEntry(se(start),table,key) );
 		}
 		String name = (String)obj2;
 		int index = stackIndex(name);
@@ -441,7 +463,7 @@ class LuaParser extends BaseParser<Object> {
 		index = upValueIndex(name);
 		if( index != -1 )
 			return push( new SetUpVar(index) );
-		return push( new SetTableEntry( env(), new ConstExpr(name) ) );
+		return push( new SetTableEntry( se(start), env(), new ConstExpr(name) ) );
 	}
 
 	Rule Expr() {
@@ -452,80 +474,98 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule OrExpr() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			AndExpr(),
-			ZeroOrMore( "or", Spaces(), AndExpr(), push( new OrExpr(expr(pop(1)),expr(pop())) ) )
+			ZeroOrMore( "or", Spaces(), AndExpr(), push( new OrExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
 	Rule AndExpr() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			RelExpr(),
-			ZeroOrMore( "and", Spaces(), RelExpr(), push( new AndExpr(expr(pop(1)),expr(pop())) ) )
+			ZeroOrMore( "and", Spaces(), RelExpr(), push( new AndExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
 	Rule RelExpr() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			ConcatExpr(),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( "==", Spaces(), ConcatExpr(), push( new EqExpr(expr(pop(1)),expr(pop())) ) ),
-					Sequence( "~=", Spaces(), ConcatExpr(), push( new NotExpr(new EqExpr(expr(pop(1)),expr(pop()))) ) ),
-					Sequence( "<=", Spaces(), ConcatExpr(), push( new LeExpr(expr(pop(1)),expr(pop())) ) ),
-					Sequence( ">=", Spaces(), ConcatExpr(), push( new LeExpr(expr(pop()),expr(pop())) ) ),
-					Sequence( "<", Spaces(), ConcatExpr(), push( new LtExpr(expr(pop(1)),expr(pop())) ) ),
-					Sequence( ">", Spaces(), ConcatExpr(), push( new LtExpr(expr(pop()),expr(pop())) ) )
+					Sequence( "==", Spaces(), ConcatExpr(), push( new EqExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( "~=", Spaces(), ConcatExpr(), push( new NotExpr(se(start.get()),new EqExpr(se(start.get()),expr(pop(1)),expr(pop()))) ) ),
+					Sequence( "<=", Spaces(), ConcatExpr(), push( new LeExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( ">=", Spaces(), ConcatExpr(), push( new LeExpr(se(start.get()),expr(pop()),expr(pop())) ) ),
+					Sequence( "<", Spaces(), ConcatExpr(), push( new LtExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( ">", Spaces(), ConcatExpr(), push( new LtExpr(se(start.get()),expr(pop()),expr(pop())) ) )
 				)
 			)
 		);
 	}
 
 	Rule ConcatExpr() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			SumExpr(),
-			Optional( "..", Spaces(), ConcatExpr(), push( new ConcatExpr(expr(pop(1)),expr(pop())) ) )
+			Optional( "..", Spaces(), ConcatExpr(), push( new ConcatExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
 	Rule SumExpr() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			TermExpr(),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( '+', Spaces(), TermExpr(), push( new AddExpr(expr(pop(1)),expr(pop())) ) ),
-					Sequence( '-', TestNot('-'), Spaces(), TermExpr(), push( new SubExpr(expr(pop(1)),expr(pop())) ) )
+					Sequence( '+', Spaces(), TermExpr(), push( new AddExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( '-', TestNot('-'), Spaces(), TermExpr(), push( new SubExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 				)
 			)
 		);
 	}
 
 	Rule TermExpr() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			UnaryExpr(),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( '*', Spaces(), UnaryExpr(), push( new MulExpr(expr(pop(1)),expr(pop())) ) ),
-					Sequence( '/', Spaces(), UnaryExpr(), push( new DivExpr(expr(pop(1)),expr(pop())) ) ),
-					Sequence( '%', Spaces(), UnaryExpr(), push( new ModExpr(expr(pop(1)),expr(pop())) ) )
+					Sequence( '*', Spaces(), UnaryExpr(), push( new MulExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( '/', Spaces(), UnaryExpr(), push( new DivExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( '%', Spaces(), UnaryExpr(), push( new ModExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 				)
 			)
 		);
 	}
 
 	Rule UnaryExpr() {
-		return FirstOf(
-			Sequence( '#', Spaces(), PowExpr(), push( new LenExpr(expr(pop())) ) ),
-			Sequence( '-', TestNot('-'), Spaces(), PowExpr(), push( new UnmExpr(expr(pop())) ) ),
-			Sequence( "not", Spaces(), PowExpr(), push( new NotExpr(expr(pop())) ) ),
-			PowExpr()
+		Var<Integer> start = new Var<Integer>();
+		return Sequence(
+			start.set(currentIndex()),
+			FirstOf(
+				Sequence( '#', Spaces(), PowExpr(), push( new LenExpr(se(start.get()),expr(pop())) ) ),
+				Sequence( '-', TestNot('-'), Spaces(), PowExpr(), push( new UnmExpr(se(start.get()),expr(pop())) ) ),
+				Sequence( "not", Spaces(), PowExpr(), push( new NotExpr(se(start.get()),expr(pop())) ) ),
+				PowExpr()
+			)
 		);
 	}
 
 	Rule PowExpr() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			SingleExpr(),
-			Optional( '^', Spaces(), PowExpr(), push( new PowExpr(expr(pop(1)),expr(pop())) ) )
+			Optional( '^', Spaces(), PowExpr(), push( new PowExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
@@ -543,8 +583,10 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule Function() {
+		Var<Integer> start = new Var<Integer>();
 		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
+			start.set(currentIndex()),
 			'(', incParens(), Spaces(),
 			action( frame = new Frame(frame) ),
 			Optional(
@@ -557,7 +599,7 @@ class LuaParser extends BaseParser<Object> {
 				)
 			),
 			')', decParens(), Spaces(), Block(), Keyword("end"),
-			push( newChunk() ),
+			push( newChunk(start.get()) ),
 			action( frame = frame.parent )
 		);
 	}
@@ -570,17 +612,21 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule VarArgs() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			"...", Spaces(),
 			frame.isVarArg,
-			push( VarArgs.INSTANCE )
+			push( new VarArgs(se(start.get())) )
 		);
 	}
 
 	Rule TableExpr() {
+		Var<Integer> start = new Var<Integer>();
 		Var<List<TableExpr.Field>> fields = new Var<List<TableExpr.Field>>(new ArrayList<TableExpr.Field>());
 		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
 		return Sequence(
+			start.set(currentIndex()),
 			'{', incParens(), Spaces(),
 			Optional(
 				Field(fields,builder),
@@ -592,7 +638,7 @@ class LuaParser extends BaseParser<Object> {
 			),
 			'}', decParens(),
 			Spaces(),
-			push( new TableExpr( fields.get().toArray(new TableExpr.Field[0]), builder.get().build() ) )
+			push( new TableExpr( se(start.get()), fields.get().toArray(new TableExpr.Field[0]), builder.get().build() ) )
 		);
 	}
 
@@ -621,14 +667,18 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule VarExp() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			Var(),
-			makeVarExp()
+			makeVarExp(start.get())
 		);
 	}
 
 	Rule Var() {
+		Var<Integer> start = new Var<Integer>();
 		return Sequence(
+			start.set(currentIndex()),
 			FirstOf(
 				Sequence(
 					'(', incParens(), Spaces(), Expr(), ')', decParens(), Spaces(),
@@ -641,12 +691,12 @@ class LuaParser extends BaseParser<Object> {
 				)
 			),
 			ZeroOrMore(
-				makeVarExp(),
+				makeVarExp(start.get()),
 				FirstOf(
 					SubExpr(),
 					Sequence( '.', Spaces(), NameExpr() ),
 					Sequence(
-						Args(),
+						Args(start),
 						push(null)  // marker
 					)
 				)
@@ -657,32 +707,32 @@ class LuaParser extends BaseParser<Object> {
 	Expr env() {
 		int index = stackIndex(_ENV);
 		if( index != -1 )
-			return new GetLocalVar(index);
+			return new GetLocalVar(null,index);
 		index = upValueIndex(_ENV);
 		if( index != -1 )
-			return new GetUpVar(index);
+			return new GetUpVar(null,index);
 		throw new RuntimeException("_ENV not found");
 	}
 
-	boolean makeVarExp() {
+	boolean makeVarExp(int start) {
 		Object obj2 = pop();
 		if( obj2==null )
 			return true;
 		Object obj1 = pop();
 		if( obj1 != null )
-			return push( new IndexExpr( expr(obj1), expr(obj2) ) );
+			return push( new IndexExpr( se(start), expr(obj1), expr(obj2) ) );
 		String name = (String)obj2;
 		int index = stackIndex(name);
 		if( index != -1 )
-			return push( new GetLocalVar(index) );
+			return push( new GetLocalVar(se(start),index) );
 		index = upValueIndex(name);
 		if( index != -1 )
-			return push( new GetUpVar(index) );
-		return push( new IndexExpr( env(), new ConstExpr(name) ) );
+			return push( new GetUpVar(se(start),index) );
+		return push( new IndexExpr( se(start), env(), new ConstExpr(name) ) );
 	}
 
 	// function should be on top of the stack
-	Rule Args() {
+	Rule Args(Var<Integer> start) {
 		return Sequence(
 			FirstOf(
 				Sequence(
@@ -697,7 +747,7 @@ class LuaParser extends BaseParser<Object> {
 					push( new ExpList.SingleExpList(new ConstExpr(pop())) )
 				)
 			),
-			push( new FnCall( expr(pop(1)), (Expressions)pop() ) )
+			push( new FnCall( se(start.get()), expr(pop(1)), (Expressions)pop() ) )
 		);
 	}
 

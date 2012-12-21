@@ -1,10 +1,13 @@
 package luan.interp;
 
+import luan.LuaSource;
 
-final class GetUpVar implements Expr {
+
+final class GetUpVar extends CodeImpl implements Expr {
 	private final int index;
 
-	GetUpVar(int index) {
+	GetUpVar(LuaSource.Element se,int index) {
+		super(se);
 		this.index = index;
 	}
 

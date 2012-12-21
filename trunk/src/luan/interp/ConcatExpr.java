@@ -3,12 +3,13 @@ package luan.interp;
 import luan.Lua;
 import luan.LuaFunction;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 final class ConcatExpr extends BinaryOpExpr {
 
-	ConcatExpr(Expr op1,Expr op2) {
-		super(op1,op2);
+	ConcatExpr(LuaSource.Element se,Expr op1,Expr op2) {
+		super(se,op1,op2);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
@@ -18,10 +19,10 @@ final class ConcatExpr extends BinaryOpExpr {
 		String s2 = Lua.asString(o2);
 		if( s1 != null && s2 != null )
 			return s1 + s2;
-		LuaFunction fn = lua.getBinHandler("__concat",o1,o2);
+		LuaFunction fn = lua.getBinHandler(se,"__concat",o1,o2);
 		if( fn != null )
-			return Utils.first(fn.call(lua,o1,o2));
+			return Lua.first(lua.call(fn,se,"__concat",o1,o2));
 		String type = s1==null ? Lua.type(o1) : Lua.type(o2);
-		throw new LuaException( "attempt to concatenate a " + type + " value" );
+		throw new LuaException( lua, se, "attempt to concatenate a " + type + " value" );
 	}
 }

@@ -26,13 +26,6 @@ public class Lua {
 		return null;
 	}
 
-	public static String checkString(Object obj) throws LuaException {
-		String s = asString(obj);
-		if( s == null )
-			throw new LuaException( "attempt to use a " + Lua.type(obj) + " as a string" );
-		return s;
-	}
-
 	public static LuaNumber toNumber(Object obj) {
 		return toNumber(obj,null);
 	}
@@ -52,17 +45,8 @@ public class Lua {
 		return null;
 	}
 
-	public static LuaNumber checkNumber(Object obj) throws LuaException {
-		LuaNumber n = toNumber(obj);
-		if( n == null )
-			throw new LuaException( "attempt to perform arithmetic on a " + type(obj) + " value" );
-		return n;
-	}
-
-	public static LuaFunction checkFunction(Object obj) throws LuaException {
-		if( obj instanceof LuaFunction )
-			return (LuaFunction)obj;
-		throw new LuaException( "attempt to call a " + type(obj) + " value" );
+	public static Object first(Object[] a) {
+		return a.length==0 ? null : a[0];
 	}
 
 }

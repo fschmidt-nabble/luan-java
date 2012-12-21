@@ -5,12 +5,13 @@ import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaTable;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 final class EqExpr extends BinaryOpExpr {
 
-	EqExpr(Expr op1,Expr op2) {
-		super(op1,op2);
+	EqExpr(LuaSource.Element se,Expr op1,Expr op2) {
+		super(se,op1,op2);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
@@ -27,7 +28,7 @@ final class EqExpr extends BinaryOpExpr {
 		Object f = mt1.get("__eq");
 		if( f == null || !f.equals(mt2.get("__eq")) )
 			return null;
-		LuaFunction fn = Lua.checkFunction(f);
-		return Lua.toBoolean( Utils.first(fn.call(lua,o1,o2)) );
+		LuaFunction fn = lua.checkFunction(se,f);
+		return Lua.toBoolean( Lua.first(lua.call(fn,se,"__eq",o1,o2)) );
 	}
 }

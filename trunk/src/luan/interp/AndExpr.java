@@ -2,12 +2,13 @@ package luan.interp;
 
 import luan.Lua;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 final class AndExpr extends BinaryOpExpr {
 
-	AndExpr(Expr op1,Expr op2) {
-		super(op1,op2);
+	AndExpr(LuaSource.Element se,Expr op1,Expr op2) {
+		super(se,op1,op2);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {

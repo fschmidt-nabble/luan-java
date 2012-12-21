@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 final class ExpList implements Expressions {
 
 	private interface Adder {
 		public void addTo(LuaStateImpl lua,List<Object> list) throws LuaException;
+		public Code code();
 	}
 
 	private static class ExprAdder implements Adder {
@@ -21,6 +23,10 @@ final class ExpList implements Expressions {
 
 		public void addTo(LuaStateImpl lua,List<Object> list) throws LuaException {
 			list.add( expr.eval(lua) );
+		}
+
+		public Code code() {
+			return expr;
 		}
 
 	}
@@ -36,6 +42,10 @@ final class ExpList implements Expressions {
 			for( Object val : expressions.eval(lua) ) {
 				list.add( val );
 			}
+		}
+
+		public Code code() {
+			return expressions;
 		}
 
 	}
@@ -70,8 +80,13 @@ final class ExpList implements Expressions {
 	private static final Object[] EMPTY = new Object[0];
 
 	static final Expressions emptyExpList = new Expressions() {
+
 		@Override public Object[] eval(LuaStateImpl lua) {
 			return EMPTY;
+		}
+
+		@Override public LuaSource.Element se() {
+			return null;
 		}
 	};
 
@@ -84,6 +99,10 @@ final class ExpList implements Expressions {
 
 		@Override public Object[] eval(LuaStateImpl lua) throws LuaException {
 			return new Object[]{expr.eval(lua)};
+		}
+
+		@Override public LuaSource.Element se() {
+			return expr.se();
 		}
 	}
 
@@ -99,5 +118,9 @@ final class ExpList implements Expressions {
 			adder.addTo(lua,list);
 		}
 		return list.toArray();
+	}
+
+	@Override public LuaSource.Element se() {
+		return new LuaSource.Element(adders[0].code().se().source,adders[0].code().se().start,adders[adders.length-1].code().se().end);
 	}
 }

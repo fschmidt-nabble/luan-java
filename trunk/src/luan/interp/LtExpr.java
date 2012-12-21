@@ -4,12 +4,13 @@ import luan.Lua;
 import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 final class LtExpr extends BinaryOpExpr {
 
-	LtExpr(Expr op1,Expr op2) {
-		super(op1,op2);
+	LtExpr(LuaSource.Element se,Expr op1,Expr op2) {
+		super(se,op1,op2);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
@@ -25,9 +26,9 @@ final class LtExpr extends BinaryOpExpr {
 			String s2 = (String)o2;
 			return s1.compareTo(s2) < 0;
 		}
-		LuaFunction fn = lua.getBinHandler("__lt",o1,o2);
+		LuaFunction fn = lua.getBinHandler(se,"__lt",o1,o2);
 		if( fn != null )
-			return Lua.toBoolean( Utils.first(fn.call(lua,o1,o2)) );
-		throw new LuaException( "attempt to compare " + Lua.type(o1) + " with " + Lua.type(o2) );
+			return Lua.toBoolean( Lua.first(lua.call(fn,se,"__lt",o1,o2)) );
+		throw new LuaException( lua, se, "attempt to compare " + Lua.type(o1) + " with " + Lua.type(o2) );
 	}
 }

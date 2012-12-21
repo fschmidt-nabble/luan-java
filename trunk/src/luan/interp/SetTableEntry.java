@@ -4,13 +4,15 @@ import luan.LuaException;
 import luan.LuaTable;
 import luan.Lua;
 import luan.LuaFunction;
+import luan.LuaSource;
 
 
-final class SetTableEntry implements Settable {
+final class SetTableEntry extends CodeImpl implements Settable {
 	private final Expr tableExpr;
 	private final Expr keyExpr;
 
-	SetTableEntry(Expr tableExpr,Expr keyExpr) {
+	SetTableEntry(LuaSource.Element se,Expr tableExpr,Expr keyExpr) {
+		super(se);
 		this.tableExpr = tableExpr;
 		this.keyExpr = keyExpr;
 	}
@@ -19,7 +21,7 @@ final class SetTableEntry implements Settable {
 		newindex( lua, tableExpr.eval(lua), keyExpr.eval(lua), value );
 	}
 
-	private static void newindex(LuaStateImpl lua,Object t,Object key,Object value) throws LuaException {
+	private void newindex(LuaStateImpl lua,Object t,Object key,Object value) throws LuaException {
 		Object h;
 		if( t instanceof LuaTable ) {
 			LuaTable table = (LuaTable)t;
@@ -33,11 +35,11 @@ final class SetTableEntry implements Settable {
 		} else {
 			h = lua.getHandler("__newindex",t);
 			if( h==null )
-				throw new LuaException( "attempt to index a " + Lua.type(t) + " value" );
+				throw new LuaException( lua, se, "attempt to index a " + Lua.type(t) + " value" );
 		}
 		if( h instanceof LuaFunction ) {
 			LuaFunction fn = (LuaFunction)h;
-			fn.call(lua,t,key,value);
+			lua.call(fn,se,"__newindex",t,key,value);
 		}
 		newindex(lua,h,key,value);
 	}

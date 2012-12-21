@@ -3,9 +3,10 @@ package luan.interp;
 import luan.LuaException;
 import luan.LuaTable;
 import luan.LuaNumber;
+import luan.LuaSource;
 
 
-final class TableExpr implements Expr {
+final class TableExpr extends CodeImpl implements Expr {
 
 	static class Field {
 		final Expr key;
@@ -20,7 +21,8 @@ final class TableExpr implements Expr {
 	private final Field[] fields;
 	private final Expressions expressions;
 
-	TableExpr(Field[] fields,Expressions expressions) {
+	TableExpr(LuaSource.Element se,Field[] fields,Expressions expressions) {
+		super(se);
 		this.fields = fields;
 		this.expressions = expressions;
 	}
