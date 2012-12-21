@@ -3,14 +3,16 @@ package luan.interp;
 import luan.Lua;
 import luan.LuaException;
 import luan.LuaFunction;
+import luan.LuaSource;
 
 
-final class ReturnStmt implements Stmt {
+final class ReturnStmt extends CodeImpl implements Stmt {
 	private final Expressions expressions;
 	private final Expr tailFnExpr;
 	boolean throwReturnException = true;
 
-	ReturnStmt(Expressions expressions) {
+	ReturnStmt(LuaSource.Element se,Expressions expressions) {
+		super(se);
 		if( expressions instanceof FnCall ) {  // tail call
 			FnCall fnCall = (FnCall)expressions;
 			this.expressions = fnCall.args;
@@ -24,11 +26,11 @@ final class ReturnStmt implements Stmt {
 	@Override public void eval(LuaStateImpl lua) throws LuaException {
 		lua.returnValues = expressions.eval(lua);
 		if( tailFnExpr != null ) {
-			LuaFunction tailFn = Lua.checkFunction( tailFnExpr.eval(lua) );
+			LuaFunction tailFn = lua.checkFunction( se, tailFnExpr.eval(lua) );
 			if( tailFn instanceof LuaClosure ) {
 				lua.tailFn = (LuaClosure)tailFn;
 			} else {
-				lua.returnValues =  tailFn.call(lua,lua.returnValues);
+				lua.returnValues =  lua.call(tailFn,tailFnExpr.se(),tailFnExpr.se().text(),lua.returnValues);
 			}
 		}
 		if( throwReturnException )

@@ -3,15 +3,17 @@ package luan.interp;
 import luan.Lua;
 import luan.LuaException;
 import luan.LuaFunction;
+import luan.LuaSource;
 
 
-final class GenericForStmt implements Stmt {
+final class GenericForStmt extends CodeImpl implements Stmt {
 	private final int iVars;
 	private final int nVars;
 	private final Expr iterExpr;
 	private final Stmt block;
 
-	GenericForStmt(int iVars,int nVars,Expr iterExpr,Stmt block) {
+	GenericForStmt(LuaSource.Element se,int iVars,int nVars,Expr iterExpr,Stmt block) {
+		super(se);
 		this.iVars = iVars;
 		this.nVars = nVars;
 		this.iterExpr = iterExpr;
@@ -19,10 +21,10 @@ final class GenericForStmt implements Stmt {
 	}
 
 	@Override public void eval(LuaStateImpl lua) throws LuaException {
-		LuaFunction iter = Lua.checkFunction( iterExpr.eval(lua) );
+		LuaFunction iter = lua.checkFunction( se, iterExpr.eval(lua) );
 		try {
 			while(true) {
-				Object[] vals = iter.call(lua);
+				Object[] vals = lua.call(iter,iterExpr.se(),iterExpr.se().text());
 				if( vals.length==0 || vals[0]==null )
 					break;
 				for( int i=0; i<nVars; i++ ) {

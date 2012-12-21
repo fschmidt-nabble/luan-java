@@ -3,6 +3,6 @@ package luan.interp;
 import luan.LuaException;
 
 
-interface Expressions {
+interface Expressions extends Code {
 	public Object[] eval(LuaStateImpl lua) throws LuaException;
 }

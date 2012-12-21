@@ -2,6 +2,7 @@ package luan.interp;
 
 import luan.LuaFunction;
 import luan.LuaState;
+import luan.LuaElement;
 import luan.LuaException;
 
 
@@ -23,7 +24,7 @@ final class LuaClosure extends LuaFunction {
 		}
 	}
 
-	public Object[] call(LuaState lua,Object... args) throws LuaException {
+	public Object[] call(LuaState lua,Object[] args) throws LuaException {
 		return call(this,(LuaStateImpl)lua,args);
 	}
 

@@ -15,6 +15,8 @@ import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaJavaFunction;
 import luan.LuaException;
+import luan.LuaSource;
+import luan.LuaElement;
 import luan.interp.LuaCompiler;
 
 
@@ -26,13 +28,13 @@ public final class BasicLib {
 		add( global, "do_file", LuaState.class, String.class );
 		add( global, "get_metatable", LuaState.class, Object.class );
 		add( global, "ipairs", LuaTable.class );
-		add( global, "load", LuaState.class, String.class );
+		add( global, "load", LuaState.class, String.class, String.class );
 		add( global, "load_file", LuaState.class, String.class );
 		add( global, "pairs", LuaTable.class );
 		add( global, "print", LuaState.class, new Object[0].getClass() );
 		add( global, "raw_equal", Object.class, Object.class );
 		add( global, "raw_get", LuaTable.class, Object.class );
-		add( global, "raw_len", Object.class );
+		add( global, "raw_len", LuaState.class, Object.class );
 		add( global, "raw_set", LuaTable.class, Object.class, Object.class );
 		add( global, "set_metatable", LuaTable.class, LuaTable.class );
 		add( global, "to_number", Object.class, Integer.class );
@@ -69,7 +71,7 @@ public final class BasicLib {
 		for( int i=0; i<args.length; i++ ) {
 			if( i > 0 )
 				System.out.print('\t');
-			System.out.print( lua.toString(args[i]) );
+			System.out.print( lua.toString(LuaElement.JAVA,args[i]) );
 		}
 		System.out.println();
 	}
@@ -78,8 +80,8 @@ public final class BasicLib {
 		return Lua.type(obj);
 	}
 
-	public static LuaFunction load(LuaState lua,String ld) throws LuaException {
-		return LuaCompiler.compile(lua,ld);
+	public static LuaFunction load(LuaState lua,String text,String sourceName) throws LuaException {
+		return LuaCompiler.compile(lua,new LuaSource(sourceName,text));
 	}
 
 	public static String readAll(Reader in)
@@ -104,13 +106,18 @@ public final class BasicLib {
 	}
 
 
-	public static LuaFunction load_file(LuaState lua,String fileName) throws LuaException,IOException {
-		String src = fileName==null ? readAll(new InputStreamReader(System.in)) : read(new File(fileName));
-		return load(lua,src);
+	public static LuaFunction load_file(LuaState lua,String fileName) throws LuaException {
+		try {
+			String src = fileName==null ? readAll(new InputStreamReader(System.in)) : read(new File(fileName));
+			return load(lua,src,fileName);
+		} catch(IOException e) {
+			throw new LuaException(lua,LuaElement.JAVA,e);
+		}
 	}
 
-	public static Object[] do_file(LuaState lua,String fileName) throws LuaException,IOException {
-		return load_file(lua,fileName).call(lua);
+	public static Object[] do_file(LuaState lua,String fileName) throws LuaException {
+		LuaFunction fn = load_file(lua,fileName);
+		return lua.call(fn,LuaElement.JAVA,null);
 	}
 
 	private static class TableIter {
@@ -197,7 +204,7 @@ public final class BasicLib {
 		return table;
 	}
 
-	public static int raw_len(Object v) throws LuaException {
+	public static int raw_len(LuaState lua,Object v) throws LuaException {
 		if( v instanceof String ) {
 			String s = (String)v;
 			return s.length();
@@ -206,7 +213,7 @@ public final class BasicLib {
 			LuaTable t = (LuaTable)v;
 			return t.length();
 		}
-		throw new LuaException( "bad argument #1 to 'raw_len' (table or string expected)" );
+		throw new LuaException( lua, LuaElement.JAVA, "bad argument #1 to 'raw_len' (table or string expected)" );
 	}
 
 	public static LuaNumber to_number(Object e,Integer base) {
@@ -214,6 +221,6 @@ public final class BasicLib {
 	}
 
 	public static String to_string(LuaState lua,Object v) throws LuaException {
-		return lua.toString(v);
+		return lua.toString(LuaElement.JAVA,v);
 	}
 }

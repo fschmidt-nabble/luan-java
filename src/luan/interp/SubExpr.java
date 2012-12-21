@@ -3,12 +3,13 @@ package luan.interp;
 import luan.Lua;
 import luan.LuaNumber;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 final class SubExpr extends BinaryOpExpr {
 
-	SubExpr(Expr op1,Expr op2) {
-		super(op1,op2);
+	SubExpr(LuaSource.Element se,Expr op1,Expr op2) {
+		super(se,op1,op2);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
@@ -18,6 +19,6 @@ final class SubExpr extends BinaryOpExpr {
 		LuaNumber n2 = Lua.toNumber(o2);
 		if( n1 != null && n2 != null )
 			return new LuaNumber( n1.value() - n2.value() );
-		return lua.arithmetic("__sub",o1,o2);
+		return arithmetic(lua,"__sub",o1,o2);
 	}
 }

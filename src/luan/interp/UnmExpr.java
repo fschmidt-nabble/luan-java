@@ -4,13 +4,14 @@ import luan.Lua;
 import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 // unary minus
 final class UnmExpr extends UnaryOpExpr {
 
-	UnmExpr(Expr op) {
-		super(op);
+	UnmExpr(LuaSource.Element se,Expr op) {
+		super(se,op);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
@@ -18,9 +19,10 @@ final class UnmExpr extends UnaryOpExpr {
 		LuaNumber n = Lua.toNumber(o);
 		if( n != null )
 			return new LuaNumber( -n.value() );
-		LuaFunction fn = lua.getHandlerFunction("__unm",o);
-		if( fn != null )
-			return Utils.first(fn.call(lua,o));
-		throw new LuaException("attempt to perform arithmetic on a "+Lua.type(o)+" value");
+		LuaFunction fn = lua.getHandlerFunction(se,"__unm",o);
+		if( fn != null ) {
+			return Lua.first(lua.call(fn,se,"__unm",o));
+		}
+		throw new LuaException(lua,se,"attempt to perform arithmetic on a "+Lua.type(o)+" value");
 	}
 }

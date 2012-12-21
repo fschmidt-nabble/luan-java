@@ -1,10 +1,13 @@
 package luan.interp;
 
+import luan.LuaSource;
 
-final class VarArgs implements Expressions {
-	static final VarArgs INSTANCE = new VarArgs();
 
-	private VarArgs() {}
+final class VarArgs extends CodeImpl implements Expressions {
+
+	VarArgs(LuaSource.Element se) {
+		super(se);
+	}
 
 	@Override public Object[] eval(LuaStateImpl lua) {
 		return lua.varArgs();

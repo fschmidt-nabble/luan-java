@@ -4,19 +4,20 @@ import luan.Lua;
 import luan.LuaException;
 import luan.LuaTable;
 import luan.LuaFunction;
+import luan.LuaSource;
 
 
 final class IndexExpr extends BinaryOpExpr {
 
-	IndexExpr(Expr op1,Expr op2) {
-		super(op1,op2);
+	IndexExpr(LuaSource.Element se,Expr op1,Expr op2) {
+		super(se,op1,op2);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		return index(lua,op1.eval(lua),op2.eval(lua));
 	}
 
-	private static Object index(LuaStateImpl lua,Object t,Object key) throws LuaException {
+	private Object index(LuaStateImpl lua,Object t,Object key) throws LuaException {
 		Object h;
 		if( t instanceof LuaTable ) {
 			LuaTable tbl = (LuaTable)t;
@@ -29,11 +30,11 @@ final class IndexExpr extends BinaryOpExpr {
 		} else {
 			h = lua.getHandler("__index",t);
 			if( h==null )
-				throw new LuaException( "attempt to index a " + Lua.type(t) + " value" );
+				throw new LuaException( lua, se, "attempt to index a " + Lua.type(t) + " value" );
 		}
 		if( h instanceof LuaFunction ) {
 			LuaFunction fn = (LuaFunction)h;
-			return Utils.first(fn.call(lua,t,key));
+			return Lua.first(lua.call(fn,se,"__index",t,key));
 		}
 		return index(lua,h,key);
 	}

@@ -5,12 +5,13 @@ import luan.LuaNumber;
 import luan.LuaTable;
 import luan.LuaFunction;
 import luan.LuaException;
+import luan.LuaSource;
 
 
 final class LenExpr extends UnaryOpExpr {
 
-	LenExpr(Expr op) {
-		super(op);
+	LenExpr(LuaSource.Element se,Expr op) {
+		super(se,op);
 	}
 
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
@@ -19,13 +20,13 @@ final class LenExpr extends UnaryOpExpr {
 			String s = (String)o;
 			return new LuaNumber( s.length() );
 		}
-		LuaFunction fn = lua.getHandlerFunction("__len",o);
+		LuaFunction fn = lua.getHandlerFunction(se,"__len",o);
 		if( fn != null )
-			return Utils.first(fn.call(lua,o));
+			return Lua.first(lua.call(fn,se,"__len",o));
 		if( o instanceof LuaTable ) {
 			LuaTable t = (LuaTable)o;
 			return t.length();
 		}
-		throw new LuaException( "attempt to get length of a " + Lua.type(o) + " value" );
+		throw new LuaException( lua, se, "attempt to get length of a " + Lua.type(o) + " value" );
 	}
 }

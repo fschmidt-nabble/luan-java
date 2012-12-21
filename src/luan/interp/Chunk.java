@@ -1,16 +1,18 @@
 package luan.interp;
 
 import luan.LuaException;
+import luan.LuaSource;
 
 
-final class Chunk implements Expr {
+final class Chunk extends CodeImpl implements Expr {
 	final Stmt block;
 	final int stackSize;
 	final int numArgs;
 	final boolean isVarArg;
 	final UpValue.Getter[] upValueGetters;
 
-	Chunk(Stmt block,int stackSize,int numArgs,boolean isVarArg,UpValue.Getter[] upValueGetters) {
+	Chunk(LuaSource.Element se,Stmt block,int stackSize,int numArgs,boolean isVarArg,UpValue.Getter[] upValueGetters) {
+		super(se);
 		this.block = block;
 		this.stackSize = stackSize;
 		this.numArgs = numArgs;

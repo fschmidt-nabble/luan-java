@@ -18,6 +18,7 @@ import luan.MetatableGetter;
 import luan.LuaException;
 import luan.LuaFunction;
 import luan.LuaJavaFunction;
+import luan.LuaElement;
 
 
 public final class JavaLib {
@@ -29,17 +30,15 @@ public final class JavaLib {
 		global.put("java",module);
 		try {
 			global.put( "import", new LuaJavaFunction(JavaLib.class.getMethod("importClass",LuaState.class,String.class),null) );
-			module.put( "class", new LuaJavaFunction(JavaLib.class.getMethod("getClass",String.class),null) );
+			module.put( "class", new LuaJavaFunction(JavaLib.class.getMethod("getClass",LuaState.class,String.class),null) );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
-		add( global, "ipairs", Object.class );
-		add( global, "pairs", Object.class );
 	}
 
 	private static final LuaTable mt = new LuaTable();
 	static {
-		add( mt, "__index", Object.class, Object.class );
+		add( mt, "__index", LuaState.class, Object.class, Object.class );
 	}
 
 	private static void add(LuaTable t,String method,Class<?>... parameterTypes) {
@@ -58,7 +57,7 @@ public final class JavaLib {
 		}
 	};
 
-	public static Object __index(Object obj,Object key) throws LuaException {
+	public static Object __index(LuaState lua,Object obj,Object key) throws LuaException {
 		if( obj instanceof Static ) {
 			if( key instanceof String ) {
 				String name = (String)key;
@@ -86,7 +85,7 @@ public final class JavaLib {
 					}
 				}
 			}
-			throw new LuaException("invalid index for java class: "+key);
+			throw new LuaException(lua,LuaElement.JAVA,"invalid index for java class: "+key);
 		}
 		Class cls = obj.getClass();
 		if( cls.isArray() ) {
@@ -101,7 +100,7 @@ public final class JavaLib {
 					return Array.get(obj,i);
 				}
 			}
-			throw new LuaException("invalid index for java array: "+key);
+			throw new LuaException(lua,LuaElement.JAVA,"invalid index for java array: "+key);
 		}
 		if( key instanceof String ) {
 			String name = (String)key;
@@ -114,7 +113,7 @@ public final class JavaLib {
 				}
 			}
 		}
-		throw new LuaException("invalid index for java object: "+key);
+		throw new LuaException(lua,LuaElement.JAVA,"invalid index for java object: "+key);
 	}
 
 	private static Object member(Object obj,List<Member> members) throws LuaException {
@@ -192,16 +191,16 @@ public final class JavaLib {
 		}
 	}
 
-	public static Static getClass(String name) throws LuaException {
+	public static Static getClass(LuaState lua,String name) throws LuaException {
 		try {
 			return new Static( Class.forName(name) );
 		} catch(ClassNotFoundException e) {
-			throw new LuaException(e);
+			throw new LuaException(lua,LuaElement.JAVA,e);
 		}
 	}
 
 	public static void importClass(LuaState lua,String name) throws LuaException {
-		lua.global().put( name.substring(name.lastIndexOf('.')+1), getClass(name) );
+		lua.global().put( name.substring(name.lastIndexOf('.')+1), getClass(lua,name) );
 	}
 
 	static class AmbiguousJavaFunction extends LuaFunction {
@@ -219,62 +218,15 @@ public final class JavaLib {
 			}
 		}
 
-		@Override public Object[] call(LuaState lua,Object... args) throws LuaException {
+		@Override public Object[] call(LuaState lua,Object[] args) throws LuaException {
 			for( LuaJavaFunction fn : fnMap.get(args.length) ) {
 				try {
 					return fn.call(lua,args);
 				} catch(IllegalArgumentException e) {}
 			}
-			throw new LuaException("no method matched args");
+			throw new LuaException(lua,LuaElement.JAVA,"no method matched args");
 		}
 	}
-
-
-	public static LuaFunction pairs(Object t) throws LuaException {
-		if( t instanceof LuaTable )
-			return BasicLib.pairs((LuaTable)t);
-		if( t instanceof Map ) {
-			@SuppressWarnings("unchecked")
-			Map<Object,Object> m = (Map<Object,Object>)t;
-			return BasicLib.pairs(m.entrySet().iterator());
-		}
-		throw new LuaException( "bad argument #1 to 'pairs' (table or Map expected)" );
-	}
-
-	private static class Iter {
-		private final Iterator iter;
-		private double i = 0.0;
-
-		Iter(Iterable t) {
-			this.iter = t.iterator();
-		}
-
-		public Object[] next() {
-			if( !iter.hasNext() )
-				return LuaFunction.EMPTY_RTN ;
-			return new Object[]{ new LuaNumber(i++), iter.next() };
-		}
-	}
-	private static final Method nextIter;
-	static {
-		try {
-			nextIter = Iter.class.getMethod("next");
-			nextIter.setAccessible(true);
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static LuaFunction ipairs(Object t) throws LuaException {
-		if( t instanceof LuaTable )
-			return BasicLib.ipairs((LuaTable)t);
-		if( t instanceof Iterable ) {
-			Iter ai = new Iter((Iterable)t);
-			return new LuaJavaFunction(nextIter,ai);
-		}
-		throw new LuaException( "bad argument #1 to 'ipairs' (table or Iterable expected)" );
-	}
-
 
 	private static class InstanceOf {
 		private final Object obj;
