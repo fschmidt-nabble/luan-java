@@ -2,15 +2,16 @@ package luan;
 
 
 public abstract class LuaElement {
-	abstract String toString(String fnName);
 
-	final String function(String fnName) {
-		return fnName==null ? "main chunk" : "function '"+fnName+"'";
+	final String toString(String fnName) {
+		return location() + ": in " + (fnName==null ? "main chunk" : "function '"+fnName+"'");
 	}
 
+	abstract String location();
+
 	public static final LuaElement JAVA = new LuaElement(){
-		@Override public String toString(String fnName) {
-			return "java: in " + function(fnName);
+		@Override String location() {
+			return "Java";
 		}
 	};
 }
