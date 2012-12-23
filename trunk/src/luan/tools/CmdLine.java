@@ -75,7 +75,7 @@ public class CmdLine {
 				LuaFunction fn = BasicLib.load_file(lua,file);
 				lua.call(fn,null,null,varArgs);
 			} catch(LuaException e) {
-				System.err.println(e);
+				System.err.println("error: "+e.getMessage());
 //				e.printStackTrace();
 				System.exit(-1);
 			}

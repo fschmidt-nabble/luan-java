@@ -2,20 +2,38 @@ package luan;
 
 
 public class LuaException extends Exception {
+	private final String stackTrace;
 
-	public LuaException(LuaState lua,LuaElement el,String msg) {
-		super(hideNull(msg)+stackTrace(lua,el));
+	public LuaException(LuaState lua,LuaElement el,Object msg) {
+		super(message(msg),cause(msg));
+		stackTrace = stackTrace(lua,el,msg);
 	}
 
-	public LuaException(LuaState lua,LuaElement el,Exception cause) {
-		super(hideNull(cause.getMessage())+stackTrace(lua,el),cause);
+	@Override public String getMessage() {
+		return super.getMessage() + stackTrace;
 	}
 
-	private static String hideNull(String s) {
-		return s==null ? "" : s;
+	private String message() {
+		return super.getMessage();
 	}
 
-	private static String stackTrace(LuaState lua,LuaElement el) {
+	private static Throwable cause(Object msg) {
+		return msg instanceof Throwable ? (Throwable)msg : null;
+	}
+
+	private static String message(Object msg) {
+		if( msg instanceof LuaException ) {
+			LuaException le = (LuaException)msg;
+			return le.message();
+		} else if( msg instanceof Throwable ) {
+			Throwable t = (Throwable)msg;
+			return t.getMessage();
+		} else {
+			return msg.toString();
+		}
+	}
+
+	private static String stackTrace(LuaState lua,LuaElement el,Object msg) {
 		StringBuilder buf = new StringBuilder();
 		int i = lua.stackTrace.size() - 1;
 		do {
@@ -23,6 +41,10 @@ public class LuaException extends Exception {
 			buf.append( "\n\t" ).append( el.toString(stackTraceElement.fnName) );
 			el = stackTraceElement.call;
 		} while( --i >= 0 );
+		if( msg instanceof LuaException ) {
+			LuaException le = (LuaException)msg;
+			buf.append( "\ncaused by:" ).append( le.stackTrace );
+		}
 		return buf.toString();
 	}
 }

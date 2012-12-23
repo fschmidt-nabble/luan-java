@@ -65,6 +65,10 @@ public abstract class LuaState {
 			return checkString( el, Lua.first( call(fn,el,"__tostring",obj) ) );
 		if( obj == null )
 			return "nil";
+		if( obj instanceof LuaException ) {
+			LuaException le = (LuaException)obj;
+			return le.getMessage();
+		}
 		return obj.toString();
 	}
 
