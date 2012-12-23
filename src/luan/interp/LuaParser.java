@@ -223,6 +223,7 @@ class LuaParser extends BaseParser<Object> {
 					BreakStmt(),
 					GenericForStmt(),
 					NumericForStmt(),
+					TryStmt(),
 					DoStmt(),
 					WhileStmt(),
 					RepeatStmt(),
@@ -312,6 +313,16 @@ class LuaParser extends BaseParser<Object> {
 			addSymbol( (String)pop(3) ),  // add "for" var to symbols
 			Keyword("do"), LoopBlock(), Keyword("end"),
 			push( new NumericForStmt( se(start.get()), symbolsSize()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
+			popSymbols(1)
+		);
+	}
+
+	Rule TryStmt() {
+		return Sequence(
+			Keyword("try"), Block(),
+			Keyword("catch"), Name(), addSymbol( (String)pop() ),
+			Keyword("do"), Block(), Keyword("end"),
+			push( new TryStmt( (Stmt)pop(1), symbolsSize()-1, (Stmt)pop() ) ),
 			popSymbols(1)
 		);
 	}
@@ -827,6 +838,7 @@ class LuaParser extends BaseParser<Object> {
 	static final Set<String> keywords = new HashSet<String>(Arrays.asList(
 		"and",
 		"break",
+		"catch",
 		"do",
 		"else",
 		"elseif",
@@ -847,6 +859,7 @@ class LuaParser extends BaseParser<Object> {
 		"then",
 		"to",
 		"true",
+		"try",
 		"until",
 		"while"
 	));
