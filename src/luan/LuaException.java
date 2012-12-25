@@ -35,12 +35,11 @@ public class LuaException extends Exception {
 
 	private static String stackTrace(LuaState lua,LuaElement el,Object msg) {
 		StringBuilder buf = new StringBuilder();
-		int i = lua.stackTrace.size() - 1;
-		do {
+		for( int i  = lua.stackTrace.size() - 1; i>=0; i-- ) {
 			StackTraceElement stackTraceElement = lua.stackTrace.get(i);
 			buf.append( "\n\t" ).append( el.toString(stackTraceElement.fnName) );
 			el = stackTraceElement.call;
-		} while( --i >= 0 );
+		}
 		if( msg instanceof LuaException ) {
 			LuaException le = (LuaException)msg;
 			buf.append( "\ncaused by:" ).append( le.stackTrace );
