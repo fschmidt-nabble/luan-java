@@ -121,66 +121,27 @@ public final class BasicLib {
 		return lua.call(fn,LuaElement.JAVA,null);
 	}
 
-	private static class TableIter {
-		private final Iterator<Map.Entry<Object,Object>> iter;
-
-		TableIter(Iterator<Map.Entry<Object,Object>> iter) {
-			this.iter = iter;
-		}
-
-		public Object[] next() {
-			if( !iter.hasNext() )
-				return LuaFunction.EMPTY_RTN;
-			Map.Entry<Object,Object> entry = iter.next();
-			return new Object[]{entry.getKey(),entry.getValue()};
-		}
-	}
-	private static final Method nextTableIter;
-	static {
-		try {
-			nextTableIter = TableIter.class.getMethod("next");
-			nextTableIter.setAccessible(true);
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	static LuaFunction pairs(Iterator<Map.Entry<Object,Object>> iter) {
-		TableIter ti = new TableIter(iter);
-		return new LuaJavaFunction(nextTableIter,ti);
-	}
-
 	public static LuaFunction pairs(LuaTable t) {
-		return pairs(t.iterator());
+		final Iterator<Map.Entry<Object,Object>> iter = t.iterator();
+		return new LuaFunction() {
+			public Object[] call(LuaState lua,Object[] args) {
+				if( !iter.hasNext() )
+					return LuaFunction.EMPTY_RTN;
+				Map.Entry<Object,Object> entry = iter.next();
+				return new Object[]{entry.getKey(),entry.getValue()};
+			}
+		};
 	}
 
-	private static class ArrayIter {
-		private final LuaTable t;
-		private double i = 0.0;
-
-		ArrayIter(LuaTable t) {
-			this.t = t;
-		}
-
-		public Object[] next() {
-			LuaNumber n = new LuaNumber(++i);
-			Object val = t.get(n);
-			return val==null ? LuaFunction.EMPTY_RTN : new Object[]{n,val};
-		}
-	}
-	private static final Method nextArrayIter;
-	static {
-		try {
-			nextArrayIter = ArrayIter.class.getMethod("next");
-			nextArrayIter.setAccessible(true);
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static LuaFunction ipairs(LuaTable t) {
-		ArrayIter ai = new ArrayIter(t);
-		return new LuaJavaFunction(nextArrayIter,ai);
+	public static LuaFunction ipairs(final LuaTable t) {
+		return new LuaFunction() {
+			private double i = 0.0;
+			public Object[] call(LuaState lua,Object[] args) {
+				LuaNumber n = new LuaNumber(++i);
+				Object val = t.get(n);
+				return val==null ? LuaFunction.EMPTY_RTN : new Object[]{n,val};
+			}
+		};
 	}
 
 	public static LuaTable get_metatable(LuaState lua,Object obj) {

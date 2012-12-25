@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
 import luan.lib.JavaLib;
+import luan.lib.StringLib;
 import luan.Lua;
 import luan.LuaState;
 import luan.LuaFunction;
@@ -19,6 +20,7 @@ public class CmdLine {
 		LuaState lua = LuaCompiler.newLuaState();
 		BasicLib.register(lua);
 		JavaLib.register(lua);
+		StringLib.register(lua);
 		BasicLib.make_standard(lua);
 		boolean interactive = false;
 		boolean showVersion = false;
@@ -75,8 +77,8 @@ public class CmdLine {
 				LuaFunction fn = BasicLib.load_file(lua,file);
 				lua.call(fn,null,null,varArgs);
 			} catch(LuaException e) {
-				System.err.println("error: "+e.getMessage());
-//				e.printStackTrace();
+//				System.err.println("error: "+e.getMessage());
+				e.printStackTrace();
 				System.exit(-1);
 			}
 		}
