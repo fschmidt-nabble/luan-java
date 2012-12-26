@@ -121,8 +121,7 @@ public final class BasicLib {
 		return lua.call(fn,LuaElement.JAVA,null);
 	}
 
-	public static LuaFunction pairs(LuaTable t) {
-		final Iterator<Map.Entry<Object,Object>> iter = t.iterator();
+	private static LuaFunction pairs(final Iterator<Map.Entry<Object,Object>> iter) {
 		return new LuaFunction() {
 			public Object[] call(LuaState lua,Object[] args) {
 				if( !iter.hasNext() )
@@ -133,15 +132,12 @@ public final class BasicLib {
 		};
 	}
 
-	public static LuaFunction ipairs(final LuaTable t) {
-		return new LuaFunction() {
-			private double i = 0.0;
-			public Object[] call(LuaState lua,Object[] args) {
-				LuaNumber n = new LuaNumber(++i);
-				Object val = t.get(n);
-				return val==null ? LuaFunction.EMPTY_RTN : new Object[]{n,val};
-			}
-		};
+	public static LuaFunction pairs(LuaTable t) {
+		return pairs( t.iterator() );
+	}
+
+	public static LuaFunction ipairs(LuaTable t) {
+		return pairs( t.listIterator() );
 	}
 
 	public static LuaTable get_metatable(LuaState lua,Object obj) {

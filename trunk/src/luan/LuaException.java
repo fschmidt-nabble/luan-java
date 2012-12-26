@@ -25,9 +25,11 @@ public class LuaException extends Exception {
 		if( msg instanceof LuaException ) {
 			LuaException le = (LuaException)msg;
 			return le.message();
+/*
 		} else if( msg instanceof Throwable ) {
 			Throwable t = (Throwable)msg;
 			return t.getMessage();
+*/
 		} else {
 			return msg.toString();
 		}

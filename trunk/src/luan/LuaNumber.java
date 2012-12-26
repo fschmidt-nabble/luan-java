@@ -4,7 +4,7 @@ package luan;
 public final class LuaNumber implements Comparable<LuaNumber> {
 	final double n;
 
-	public LuaNumber(double n) {
+	private LuaNumber(double n) {
 		this.n = n;
 	}
 
@@ -41,6 +41,27 @@ public final class LuaNumber implements Comparable<LuaNumber> {
 
 	@Override public int compareTo(LuaNumber ln) {
 		return Double.compare(n,ln.n);
+	}
+
+	public static LuaNumber of(double n) {
+		return new LuaNumber(n);
+	}
+
+	private static LuaNumber[] ints = new LuaNumber[100];
+	static {
+		for( int i=0; i<ints.length; i++ ) {
+			ints[i] = new LuaNumber(i);
+		}
+	}
+
+	public static LuaNumber of(int n) {
+		if( 0 <= n && n < ints.length )
+			return ints[n];
+		return new LuaNumber(n);
+	}
+
+	public static LuaNumber of(Number n) {
+		return n instanceof Integer ? of(n.intValue()) : of(n.doubleValue());
 	}
 
 }

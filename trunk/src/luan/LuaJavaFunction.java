@@ -130,7 +130,7 @@ public final class LuaJavaFunction extends LuaFunction {
 			if( obj == null )
 				return NULL_RTN;
 			Number n = (Number)obj;
-			LuaNumber ln = new LuaNumber(n.doubleValue());
+			LuaNumber ln = LuaNumber.of(n);
 			return new Object[]{ln};
 		}
 	};
@@ -143,7 +143,7 @@ public final class LuaJavaFunction extends LuaFunction {
 			for( int i=0; i<rtn.length; i++ ) {
 				Number n = (Number)Array.get(obj,i);
 				if( n != null )
-					rtn[i] = new LuaNumber(n.doubleValue());
+					rtn[i] = LuaNumber.of(n.doubleValue());
 			}
 			return rtn;
 		}

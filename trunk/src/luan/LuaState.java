@@ -84,4 +84,28 @@ public abstract class LuaState {
 		return t==null ? null : t.get(op);
 	}
 
+
+	public final LuaFunction getBinHandler(LuaElement el,String op,Object o1,Object o2) throws LuaException {
+		LuaFunction f1 = getHandlerFunction(el,op,o1);
+		if( f1 != null )
+			return f1;
+		return getHandlerFunction(el,op,o2);
+	}
+
+	public final boolean isLessThan(LuaElement el,Object o1,Object o2) throws LuaException {
+		if( o1 instanceof LuaNumber && o2 instanceof LuaNumber ) {
+			LuaNumber n1 = (LuaNumber)o1;
+			LuaNumber n2 = (LuaNumber)o2;
+			return n1.compareTo(n2) < 0;
+		}
+		if( o1 instanceof String && o2 instanceof String ) {
+			String s1 = (String)o1;
+			String s2 = (String)o2;
+			return s1.compareTo(s2) < 0;
+		}
+		LuaFunction fn = getBinHandler(el,"__lt",o1,o2);
+		if( fn != null )
+			return Lua.toBoolean( Lua.first(call(fn,el,"__lt",o1,o2)) );
+		throw new LuaException( this, el, "attempt to compare " + Lua.type(o1) + " with " + Lua.type(o2) );
+	}
 }

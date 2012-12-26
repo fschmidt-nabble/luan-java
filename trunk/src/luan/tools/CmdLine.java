@@ -5,6 +5,7 @@ import java.util.Scanner;
 import luan.lib.BasicLib;
 import luan.lib.JavaLib;
 import luan.lib.StringLib;
+import luan.lib.TableLib;
 import luan.Lua;
 import luan.LuaState;
 import luan.LuaFunction;
@@ -21,6 +22,7 @@ public class CmdLine {
 		BasicLib.register(lua);
 		JavaLib.register(lua);
 		StringLib.register(lua);
+		TableLib.register(lua);
 		BasicLib.make_standard(lua);
 		boolean interactive = false;
 		boolean showVersion = false;
@@ -70,7 +72,7 @@ public class CmdLine {
 			System.arraycopy(args,1,varArgs,0,varArgs.length);
 			LuaTable argsTable = new LuaTable();
 			for( int j=0; j<args.length; j++ ) {
-				argsTable.put( new LuaNumber(j), args[j] );
+				argsTable.put( LuaNumber.of(j), args[j] );
 			}
 			lua.global().put("arg",argsTable);
 			try {

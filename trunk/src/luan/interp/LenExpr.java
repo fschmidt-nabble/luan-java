@@ -18,7 +18,7 @@ final class LenExpr extends UnaryOpExpr {
 		Object o = op.eval(lua);
 		if( o instanceof String ) {
 			String s = (String)o;
-			return new LuaNumber( s.length() );
+			return LuaNumber.of( s.length() );
 		}
 		LuaFunction fn = lua.getHandlerFunction(se,"__len",o);
 		if( fn != null )

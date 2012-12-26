@@ -37,9 +37,9 @@ public class Lua {
 			String s = (String)obj;
 			try {
 				if( base==null )
-					return new LuaNumber( Double.parseDouble(s) );
+					return LuaNumber.of( Double.parseDouble(s) );
 				else
-					return new LuaNumber( Long.parseLong(s,base) );
+					return LuaNumber.of( Long.parseLong(s,base) );
 			} catch(NumberFormatException e) {}
 		}
 		return null;
