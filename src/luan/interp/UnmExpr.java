@@ -18,7 +18,7 @@ final class UnmExpr extends UnaryOpExpr {
 		Object o = op.eval(lua);
 		LuaNumber n = Lua.toNumber(o);
 		if( n != null )
-			return new LuaNumber( -n.value() );
+			return LuaNumber.of( -n.value() );
 		LuaFunction fn = lua.getHandlerFunction(se,"__unm",o);
 		if( fn != null ) {
 			return Lua.first(lua.call(fn,se,"__unm",o));

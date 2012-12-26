@@ -157,7 +157,7 @@ public final class StringLib {
 				i++;
 			}
 			m.appendTail(sb);
-			return new Object[]{ sb.toString(), new LuaNumber(i) };
+			return new Object[]{ sb.toString(), LuaNumber.of(i) };
 		}
 		if( repl instanceof LuaTable ) {
 			LuaTable t = (LuaTable)repl;
@@ -175,7 +175,7 @@ public final class StringLib {
 				i++;
 			}
 			m.appendTail(sb);
-			return new Object[]{ sb.toString(), new LuaNumber(i) };
+			return new Object[]{ sb.toString(), LuaNumber.of(i) };
 		}
 		if( repl instanceof LuaFunction ) {
 			LuaFunction fn = (LuaFunction)repl;
@@ -202,7 +202,7 @@ public final class StringLib {
 				i++;
 			}
 			m.appendTail(sb);
-			return new Object[]{ sb.toString(), new LuaNumber(i) };
+			return new Object[]{ sb.toString(), LuaNumber.of(i) };
 		}
 		throw new LuaException( lua, LuaElement.JAVA, "bad argument #3 to 'gsub' (string/function/table expected)" );
 	}

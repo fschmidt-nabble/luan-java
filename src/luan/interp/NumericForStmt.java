@@ -28,7 +28,7 @@ final class NumericForStmt extends CodeImpl implements Stmt {
 		double step = lua.checkNumber( se, stepExpr.eval(lua) ).value();
 		try {
 			while( step > 0.0 && v <= limit || step < 0.0 && v >= limit ) {
-				lua.stackSet( iVar, new LuaNumber(v) );
+				lua.stackSet( iVar, LuaNumber.of(v) );
 				block.eval(lua);
 				v += step;
 			}

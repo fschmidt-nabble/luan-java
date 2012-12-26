@@ -125,7 +125,7 @@ public final class JavaLib {
 					Object value = field.get(obj);
 					if( value instanceof Number ) {
 						Number n = (Number)value;
-						value = new LuaNumber(n.doubleValue());
+						value = LuaNumber.of(n);
 					}
 					return value;
 				} else {

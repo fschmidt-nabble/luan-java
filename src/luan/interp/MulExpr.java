@@ -18,7 +18,7 @@ final class MulExpr extends BinaryOpExpr {
 		LuaNumber n1 = Lua.toNumber(o1);
 		LuaNumber n2 = Lua.toNumber(o2);
 		if( n1 != null && n2 != null )
-			return new LuaNumber( n1.value() * n2.value() );
+			return LuaNumber.of( n1.value() * n2.value() );
 		return arithmetic(lua,"__mul",o1,o2);
 	}
 }

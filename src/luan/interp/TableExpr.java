@@ -34,7 +34,7 @@ final class TableExpr extends CodeImpl implements Expr {
 		}
 		Object[] a = expressions.eval(lua);
 		for( int i=0; i<a.length; i++ ) {
-			table.put( new LuaNumber(i+1), a[i] );
+			table.put( LuaNumber.of(i+1), a[i] );
 		}
 		return table;
 	}

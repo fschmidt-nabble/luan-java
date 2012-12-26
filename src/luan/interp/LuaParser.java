@@ -304,7 +304,7 @@ class LuaParser extends BaseParser<Object> {
 		return Sequence(
 			start.set(currentIndex()),
 			Keyword("for"), Name(), '=', Spaces(), Expr(), Keyword("to"), Expr(),
-			push( new ConstExpr(new LuaNumber(1)) ),  // default step
+			push( new ConstExpr(LuaNumber.of(1)) ),  // default step
 			Optional(
 				Keyword("step"),
 				drop(),
@@ -894,7 +894,7 @@ class LuaParser extends BaseParser<Object> {
 	Rule NumberLiteral() {
 		return Sequence(
 			Number(),
-			push(new LuaNumber((Double)pop()))
+			push(LuaNumber.of((Double)pop()))
 		);
 	}
 

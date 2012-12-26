@@ -13,13 +13,6 @@ import luan.LuaElement;
 
 final class LuaStateImpl extends LuaState {
 
-	LuaFunction getBinHandler(LuaElement el,String op,Object o1,Object o2) throws LuaException {
-		LuaFunction f1 = getHandlerFunction(el,op,o1);
-		if( f1 != null )
-			return f1;
-		return getHandlerFunction(el,op,o2);
-	}
-
 	final Object arithmetic(LuaElement el,String op,Object o1,Object o2) throws LuaException {
 		LuaFunction fn = getBinHandler(el,op,o1,o2);
 		if( fn != null )
