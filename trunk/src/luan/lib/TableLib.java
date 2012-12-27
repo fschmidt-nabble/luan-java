@@ -90,7 +90,7 @@ public final class TableLib {
 			lt = new LessThan() {
 				public boolean isLessThan(Object o1,Object o2) {
 					try {
-						return Lua.toBoolean(lua.call(comp,LuaElement.JAVA,"comp-arg",o1,o2));
+						return Lua.toBoolean(Lua.first(lua.call(comp,LuaElement.JAVA,"comp-arg",o1,o2)));
 					} catch(LuaException e) {
 						throw new LuaRuntimeException(e);
 					}
