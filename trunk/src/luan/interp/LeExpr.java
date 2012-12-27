@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaException;
 import luan.LuaSource;
@@ -16,10 +15,10 @@ final class LeExpr extends BinaryOpExpr {
 	@Override public Object eval(LuaStateImpl lua) throws LuaException {
 		Object o1 = op1.eval(lua);
 		Object o2 = op2.eval(lua);
-		if( o1 instanceof LuaNumber && o2 instanceof LuaNumber ) {
-			LuaNumber n1 = (LuaNumber)o1;
-			LuaNumber n2 = (LuaNumber)o2;
-			return n1.compareTo(n2) <= 0;
+		if( o1 instanceof Number && o2 instanceof Number ) {
+			Number n1 = (Number)o1;
+			Number n2 = (Number)o2;
+			return n1.doubleValue() <= n2.doubleValue();
 		}
 		if( o1 instanceof String && o2 instanceof String ) {
 			String s1 = (String)o1;

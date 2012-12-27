@@ -10,7 +10,6 @@ import luan.Lua;
 import luan.LuaState;
 import luan.LuaFunction;
 import luan.LuaTable;
-import luan.LuaNumber;
 import luan.LuaException;
 import luan.interp.LuaCompiler;
 
@@ -72,7 +71,7 @@ public class CmdLine {
 			System.arraycopy(args,1,varArgs,0,varArgs.length);
 			LuaTable argsTable = new LuaTable();
 			for( int j=0; j<args.length; j++ ) {
-				argsTable.put( LuaNumber.of(j), args[j] );
+				argsTable.put( j, args[j] );
 			}
 			lua.global().put("arg",argsTable);
 			try {

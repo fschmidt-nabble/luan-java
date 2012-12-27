@@ -7,7 +7,6 @@ import luan.LuaState;
 import luan.LuaTable;
 import luan.LuaFunction;
 import luan.LuaJavaFunction;
-import luan.LuaNumber;
 import luan.LuaElement;
 import luan.LuaException;
 
@@ -157,7 +156,7 @@ public final class StringLib {
 				i++;
 			}
 			m.appendTail(sb);
-			return new Object[]{ sb.toString(), LuaNumber.of(i) };
+			return new Object[]{ sb.toString(), i };
 		}
 		if( repl instanceof LuaTable ) {
 			LuaTable t = (LuaTable)repl;
@@ -175,7 +174,7 @@ public final class StringLib {
 				i++;
 			}
 			m.appendTail(sb);
-			return new Object[]{ sb.toString(), LuaNumber.of(i) };
+			return new Object[]{ sb.toString(), i };
 		}
 		if( repl instanceof LuaFunction ) {
 			LuaFunction fn = (LuaFunction)repl;
@@ -202,7 +201,7 @@ public final class StringLib {
 				i++;
 			}
 			m.appendTail(sb);
-			return new Object[]{ sb.toString(), LuaNumber.of(i) };
+			return new Object[]{ sb.toString(), i };
 		}
 		throw new LuaException( lua, LuaElement.JAVA, "bad argument #3 to 'gsub' (string/function/table expected)" );
 	}

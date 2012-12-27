@@ -11,7 +11,6 @@ import java.util.Map;
 import luan.Lua;
 import luan.LuaState;
 import luan.LuaTable;
-import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaJavaFunction;
 import luan.LuaException;
@@ -174,7 +173,7 @@ public final class BasicLib {
 		throw new LuaException( lua, LuaElement.JAVA, "bad argument #1 to 'raw_len' (table or string expected)" );
 	}
 
-	public static LuaNumber to_number(Object e,Integer base) {
+	public static Number to_number(Object e,Integer base) {
 		return Lua.toNumber(e,base);
 	}
 

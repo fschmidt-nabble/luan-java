@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaTable;
 import luan.LuaException;
@@ -19,6 +18,11 @@ final class EqExpr extends BinaryOpExpr {
 		Object o2 = op2.eval(lua);
 		if( o1 == o2 || o1 != null && o1.equals(o2) )
 			return true;
+		if( o1 instanceof Number && o2 instanceof Number ) {
+			Number n1 = (Number)o1;
+			Number n2 = (Number)o2;
+			return n1.doubleValue() == n2.doubleValue();
+		}
 		if( !o1.getClass().equals(o2.getClass()) )
 			return false;
 		LuaTable mt1 = lua.getMetatable(o1);

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import luan.LuaNumber;
+import luan.Lua;
 import luan.LuaState;
 import luan.LuaTable;
 import luan.MetatableGetter;
@@ -92,13 +92,9 @@ public final class JavaLib {
 			if( "length".equals(key) ) {
 				return Array.getLength(obj);
 			}
-			if( key instanceof LuaNumber ) {
-				LuaNumber n = (LuaNumber)key;
-				double d = n.value();
-				int i = (int)d;
-				if( d==i ) {
-					return Array.get(obj,i);
-				}
+			Integer i = Lua.asInteger(key);
+			if( i != null ) {
+				return Array.get(obj,i);
 			}
 			throw new LuaException(lua,LuaElement.JAVA,"invalid index for java array: "+key);
 		}
@@ -122,12 +118,7 @@ public final class JavaLib {
 				Member member = members.get(0);
 				if( member instanceof Field ) {
 					Field field = (Field)member;
-					Object value = field.get(obj);
-					if( value instanceof Number ) {
-						Number n = (Number)value;
-						value = LuaNumber.of(n);
-					}
-					return value;
+					return field.get(obj);
 				} else {
 					Method method = (Method)member;
 					return new LuaJavaFunction(method,obj);

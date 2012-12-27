@@ -6,7 +6,6 @@ import java.util.Arrays;
 import luan.Lua;
 import luan.LuaState;
 import luan.LuaTable;
-import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaJavaFunction;
 import luan.LuaElement;
@@ -41,7 +40,7 @@ public final class TableLib {
 		int last = j==null ? list.length() : j;
 		StringBuilder buf = new StringBuilder();
 		for( int k=first; k<=last; k++ ) {
-			Object val = list.get(LuaNumber.of(k));
+			Object val = list.get(k);
 			if( val==null )
 				break;
 			if( sep!=null && k > first )
