@@ -4,6 +4,9 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public final class LuaJavaFunction extends LuaFunction {
@@ -45,6 +48,9 @@ public final class LuaJavaFunction extends LuaFunction {
 		Object rtn;
 		try {
 			rtn = method.invoke(obj,args);
+		} catch(IllegalArgumentException e) {
+			checkArgs(lua,args);
+			throw e;
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch(InvocationTargetException e) {
@@ -60,6 +66,19 @@ public final class LuaJavaFunction extends LuaFunction {
 			throw new RuntimeException(e);
 		}
 		return rtnConverter.convert(rtn);
+	}
+
+	private void checkArgs(LuaState lua,Object[] args) throws LuaException {
+		Class<?>[] a = getParameterTypes();
+		for( int i=0; i<a.length; i++ ) {
+			if( !a[i].isInstance(args[i]) ) {
+				String got = args[i].getClass().getName();
+				String expected = a[i].getName();
+				if( !takesLuaState )
+					i++;
+				throw new LuaException(lua,LuaElement.JAVA,"bad argument #"+i+" ("+expected+" expected, got "+got+")");
+			}
+		}
 	}
 
 	private Object[] fixArgs(LuaState lua,Object[] args) {
@@ -125,16 +144,40 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static final Object[] NULL_RTN = new Object[1];
 
+	private static final RtnConverter RTN_NUMBER_ARRAY = new RtnConverter() {
+		public Object[] convert(Object obj) {
+			if( obj == null )
+				return NULL_RTN;
+			Object[] rtn = new Object[Array.getLength(obj)];
+			for( int i=0; i<rtn.length; i++ ) {
+				rtn[i] = Array.get(obj,i);
+			}
+			return rtn;
+		}
+	};
+
 	private static RtnConverter getRtnConverter(JavaMethod m) {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_EMPTY;
 		if( rtnType.isArray() ) {
+			rtnType = rtnType.getComponentType();
+			if( isNumber(rtnType) )
+				return RTN_NUMBER_ARRAY;
 			return RTN_ARRAY;
 		}
 		return RTN_ONE;
 	}
 
+	private static boolean isNumber(Class<?> rtnType) {
+		return rtnType == Byte.TYPE
+			|| rtnType == Short.TYPE
+			|| rtnType == Integer.TYPE
+			|| rtnType == Long.TYPE
+			|| rtnType == Float.TYPE
+			|| rtnType == Double.TYPE
+		;
+	}
 
 	private interface ArgConverter {
 		public Object convert(Object obj);
@@ -142,6 +185,177 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static final ArgConverter ARG_SAME = new ArgConverter() {
 		public Object convert(Object obj) {
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_DOUBLE = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof Double )
+				return obj;
+			if( obj instanceof Number ) {
+				Number n = (Number)obj;
+				return n.doubleValue();
+			}
+			if( obj instanceof String ) {
+				String s = (String)obj;
+				try {
+					return Double.valueOf(s);
+				} catch(NumberFormatException e) {}
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_FLOAT = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof Float )
+				return obj;
+			if( obj instanceof Number ) {
+				Number n = (Number)obj;
+				float r = n.floatValue();
+				if( r==n.doubleValue() )
+					return r;
+			}
+			if( obj instanceof String ) {
+				String s = (String)obj;
+				try {
+					return Float.valueOf(s);
+				} catch(NumberFormatException e) {}
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_LONG = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof Long )
+				return obj;
+			if( obj instanceof Number ) {
+				Number n = (Number)obj;
+				long r = n.longValue();
+				if( r==n.doubleValue() )
+					return r;
+			}
+			else if( obj instanceof String ) {
+				String s = (String)obj;
+				try {
+					return Long.valueOf(s);
+				} catch(NumberFormatException e) {}
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_INTEGER = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof Integer )
+				return obj;
+			if( obj instanceof Number ) {
+				Number n = (Number)obj;
+				int r = n.intValue();
+				if( r==n.doubleValue() )
+					return r;
+			}
+			else if( obj instanceof String ) {
+				String s = (String)obj;
+				try {
+					return Integer.valueOf(s);
+				} catch(NumberFormatException e) {}
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_SHORT = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof Short )
+				return obj;
+			if( obj instanceof Number ) {
+				Number n = (Number)obj;
+				short r = n.shortValue();
+				if( r==n.doubleValue() )
+					return r;
+			}
+			else if( obj instanceof String ) {
+				String s = (String)obj;
+				try {
+					return Short.valueOf(s);
+				} catch(NumberFormatException e) {}
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_BYTE = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof Byte )
+				return obj;
+			if( obj instanceof Number ) {
+				Number n = (Number)obj;
+				byte r = n.byteValue();
+				if( r==n.doubleValue() )
+					return r;
+			}
+			else if( obj instanceof String ) {
+				String s = (String)obj;
+				try {
+					return Byte.valueOf(s);
+				} catch(NumberFormatException e) {}
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_TABLE = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof List ) {
+				@SuppressWarnings("unchecked")
+				List<Object> list = (List<Object>)obj;
+				return new LuaTable(list);
+			}
+			if( obj instanceof Map ) {
+				@SuppressWarnings("unchecked")
+				Map<Object,Object> map = (Map<Object,Object>)obj;
+				return new LuaTable(map);
+			}
+			if( obj instanceof Set ) {
+				@SuppressWarnings("unchecked")
+				Set<Object> set = (Set<Object>)obj;
+				return new LuaTable(set);
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_MAP = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof LuaTable ) {
+				LuaTable t = (LuaTable)obj;
+				return t.asMap();
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_LIST = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof LuaTable ) {
+				LuaTable t = (LuaTable)obj;
+				if( t.isList() )
+					return t.asList();
+			}
+			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_SET = new ArgConverter() {
+		public Object convert(Object obj) {
+			if( obj instanceof LuaTable ) {
+				LuaTable t = (LuaTable)obj;
+				if( t.isSet() )
+					return t.asSet();
+			}
 			return obj;
 		}
 	};
@@ -170,6 +384,26 @@ public final class LuaJavaFunction extends LuaFunction {
 	}
 
 	private static ArgConverter getArgConverter(Class<?> cls) {
+		if( cls == Double.TYPE || cls.equals(Double.class) )
+			return ARG_DOUBLE;
+		if( cls == Float.TYPE || cls.equals(Float.class) )
+			return ARG_FLOAT;
+		if( cls == Long.TYPE || cls.equals(Long.class) )
+			return ARG_LONG;
+		if( cls == Integer.TYPE || cls.equals(Integer.class) )
+			return ARG_INTEGER;
+		if( cls == Short.TYPE || cls.equals(Short.class) )
+			return ARG_SHORT;
+		if( cls == Byte.TYPE || cls.equals(Byte.class) )
+			return ARG_BYTE;
+		if( cls.equals(LuaTable.class) )
+			return ARG_TABLE;
+		if( cls.equals(Map.class) )
+			return ARG_MAP;
+		if( cls.equals(List.class) )
+			return ARG_LIST;
+		if( cls.equals(Set.class) )
+			return ARG_SET;
 		return ARG_SAME;
 	}
 

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Set;
+import java.util.HashSet;
 
 
 public class LuaTable {
@@ -21,8 +23,97 @@ public class LuaTable {
 		this.list = list;
 	}
 
+	public LuaTable(Map<Object,Object> map) {
+		this.map = map;
+	}
+
+	public LuaTable(Set<Object> set) {
+		map = new HashMap<Object,Object>();
+		for( Object obj : set ) {
+			map.put(obj,Boolean.TRUE);
+		}
+	}
+
+	boolean isList() {
+		return map==null || map.isEmpty();
+	}
+
+	List<Object> asList() {
+		return list!=null ? list : Collections.emptyList();
+	}
+
+	Map<Object,Object> asMap() {
+		if( list == null || list.isEmpty() )
+			return map!=null ? map : Collections.emptyMap();
+		Map<Object,Object> rtn = map!=null ? new HashMap<Object,Object>(map) : new HashMap<Object,Object>();
+		for( ListIterator iter = list.listIterator(); iter.hasNext(); ) {
+			int i = iter.nextIndex();
+			rtn.put(i+1,iter.next());
+		}
+		return rtn;
+	}
+
+	boolean isSet() {
+		if( list != null ) {
+			for( Object obj : list ) {
+				if( obj!=null && !obj.equals(Boolean.TRUE) )
+					return false;
+			}
+		}
+		if( map != null ) {
+			for( Object obj : map.values() ) {
+				if( !obj.equals(Boolean.TRUE) )
+					return false;
+			}
+		}
+		return true;
+	}
+
+	Set<Object> asSet() {
+		if( list == null || list.isEmpty() )
+			return map!=null ? map.keySet() : Collections.emptySet();
+		Set<Object> rtn = map!=null ? new HashSet<Object>(map.keySet()) : new HashSet<Object>();
+		for( int i=1; i<=list.size(); i++ ) {
+			rtn.add(i);
+		}
+		return rtn;
+	}
+
 	@Override public String toString() {
-		return "table: " + Integer.toHexString(hashCode());
+//		return "table: " + Integer.toHexString(hashCode());
+		StringBuilder sb = new StringBuilder();
+		sb.append('{');
+		boolean isFirst = true;
+		if( list != null ) {
+			boolean gotNull = false;
+			for( int i=0; i<list.size(); i++ ) {
+				Object obj = list.get(i);
+				if( obj==null ) {
+					gotNull = true;
+				} else {
+					if( isFirst ) {
+						isFirst = false;
+					} else {
+						sb.append(", ");
+					}
+					if( gotNull )
+						sb.append(i+1).append('=');
+					sb.append(obj);
+				}
+			}
+		}
+		if( map != null ) {
+			for( Map.Entry<Object,Object> entry : map.entrySet() ) {
+				if( isFirst ) {
+					isFirst = false;
+				} else {
+					sb.append(", ");
+				}
+				sb.append(entry.getKey()).append('=').append(entry.getValue());
+			}
+		}
+		sb.append('}');
+		return sb.toString();
 	}
 
 	public Object get(Object key) {
@@ -43,20 +134,11 @@ public class LuaTable {
 		Integer iT = Lua.asInteger(key);
 		if( iT != null ) {
 			int i = iT - 1;
-			if( list == null && i == 0 )
-				list = new ArrayList<Object>();
-			if( list != null ) {
-				if( i == list.size() ) {
+			if( list != null || i == 0 ) {
+				if( i == list().size() ) {
 					if( val != null ) {
 						list.add(val);
-						if( map != null ) {
-							while(true) {
-								Object v = map.remove(Double.valueOf(list.size()+1));
-								if( v == null )
-									break;
-								list.add(v);
-							}
-						}
+						mapToList();
 					}
 					return null;
 				} else if( i>=0 && i<list.size() ) {
@@ -85,21 +167,35 @@ public class LuaTable {
 		}
 	}
 
-	public void insert(int pos,Object value) {
-		if( list == null )
+	private void mapToList() {
+		if( map != null ) {
+			while(true) {
+				Object v = map.remove(Double.valueOf(list.size()+1));
+				if( v == null )
+					break;
+				list.add(v);
+			}
+		}
+	}
+
+	private List<Object> list() {
+		if( list == null ) {
 			list = new ArrayList<Object>();
-		list.add(pos-1,value);
+			mapToList();
+		}
+		return list;
+	}
+
+	public void insert(int pos,Object value) {
+		list().add(pos-1,value);
 	}
 
 	public Object remove(int pos) {
-		if( list == null )
-			list = new ArrayList<Object>();
-		return list.remove(pos-1);
+		return list().remove(pos-1);
 	}
 
 	public void sort(Comparator<Object> cmp) {
-		if( list != null )
-			Collections.sort(list,cmp);
+		Collections.sort(list(),cmp);
 	}
 
 	public int length() {
@@ -158,9 +254,7 @@ public class LuaTable {
 	}
 
 	public LuaTable subList(int from,int to) {
-		if( list == null )
-			list = new ArrayList<Object>();
-		return new LuaTable(new ArrayList<Object>(list.subList(from-1,to-1)));
+		return new LuaTable(new ArrayList<Object>(list().subList(from-1,to-1)));
 	}
 
 	public LuaTable getMetatable() {
