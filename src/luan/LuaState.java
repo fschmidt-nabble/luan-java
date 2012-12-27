@@ -46,8 +46,8 @@ public abstract class LuaState {
 		return s;
 	}
 
-	public final LuaNumber checkNumber(LuaElement el,Object obj) throws LuaException {
-		LuaNumber n = Lua.toNumber(obj);
+	public final Number checkNumber(LuaElement el,Object obj) throws LuaException {
+		Number n = Lua.toNumber(obj);
 		if( n == null )
 			throw new LuaException( this, el, "attempt to perform arithmetic on a " + Lua.type(obj) + " value" );
 		return n;
@@ -65,6 +65,8 @@ public abstract class LuaState {
 			return checkString( el, Lua.first( call(fn,el,"__tostring",obj) ) );
 		if( obj == null )
 			return "nil";
+		if( obj instanceof Number )
+			return Lua.toString((Number)obj);
 		if( obj instanceof LuaException ) {
 			LuaException le = (LuaException)obj;
 			return le.getMessage();
@@ -93,10 +95,10 @@ public abstract class LuaState {
 	}
 
 	public final boolean isLessThan(LuaElement el,Object o1,Object o2) throws LuaException {
-		if( o1 instanceof LuaNumber && o2 instanceof LuaNumber ) {
-			LuaNumber n1 = (LuaNumber)o1;
-			LuaNumber n2 = (LuaNumber)o2;
-			return n1.compareTo(n2) < 0;
+		if( o1 instanceof Number && o2 instanceof Number ) {
+			Number n1 = (Number)o1;
+			Number n2 = (Number)o2;
+			return n1.doubleValue() < n2.doubleValue();
 		}
 		if( o1 instanceof String && o2 instanceof String ) {
 			String s1 = (String)o1;

@@ -17,7 +17,6 @@ import org.parboiled.support.StringBuilderVar;
 import org.parboiled.support.ValueStack;
 import org.parboiled.errors.ErrorUtils;
 import luan.Lua;
-import luan.LuaNumber;
 import luan.LuaState;
 import luan.LuaSource;
 
@@ -304,7 +303,7 @@ class LuaParser extends BaseParser<Object> {
 		return Sequence(
 			start.set(currentIndex()),
 			Keyword("for"), Name(), '=', Spaces(), Expr(), Keyword("to"), Expr(),
-			push( new ConstExpr(LuaNumber.of(1)) ),  // default step
+			push( new ConstExpr(1) ),  // default step
 			Optional(
 				Keyword("step"),
 				drop(),
@@ -892,13 +891,6 @@ class LuaParser extends BaseParser<Object> {
 	}
 
 	Rule NumberLiteral() {
-		return Sequence(
-			Number(),
-			push(LuaNumber.of((Double)pop()))
-		);
-	}
-
-	Rule Number() {
 		return FirstOf(
 			Sequence(
 				IgnoreCase("0x"),
@@ -906,7 +898,7 @@ class LuaParser extends BaseParser<Object> {
 			),
 			Sequence(
 				DecNumber(),
-				push(Double.parseDouble(match()))
+				push(Double.valueOf(match()))
 			)
 		);
 	}

@@ -26,11 +26,10 @@ public class LuaTable {
 	}
 
 	public Object get(Object key) {
-		if( list != null && key instanceof LuaNumber ) {
-			LuaNumber ln = (LuaNumber)key;
-			int i = (int)ln.n;
-			if( i == ln.n ) {
-				i--;
+		if( list != null ) {
+			Integer iT = Lua.asInteger(key);
+			if( iT != null ) {
+				int i = iT - 1;
 				if( i>=0 && i<list.size() )
 					return list.get(i);
 			}
@@ -41,42 +40,43 @@ public class LuaTable {
 	}
 
 	public Object put(Object key,Object val) {
-		if( key instanceof LuaNumber ) {
-			LuaNumber ln = (LuaNumber)key;
-			int i = (int)ln.n;
-			if( i == ln.n ) {
-				i--;
-				if( list == null && i == 0 )
-					list = new ArrayList<Object>();
-				if( list != null ) {
-					if( i == list.size() ) {
-						if( val != null ) {
-							list.add(val);
-							if( map != null ) {
-								while(true) {
-									Object v = map.remove(LuaNumber.of(list.size()+1));
-									if( v == null )
-										break;
-									list.add(v);
-								}
+		Integer iT = Lua.asInteger(key);
+		if( iT != null ) {
+			int i = iT - 1;
+			if( list == null && i == 0 )
+				list = new ArrayList<Object>();
+			if( list != null ) {
+				if( i == list.size() ) {
+					if( val != null ) {
+						list.add(val);
+						if( map != null ) {
+							while(true) {
+								Object v = map.remove(Double.valueOf(list.size()+1));
+								if( v == null )
+									break;
+								list.add(v);
 							}
 						}
-						return null;
-					} else if( i>=0 && i<list.size() ) {
-						Object old = list.get(i);
-						list.set(i,val);
-						if( val == null && i == list.size()-1 ) {
-							while( i>=0 && list.get(i)==null ) {
-								list.remove(i--);
-							}
-						}
-						return old;
 					}
+					return null;
+				} else if( i>=0 && i<list.size() ) {
+					Object old = list.get(i);
+					list.set(i,val);
+					if( val == null && i == list.size()-1 ) {
+						while( i>=0 && list.get(i)==null ) {
+							list.remove(i--);
+						}
+					}
+					return old;
 				}
 			}
 		}
 		if( map==null ) {
 			map = new HashMap<Object,Object>();
+		}
+		if( key instanceof Number && !(key instanceof Double) ) {
+			Number n = (Number)key;
+			key = Double.valueOf(n.doubleValue());
 		}
 		if( val == null ) {
 			return map.remove(key);
@@ -144,7 +144,7 @@ public class LuaTable {
 				return iter.hasNext();
 			}
 			public Map.Entry<Object,Object> next() {
-				LuaNumber key = LuaNumber.of(iter.nextIndex()+1);
+				Double key = Double.valueOf(iter.nextIndex()+1);
 				return new MapEntry(key,iter.next());
 			}
 			public void remove() {

@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaNumber;
 import luan.LuaFunction;
 import luan.LuaException;
 import luan.LuaSource;

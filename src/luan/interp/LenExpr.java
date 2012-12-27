@@ -1,7 +1,6 @@
 package luan.interp;
 
 import luan.Lua;
-import luan.LuaNumber;
 import luan.LuaTable;
 import luan.LuaFunction;
 import luan.LuaException;
@@ -18,7 +17,7 @@ final class LenExpr extends UnaryOpExpr {
 		Object o = op.eval(lua);
 		if( o instanceof String ) {
 			String s = (String)o;
-			return LuaNumber.of( s.length() );
+			return s.length();
 		}
 		LuaFunction fn = lua.getHandlerFunction(se,"__len",o);
 		if( fn != null )

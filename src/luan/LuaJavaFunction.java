@@ -125,54 +125,14 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static final Object[] NULL_RTN = new Object[1];
 
-	private static final RtnConverter RTN_NUMBER = new RtnConverter() {
-		public Object[] convert(Object obj) {
-			if( obj == null )
-				return NULL_RTN;
-			Number n = (Number)obj;
-			LuaNumber ln = LuaNumber.of(n);
-			return new Object[]{ln};
-		}
-	};
-
-	private static final RtnConverter RTN_NUMBER_ARRAY = new RtnConverter() {
-		public Object[] convert(Object obj) {
-			if( obj == null )
-				return NULL_RTN;
-			Object[] rtn = new Object[Array.getLength(obj)];
-			for( int i=0; i<rtn.length; i++ ) {
-				Number n = (Number)Array.get(obj,i);
-				if( n != null )
-					rtn[i] = LuaNumber.of(n.doubleValue());
-			}
-			return rtn;
-		}
-	};
-
 	private static RtnConverter getRtnConverter(JavaMethod m) {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_EMPTY;
-		if( isNumber(rtnType) )
-			return RTN_NUMBER;
 		if( rtnType.isArray() ) {
-			rtnType = rtnType.getComponentType();
-			if( isNumber(rtnType) )
-				return RTN_NUMBER_ARRAY;
 			return RTN_ARRAY;
 		}
 		return RTN_ONE;
-	}
-
-	private static boolean isNumber(Class<?> rtnType) {
-		return Number.class.isAssignableFrom(rtnType)
-			|| rtnType == Byte.TYPE
-			|| rtnType == Short.TYPE
-			|| rtnType == Integer.TYPE
-			|| rtnType == Long.TYPE
-			|| rtnType == Float.TYPE
-			|| rtnType == Double.TYPE
-		;
 	}
 
 
@@ -182,110 +142,6 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static final ArgConverter ARG_SAME = new ArgConverter() {
 		public Object convert(Object obj) {
-			return obj;
-		}
-	};
-
-	private static final ArgConverter ARG_DOUBLE = new ArgConverter() {
-		public Object convert(Object obj) {
-			if( obj instanceof LuaNumber ) {
-				LuaNumber ln = (LuaNumber)obj;
-				return Double.valueOf(ln.n);
-			}
-			if( obj instanceof String ) {
-				String s = (String)obj;
-				try {
-					return Double.valueOf(s);
-				} catch(NumberFormatException e) {}
-			}
-			return obj;
-		}
-	};
-
-	private static final ArgConverter ARG_FLOAT = new ArgConverter() {
-		public Object convert(Object obj) {
-			if( obj instanceof LuaNumber ) {
-				LuaNumber ln = (LuaNumber)obj;
-				return Float.valueOf((float)ln.n);
-			}
-			if( obj instanceof String ) {
-				String s = (String)obj;
-				try {
-					return Float.valueOf(s);
-				} catch(NumberFormatException e) {}
-			}
-			return obj;
-		}
-	};
-
-	private static final ArgConverter ARG_LONG = new ArgConverter() {
-		public Object convert(Object obj) {
-			if( obj instanceof LuaNumber ) {
-				LuaNumber ln = (LuaNumber)obj;
-				long i = (long)ln.n;
-				if( i == ln.n )
-					return Long.valueOf(i);
-			}
-			else if( obj instanceof String ) {
-				String s = (String)obj;
-				try {
-					return Long.valueOf(s);
-				} catch(NumberFormatException e) {}
-			}
-			return obj;
-		}
-	};
-
-	private static final ArgConverter ARG_INTEGER = new ArgConverter() {
-		public Object convert(Object obj) {
-			if( obj instanceof LuaNumber ) {
-				LuaNumber ln = (LuaNumber)obj;
-				int i = (int)ln.n;
-				if( i == ln.n )
-					return Integer.valueOf(i);
-			}
-			else if( obj instanceof String ) {
-				String s = (String)obj;
-				try {
-					return Integer.valueOf(s);
-				} catch(NumberFormatException e) {}
-			}
-			return obj;
-		}
-	};
-
-	private static final ArgConverter ARG_SHORT = new ArgConverter() {
-		public Object convert(Object obj) {
-			if( obj instanceof LuaNumber ) {
-				LuaNumber ln = (LuaNumber)obj;
-				short i = (short)ln.n;
-				if( i == ln.n )
-					return Short.valueOf(i);
-			}
-			else if( obj instanceof String ) {
-				String s = (String)obj;
-				try {
-					return Short.valueOf(s);
-				} catch(NumberFormatException e) {}
-			}
-			return obj;
-		}
-	};
-
-	private static final ArgConverter ARG_BYTE = new ArgConverter() {
-		public Object convert(Object obj) {
-			if( obj instanceof LuaNumber ) {
-				LuaNumber ln = (LuaNumber)obj;
-				byte i = (byte)ln.n;
-				if( i == ln.n )
-					return Byte.valueOf(i);
-			}
-			else if( obj instanceof String ) {
-				String s = (String)obj;
-				try {
-					return Byte.valueOf(s);
-				} catch(NumberFormatException e) {}
-			}
 			return obj;
 		}
 	};
@@ -314,18 +170,6 @@ public final class LuaJavaFunction extends LuaFunction {
 	}
 
 	private static ArgConverter getArgConverter(Class<?> cls) {
-		if( cls == Double.TYPE || cls.equals(Double.class) )
-			return ARG_DOUBLE;
-		if( cls == Float.TYPE || cls.equals(Float.class) )
-			return ARG_FLOAT;
-		if( cls == Long.TYPE || cls.equals(Long.class) )
-			return ARG_LONG;
-		if( cls == Integer.TYPE || cls.equals(Integer.class) )
-			return ARG_INTEGER;
-		if( cls == Short.TYPE || cls.equals(Short.class) )
-			return ARG_SHORT;
-		if( cls == Byte.TYPE || cls.equals(Byte.class) )
-			return ARG_BYTE;
 		return ARG_SAME;
 	}
 

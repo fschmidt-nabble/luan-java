@@ -2,7 +2,6 @@ package luan.interp;
 
 import luan.LuaException;
 import luan.LuaTable;
-import luan.LuaNumber;
 import luan.LuaSource;
 
 
@@ -34,7 +33,7 @@ final class TableExpr extends CodeImpl implements Expr {
 		}
 		Object[] a = expressions.eval(lua);
 		for( int i=0; i<a.length; i++ ) {
-			table.put( LuaNumber.of(i+1), a[i] );
+			table.put( i+1, a[i] );
 		}
 		return table;
 	}
