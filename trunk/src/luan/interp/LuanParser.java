@@ -162,16 +162,17 @@ class LuanParser extends BaseParser<Object> {
 			FirstOf(
 				Sequence(
 					ExpList(),
-					EOI,
-					push( new ReturnStmt( se(start.get()), (Expressions)pop() ) )
+					push( new ReturnStmt( se(start.get()), (Expressions)pop() ) ),
+					push( newChunk(start.get()) ),
+					EOI
 				),
 				Sequence(
 					action( frame.isVarArg = true ),
 					Block(),
+					push( newChunk(start.get()) ),
 					EOI
 				)
-			),
-			push( newChunk(start.get()) )
+			)
 		);
 	}
 
