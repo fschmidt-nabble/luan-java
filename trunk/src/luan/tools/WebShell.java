@@ -48,10 +48,10 @@ public class WebShell extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		HttpSession session = request.getSession();
 
-		ByteArrayOutputStream history = (ByteArrayOutputStream)session.getValue("history");
+		ByteArrayOutputStream history = (ByteArrayOutputStream)session.getValue("luan_history");
 		if( history==null ) {
 			history = new ByteArrayOutputStream();
-			session.putValue("history",history);
+			session.putValue("luan_history",history);
 		}
 
 		if( request.getParameter("clear") != null ) {
@@ -82,6 +82,7 @@ public class WebShell extends HttpServlet {
 				} catch(LuanException e) {
 					logger.info("",e);
 					writer.write( HtmlLib.encode(e.toString()) );
+					writer.write("\r\n");
 				}
 				writer.flush();
 			}
