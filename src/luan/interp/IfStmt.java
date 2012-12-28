@@ -1,7 +1,7 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
+import luan.Luan;
+import luan.LuanException;
 
 
 final class IfStmt implements Stmt {
@@ -15,8 +15,8 @@ final class IfStmt implements Stmt {
 		this.elseStmt = elseStmt;
 	}
 
-	@Override public void eval(LuaStateImpl lua) throws LuaException {
-		if( Lua.toBoolean( cnd.eval(lua) ) ) {
+	@Override public void eval(LuanStateImpl lua) throws LuanException {
+		if( Luan.toBoolean( cnd.eval(lua) ) ) {
 			thenStmt.eval(lua);
 		} else {
 			elseStmt.eval(lua);

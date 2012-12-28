@@ -3,14 +3,14 @@ package luan.interp;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class ExpList implements Expressions {
 
 	private interface Adder {
-		public void addTo(LuaStateImpl lua,List<Object> list) throws LuaException;
+		public void addTo(LuanStateImpl lua,List<Object> list) throws LuanException;
 		public Code code();
 	}
 
@@ -21,7 +21,7 @@ final class ExpList implements Expressions {
 			this.expr = expr;
 		}
 
-		public void addTo(LuaStateImpl lua,List<Object> list) throws LuaException {
+		public void addTo(LuanStateImpl lua,List<Object> list) throws LuanException {
 			list.add( expr.eval(lua) );
 		}
 
@@ -38,7 +38,7 @@ final class ExpList implements Expressions {
 			this.expressions = expressions;
 		}
 
-		public void addTo(LuaStateImpl lua,List<Object> list) throws LuaException {
+		public void addTo(LuanStateImpl lua,List<Object> list) throws LuanException {
 			for( Object val : expressions.eval(lua) ) {
 				list.add( val );
 			}
@@ -81,11 +81,11 @@ final class ExpList implements Expressions {
 
 	static final Expressions emptyExpList = new Expressions() {
 
-		@Override public Object[] eval(LuaStateImpl lua) {
+		@Override public Object[] eval(LuanStateImpl lua) {
 			return EMPTY;
 		}
 
-		@Override public LuaSource.Element se() {
+		@Override public LuanSource.Element se() {
 			return null;
 		}
 	};
@@ -97,11 +97,11 @@ final class ExpList implements Expressions {
 			this.expr = expr;
 		}
 
-		@Override public Object[] eval(LuaStateImpl lua) throws LuaException {
+		@Override public Object[] eval(LuanStateImpl lua) throws LuanException {
 			return new Object[]{expr.eval(lua)};
 		}
 
-		@Override public LuaSource.Element se() {
+		@Override public LuanSource.Element se() {
 			return expr.se();
 		}
 	}
@@ -112,7 +112,7 @@ final class ExpList implements Expressions {
 		this.adders = adders;
 	}
 
-	@Override public Object[] eval(LuaStateImpl lua) throws LuaException {
+	@Override public Object[] eval(LuanStateImpl lua) throws LuanException {
 		List<Object> list = new ArrayList<Object>();
 		for( Adder adder : adders ) {
 			adder.addTo(lua,list);
@@ -120,7 +120,7 @@ final class ExpList implements Expressions {
 		return list.toArray();
 	}
 
-	@Override public LuaSource.Element se() {
-		return new LuaSource.Element(adders[0].code().se().source,adders[0].code().se().start,adders[adders.length-1].code().se().end);
+	@Override public LuanSource.Element se() {
+		return new LuanSource.Element(adders[0].code().se().source,adders[0].code().se().start,adders[adders.length-1].code().se().end);
 	}
 }

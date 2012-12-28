@@ -2,27 +2,27 @@ package luan.lib;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import luan.Lua;
-import luan.LuaState;
-import luan.LuaTable;
-import luan.LuaFunction;
-import luan.LuaJavaFunction;
-import luan.LuaElement;
-import luan.LuaException;
+import luan.Luan;
+import luan.LuanState;
+import luan.LuanTable;
+import luan.LuanFunction;
+import luan.LuanJavaFunction;
+import luan.LuanElement;
+import luan.LuanException;
 
 
 public final class StringLib {
 
-	public static void register(LuaState lua) {
-		LuaTable module = new LuaTable();
-		LuaTable global = lua.global();
+	public static void register(LuanState lua) {
+		LuanTable module = new LuanTable();
+		LuanTable global = lua.global();
 		global.put("string",module);
 		try {
-			module.put( "byte", new LuaJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
-			module.put( "char", new LuaJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
+			module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
+			module.put( "char", new LuanJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
 			add( module, "find", String.class, String.class, Integer.class, Boolean.class );
 			add( module, "gmatch", String.class, String.class );
-			add( module, "gsub", LuaState.class, String.class, String.class, Object.class, Integer.class );
+			add( module, "gsub", LuanState.class, String.class, String.class, Object.class, Integer.class );
 			add( module, "len", String.class );
 			add( module, "lower", String.class );
 			add( module, "match", String.class, String.class, Integer.class );
@@ -35,8 +35,8 @@ public final class StringLib {
 		}
 	}
 
-	private static void add(LuaTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuaJavaFunction(StringLib.class.getMethod(method,parameterTypes),null) );
+	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
+		t.put( method, new LuanJavaFunction(StringLib.class.getMethod(method,parameterTypes),null) );
 	}
 
 	static int start(String s,int i) {
@@ -126,12 +126,12 @@ public final class StringLib {
 		return rtn;
 	}
 
-	public static LuaFunction gmatch(String s,String pattern) {
+	public static LuanFunction gmatch(String s,String pattern) {
 		final Matcher m = Pattern.compile(pattern).matcher(s);
-		return new LuaFunction() {
-			public Object[] call(LuaState lua,Object[] args) {
+		return new LuanFunction() {
+			public Object[] call(LuanState lua,Object[] args) {
 				if( !m.find() )
-					return LuaFunction.EMPTY_RTN;
+					return LuanFunction.EMPTY_RTN;
 				final int n = m.groupCount();
 				if( n == 0 )
 					return new String[]{m.group()};
@@ -144,7 +144,7 @@ public final class StringLib {
 		};
 	}
 
-	public static Object[] gsub(LuaState lua,String s,String pattern,Object repl,Integer n) throws LuaException {
+	public static Object[] gsub(LuanState lua,String s,String pattern,Object repl,Integer n) throws LuanException {
 		int max = n==null ? Integer.MAX_VALUE : n;
 		final Matcher m = Pattern.compile(pattern).matcher(s);
 		if( repl instanceof String ) {
@@ -158,17 +158,17 @@ public final class StringLib {
 			m.appendTail(sb);
 			return new Object[]{ sb.toString(), i };
 		}
-		if( repl instanceof LuaTable ) {
-			LuaTable t = (LuaTable)repl;
+		if( repl instanceof LuanTable ) {
+			LuanTable t = (LuanTable)repl;
 			int i = 0;
 			StringBuffer sb = new StringBuffer();
 			while( i<max && m.find() ) {
 				String match = m.groupCount()==0 ? m.group() : m.group(0);
 				Object val = t.get(match);
-				if( Lua.toBoolean(val) ) {
-					String replacement = Lua.asString(val);
+				if( Luan.toBoolean(val) ) {
+					String replacement = Luan.asString(val);
 					if( replacement==null )
-						throw new LuaException( lua, LuaElement.JAVA, "invalid replacement value (a "+Lua.type(val)+")" );
+						throw new LuanException( lua, LuanElement.JAVA, "invalid replacement value (a "+Luan.type(val)+")" );
 					m.appendReplacement(sb,replacement);
 				}
 				i++;
@@ -176,8 +176,8 @@ public final class StringLib {
 			m.appendTail(sb);
 			return new Object[]{ sb.toString(), i };
 		}
-		if( repl instanceof LuaFunction ) {
-			LuaFunction fn = (LuaFunction)repl;
+		if( repl instanceof LuanFunction ) {
+			LuanFunction fn = (LuanFunction)repl;
 			int i = 0;
 			StringBuffer sb = new StringBuffer();
 			while( i<max && m.find() ) {
@@ -191,11 +191,11 @@ public final class StringLib {
 						args[j] = m.group(j);
 					}
 				}
-				Object val = Lua.first( lua.call(fn,LuaElement.JAVA,"repl-arg",args) );
-				if( Lua.toBoolean(val) ) {
-					String replacement = Lua.asString(val);
+				Object val = Luan.first( lua.call(fn,LuanElement.JAVA,"repl-arg",args) );
+				if( Luan.toBoolean(val) ) {
+					String replacement = Luan.asString(val);
 					if( replacement==null )
-						throw new LuaException( lua, LuaElement.JAVA, "invalid replacement value (a "+Lua.type(val)+")" );
+						throw new LuanException( lua, LuanElement.JAVA, "invalid replacement value (a "+Luan.type(val)+")" );
 					m.appendReplacement(sb,replacement);
 				}
 				i++;
@@ -203,7 +203,7 @@ public final class StringLib {
 			m.appendTail(sb);
 			return new Object[]{ sb.toString(), i };
 		}
-		throw new LuaException( lua, LuaElement.JAVA, "bad argument #3 to 'gsub' (string/function/table expected)" );
+		throw new LuanException( lua, LuanElement.JAVA, "bad argument #3 to 'gsub' (string/function/table expected)" );
 	}
 
 }

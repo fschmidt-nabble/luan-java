@@ -1,9 +1,9 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
-import luan.LuaFunction;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanException;
+import luan.LuanFunction;
+import luan.LuanSource;
 
 
 final class GenericForStmt extends CodeImpl implements Stmt {
@@ -12,7 +12,7 @@ final class GenericForStmt extends CodeImpl implements Stmt {
 	private final Expr iterExpr;
 	private final Stmt block;
 
-	GenericForStmt(LuaSource.Element se,int iVars,int nVars,Expr iterExpr,Stmt block) {
+	GenericForStmt(LuanSource.Element se,int iVars,int nVars,Expr iterExpr,Stmt block) {
 		super(se);
 		this.iVars = iVars;
 		this.nVars = nVars;
@@ -20,8 +20,8 @@ final class GenericForStmt extends CodeImpl implements Stmt {
 		this.block = block;
 	}
 
-	@Override public void eval(LuaStateImpl lua) throws LuaException {
-		LuaFunction iter = lua.checkFunction( se, iterExpr.eval(lua) );
+	@Override public void eval(LuanStateImpl lua) throws LuanException {
+		LuanFunction iter = lua.checkFunction( se, iterExpr.eval(lua) );
 		try {
 			while(true) {
 				Object[] vals = lua.call(iter,iterExpr.se(),iterExpr.se().text());

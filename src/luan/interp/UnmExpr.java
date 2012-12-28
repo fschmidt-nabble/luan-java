@@ -1,27 +1,27 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaFunction;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanFunction;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 // unary minus
 final class UnmExpr extends UnaryOpExpr {
 
-	UnmExpr(LuaSource.Element se,Expr op) {
+	UnmExpr(LuanSource.Element se,Expr op) {
 		super(se,op);
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
 		Object o = op.eval(lua);
-		Number n = Lua.toNumber(o);
+		Number n = Luan.toNumber(o);
 		if( n != null )
 			return -n.doubleValue();
-		LuaFunction fn = lua.getHandlerFunction(se,"__unm",o);
+		LuanFunction fn = lua.getHandlerFunction(se,"__unm",o);
 		if( fn != null ) {
-			return Lua.first(lua.call(fn,se,"__unm",o));
+			return Luan.first(lua.call(fn,se,"__unm",o));
 		}
-		throw new LuaException(lua,se,"attempt to perform arithmetic on a "+Lua.type(o)+" value");
+		throw new LuanException(lua,se,"attempt to perform arithmetic on a "+Luan.type(o)+" value");
 	}
 }

@@ -11,53 +11,53 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import luan.Lua;
-import luan.LuaState;
-import luan.LuaTable;
+import luan.Luan;
+import luan.LuanState;
+import luan.LuanTable;
 import luan.MetatableGetter;
-import luan.LuaException;
-import luan.LuaFunction;
-import luan.LuaJavaFunction;
-import luan.LuaElement;
+import luan.LuanException;
+import luan.LuanFunction;
+import luan.LuanJavaFunction;
+import luan.LuanElement;
 
 
 public final class JavaLib {
 
-	public static void register(LuaState lua) {
+	public static void register(LuanState lua) {
 		lua.addMetatableGetter(mg);
-		LuaTable module = new LuaTable();
-		LuaTable global = lua.global();
+		LuanTable module = new LuanTable();
+		LuanTable global = lua.global();
 		global.put("java",module);
 		try {
-			global.put( "import", new LuaJavaFunction(JavaLib.class.getMethod("importClass",LuaState.class,String.class),null) );
-			module.put( "class", new LuaJavaFunction(JavaLib.class.getMethod("getClass",LuaState.class,String.class),null) );
+			global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
+			module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private static final LuaTable mt = new LuaTable();
+	private static final LuanTable mt = new LuanTable();
 	static {
-		add( mt, "__index", LuaState.class, Object.class, Object.class );
+		add( mt, "__index", LuanState.class, Object.class, Object.class );
 	}
 
-	private static void add(LuaTable t,String method,Class<?>... parameterTypes) {
+	private static void add(LuanTable t,String method,Class<?>... parameterTypes) {
 		try {
-			t.put( method, new LuaJavaFunction(JavaLib.class.getMethod(method,parameterTypes),null) );
+			t.put( method, new LuanJavaFunction(JavaLib.class.getMethod(method,parameterTypes),null) );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	private static final MetatableGetter mg = new MetatableGetter() {
-		public LuaTable getMetatable(Object obj) {
+		public LuanTable getMetatable(Object obj) {
 			if( obj==null )
 				return null;
 			return mt;
 		}
 	};
 
-	public static Object __index(LuaState lua,Object obj,Object key) throws LuaException {
+	public static Object __index(LuanState lua,Object obj,Object key) throws LuanException {
 		if( obj instanceof Static ) {
 			if( key instanceof String ) {
 				String name = (String)key;
@@ -69,11 +69,11 @@ public final class JavaLib {
 					Constructor<?>[] constructors = cls.getConstructors();
 					if( constructors.length > 0 ) {
 						if( constructors.length==1 ) {
-							return new LuaJavaFunction(constructors[0],null);
+							return new LuanJavaFunction(constructors[0],null);
 						} else {
-							List<LuaJavaFunction> fns = new ArrayList<LuaJavaFunction>();
+							List<LuanJavaFunction> fns = new ArrayList<LuanJavaFunction>();
 							for( Constructor constructor : constructors ) {
-								fns.add(new LuaJavaFunction(constructor,null));
+								fns.add(new LuanJavaFunction(constructor,null));
 							}
 							return new AmbiguousJavaFunction(fns);
 						}
@@ -85,23 +85,23 @@ public final class JavaLib {
 					}
 				}
 			}
-			throw new LuaException(lua,LuaElement.JAVA,"invalid index for java class: "+key);
+			throw new LuanException(lua,LuanElement.JAVA,"invalid index for java class: "+key);
 		}
 		Class cls = obj.getClass();
 		if( cls.isArray() ) {
 			if( "length".equals(key) ) {
 				return Array.getLength(obj);
 			}
-			Integer i = Lua.asInteger(key);
+			Integer i = Luan.asInteger(key);
 			if( i != null ) {
 				return Array.get(obj,i);
 			}
-			throw new LuaException(lua,LuaElement.JAVA,"invalid index for java array: "+key);
+			throw new LuanException(lua,LuanElement.JAVA,"invalid index for java array: "+key);
 		}
 		if( key instanceof String ) {
 			String name = (String)key;
 			if( "instanceof".equals(name) ) {
-				return new LuaJavaFunction(instanceOf,new InstanceOf(obj));
+				return new LuanJavaFunction(instanceOf,new InstanceOf(obj));
 			} else {
 				List<Member> members = getMembers(cls,name);
 				if( !members.isEmpty() ) {
@@ -109,10 +109,10 @@ public final class JavaLib {
 				}
 			}
 		}
-		throw new LuaException(lua,LuaElement.JAVA,"invalid index for java object: "+key);
+		throw new LuanException(lua,LuanElement.JAVA,"invalid index for java object: "+key);
 	}
 
-	private static Object member(Object obj,List<Member> members) throws LuaException {
+	private static Object member(Object obj,List<Member> members) throws LuanException {
 		try {
 			if( members.size()==1 ) {
 				Member member = members.get(0);
@@ -121,13 +121,13 @@ public final class JavaLib {
 					return field.get(obj);
 				} else {
 					Method method = (Method)member;
-					return new LuaJavaFunction(method,obj);
+					return new LuanJavaFunction(method,obj);
 				}
 			} else {
-				List<LuaJavaFunction> fns = new ArrayList<LuaJavaFunction>();
+				List<LuanJavaFunction> fns = new ArrayList<LuanJavaFunction>();
 				for( Member member : members ) {
 					Method method = (Method)member;
-					fns.add(new LuaJavaFunction(method,obj));
+					fns.add(new LuanJavaFunction(method,obj));
 				}
 				return new AmbiguousJavaFunction(fns);
 			}
@@ -182,40 +182,40 @@ public final class JavaLib {
 		}
 	}
 
-	public static Static getClass(LuaState lua,String name) throws LuaException {
+	public static Static getClass(LuanState lua,String name) throws LuanException {
 		try {
 			return new Static( Class.forName(name) );
 		} catch(ClassNotFoundException e) {
-			throw new LuaException(lua,LuaElement.JAVA,e);
+			throw new LuanException(lua,LuanElement.JAVA,e);
 		}
 	}
 
-	public static void importClass(LuaState lua,String name) throws LuaException {
+	public static void importClass(LuanState lua,String name) throws LuanException {
 		lua.global().put( name.substring(name.lastIndexOf('.')+1), getClass(lua,name) );
 	}
 
-	static class AmbiguousJavaFunction extends LuaFunction {
-		private final Map<Integer,List<LuaJavaFunction>> fnMap = new HashMap<Integer,List<LuaJavaFunction>>();
+	static class AmbiguousJavaFunction extends LuanFunction {
+		private final Map<Integer,List<LuanJavaFunction>> fnMap = new HashMap<Integer,List<LuanJavaFunction>>();
 
-		AmbiguousJavaFunction(List<LuaJavaFunction> fns) {
-			for( LuaJavaFunction fn : fns ) {
+		AmbiguousJavaFunction(List<LuanJavaFunction> fns) {
+			for( LuanJavaFunction fn : fns ) {
 				Integer n = fn.getParameterTypes().length;
-				List<LuaJavaFunction> list = fnMap.get(n);
+				List<LuanJavaFunction> list = fnMap.get(n);
 				if( list==null ) {
-					list = new ArrayList<LuaJavaFunction>();
+					list = new ArrayList<LuanJavaFunction>();
 					fnMap.put(n,list);
 				}
 				list.add(fn);
 			}
 		}
 
-		@Override public Object[] call(LuaState lua,Object[] args) throws LuaException {
-			for( LuaJavaFunction fn : fnMap.get(args.length) ) {
+		@Override public Object[] call(LuanState lua,Object[] args) throws LuanException {
+			for( LuanJavaFunction fn : fnMap.get(args.length) ) {
 				try {
 					return fn.call(lua,args);
 				} catch(IllegalArgumentException e) {}
 			}
-			throw new LuaException(lua,LuaElement.JAVA,"no method matched args");
+			throw new LuanException(lua,LuanElement.JAVA,"no method matched args");
 		}
 	}
 

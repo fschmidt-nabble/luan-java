@@ -1,8 +1,8 @@
 package luan.interp;
 
-import luan.LuaException;
+import luan.LuanException;
 
 
 interface Settable {
-	public void set(LuaStateImpl lua,Object value) throws LuaException;
+	public void set(LuanStateImpl lua,Object value) throws LuanException;
 }

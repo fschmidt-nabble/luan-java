@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public final class LuaJavaFunction extends LuaFunction {
+public final class LuanJavaFunction extends LuanFunction {
 	private final JavaMethod method;
 	private final Object obj;
 	private final RtnConverter rtnConverter;
@@ -17,15 +17,15 @@ public final class LuaJavaFunction extends LuaFunction {
 	private final ArgConverter[] argConverters;
 	private final Class<?> varArgCls;
 
-	public LuaJavaFunction(Method method,Object obj) {
+	public LuanJavaFunction(Method method,Object obj) {
 		this( JavaMethod.of(method), obj );
 	}
 
-	public LuaJavaFunction(Constructor constr,Object obj) {
+	public LuanJavaFunction(Constructor constr,Object obj) {
 		this( JavaMethod.of(constr), obj );
 	}
 
-	LuaJavaFunction(JavaMethod method,Object obj) {
+	LuanJavaFunction(JavaMethod method,Object obj) {
 		this.method = method;
 		this.obj = obj;
 		this.rtnConverter = getRtnConverter(method);
@@ -43,7 +43,7 @@ public final class LuaJavaFunction extends LuaFunction {
 		return method.getParameterTypes();
 	}
 
-	@Override public Object[] call(LuaState lua,Object[] args) throws LuaException {
+	@Override public Object[] call(LuanState lua,Object[] args) throws LuanException {
 		args = fixArgs(lua,args);
 		Object rtn;
 		try {
@@ -59,8 +59,8 @@ public final class LuaJavaFunction extends LuaFunction {
 				throw (Error)cause;
 			if( cause instanceof RuntimeException )
 				throw (RuntimeException)cause;
-			if( cause instanceof LuaException )
-				throw (LuaException)cause;
+			if( cause instanceof LuanException )
+				throw (LuanException)cause;
 			throw new RuntimeException(e);
 		} catch(InstantiationException e) {
 			throw new RuntimeException(e);
@@ -68,7 +68,7 @@ public final class LuaJavaFunction extends LuaFunction {
 		return rtnConverter.convert(rtn);
 	}
 
-	private void checkArgs(LuaState lua,Object[] args) throws LuaException {
+	private void checkArgs(LuanState lua,Object[] args) throws LuanException {
 		Class<?>[] a = getParameterTypes();
 		for( int i=0; i<a.length; i++ ) {
 			if( !a[i].isInstance(args[i]) ) {
@@ -76,12 +76,12 @@ public final class LuaJavaFunction extends LuaFunction {
 				String expected = a[i].getName();
 				if( !takesLuaState )
 					i++;
-				throw new LuaException(lua,LuaElement.JAVA,"bad argument #"+i+" ("+expected+" expected, got "+got+")");
+				throw new LuanException(lua,LuanElement.JAVA,"bad argument #"+i+" ("+expected+" expected, got "+got+")");
 			}
 		}
 	}
 
-	private Object[] fixArgs(LuaState lua,Object[] args) {
+	private Object[] fixArgs(LuanState lua,Object[] args) {
 		int n = argConverters.length;
 		Object[] rtn;
 		int start = 0;
@@ -312,17 +312,17 @@ public final class LuaJavaFunction extends LuaFunction {
 			if( obj instanceof List ) {
 				@SuppressWarnings("unchecked")
 				List<Object> list = (List<Object>)obj;
-				return new LuaTable(list);
+				return new LuanTable(list);
 			}
 			if( obj instanceof Map ) {
 				@SuppressWarnings("unchecked")
 				Map<Object,Object> map = (Map<Object,Object>)obj;
-				return new LuaTable(map);
+				return new LuanTable(map);
 			}
 			if( obj instanceof Set ) {
 				@SuppressWarnings("unchecked")
 				Set<Object> set = (Set<Object>)obj;
-				return new LuaTable(set);
+				return new LuanTable(set);
 			}
 			return obj;
 		}
@@ -330,8 +330,8 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static final ArgConverter ARG_MAP = new ArgConverter() {
 		public Object convert(Object obj) {
-			if( obj instanceof LuaTable ) {
-				LuaTable t = (LuaTable)obj;
+			if( obj instanceof LuanTable ) {
+				LuanTable t = (LuanTable)obj;
 				return t.asMap();
 			}
 			return obj;
@@ -340,8 +340,8 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static final ArgConverter ARG_LIST = new ArgConverter() {
 		public Object convert(Object obj) {
-			if( obj instanceof LuaTable ) {
-				LuaTable t = (LuaTable)obj;
+			if( obj instanceof LuanTable ) {
+				LuanTable t = (LuanTable)obj;
 				if( t.isList() )
 					return t.asList();
 			}
@@ -351,8 +351,8 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static final ArgConverter ARG_SET = new ArgConverter() {
 		public Object convert(Object obj) {
-			if( obj instanceof LuaTable ) {
-				LuaTable t = (LuaTable)obj;
+			if( obj instanceof LuanTable ) {
+				LuanTable t = (LuanTable)obj;
 				if( t.isSet() )
 					return t.asSet();
 			}
@@ -362,7 +362,7 @@ public final class LuaJavaFunction extends LuaFunction {
 
 	private static boolean takesLuaState(JavaMethod m) {
 		Class<?>[] paramTypes = m.getParameterTypes();
-		return paramTypes.length > 0 && paramTypes[0].equals(LuaState.class);
+		return paramTypes.length > 0 && paramTypes[0].equals(LuanState.class);
 	}
 
 	private static ArgConverter[] getArgConverters(boolean takesLuaState,JavaMethod m) {
@@ -396,7 +396,7 @@ public final class LuaJavaFunction extends LuaFunction {
 			return ARG_SHORT;
 		if( cls == Byte.TYPE || cls.equals(Byte.class) )
 			return ARG_BYTE;
-		if( cls.equals(LuaTable.class) )
+		if( cls.equals(LuanTable.class) )
 			return ARG_TABLE;
 		if( cls.equals(Map.class) )
 			return ARG_MAP;

@@ -1,7 +1,7 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
+import luan.Luan;
+import luan.LuanException;
 
 
 final class RepeatStmt implements Stmt {
@@ -13,11 +13,11 @@ final class RepeatStmt implements Stmt {
 		this.cnd = cnd;
 	}
 
-	@Override public void eval(LuaStateImpl lua) throws LuaException {
+	@Override public void eval(LuanStateImpl lua) throws LuanException {
 		try {
 			do {
 				doStmt.eval(lua);
-			} while( !Lua.toBoolean( cnd.eval(lua) ) );
+			} while( !Luan.toBoolean( cnd.eval(lua) ) );
 		} catch(BreakException e) {}
 	}
 }

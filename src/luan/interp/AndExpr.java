@@ -1,18 +1,18 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class AndExpr extends BinaryOpExpr {
 
-	AndExpr(LuaSource.Element se,Expr op1,Expr op2) {
+	AndExpr(LuanSource.Element se,Expr op1,Expr op2) {
 		super(se,op1,op2);
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
 		Object v1 = op1.eval(lua);
-		return !Lua.toBoolean(v1) ? v1 : op2.eval(lua);
+		return !Luan.toBoolean(v1) ? v1 : op2.eval(lua);
 	}
 }

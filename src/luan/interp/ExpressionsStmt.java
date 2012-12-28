@@ -1,6 +1,6 @@
 package luan.interp;
 
-import luan.LuaException;
+import luan.LuanException;
 
 
 final class ExpressionsStmt implements Stmt {
@@ -10,7 +10,7 @@ final class ExpressionsStmt implements Stmt {
 		this.expressions = expressions;
 	}
 
-	@Override public void eval(LuaStateImpl lua) throws LuaException {
+	@Override public void eval(LuanStateImpl lua) throws LuanException {
 		expressions.eval(lua);
 	}
 

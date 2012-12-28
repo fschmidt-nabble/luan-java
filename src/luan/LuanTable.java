@@ -12,22 +12,22 @@ import java.util.Set;
 import java.util.HashSet;
 
 
-public class LuaTable {
+public class LuanTable {
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
-	private LuaTable metatable = null;
+	private LuanTable metatable = null;
 
-	public LuaTable() {}
+	public LuanTable() {}
 
-	public LuaTable(List<Object> list) {
+	public LuanTable(List<Object> list) {
 		this.list = list;
 	}
 
-	public LuaTable(Map<Object,Object> map) {
+	public LuanTable(Map<Object,Object> map) {
 		this.map = map;
 	}
 
-	public LuaTable(Set<Object> set) {
+	public LuanTable(Set<Object> set) {
 		map = new HashMap<Object,Object>();
 		for( Object obj : set ) {
 			map.put(obj,Boolean.TRUE);
@@ -118,7 +118,7 @@ public class LuaTable {
 
 	public Object get(Object key) {
 		if( list != null ) {
-			Integer iT = Lua.asInteger(key);
+			Integer iT = Luan.asInteger(key);
 			if( iT != null ) {
 				int i = iT - 1;
 				if( i>=0 && i<list.size() )
@@ -131,7 +131,7 @@ public class LuaTable {
 	}
 
 	public Object put(Object key,Object val) {
-		Integer iT = Lua.asInteger(key);
+		Integer iT = Luan.asInteger(key);
 		if( iT != null ) {
 			int i = iT - 1;
 			if( list != null || i == 0 ) {
@@ -253,15 +253,15 @@ public class LuaTable {
 		return list==null ? new Object[0] : list.toArray();
 	}
 
-	public LuaTable subList(int from,int to) {
-		return new LuaTable(new ArrayList<Object>(list().subList(from-1,to-1)));
+	public LuanTable subList(int from,int to) {
+		return new LuanTable(new ArrayList<Object>(list().subList(from-1,to-1)));
 	}
 
-	public LuaTable getMetatable() {
+	public LuanTable getMetatable() {
 		return metatable;
 	}
 
-	public void setMetatable(LuaTable metatable) {
+	public void setMetatable(LuanTable metatable) {
 		this.metatable = metatable;
 	}
 

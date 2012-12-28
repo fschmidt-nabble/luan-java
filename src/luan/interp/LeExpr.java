@@ -1,18 +1,18 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaFunction;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanFunction;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class LeExpr extends BinaryOpExpr {
 
-	LeExpr(LuaSource.Element se,Expr op1,Expr op2) {
+	LeExpr(LuanSource.Element se,Expr op1,Expr op2) {
 		super(se,op1,op2);
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
 		Object o1 = op1.eval(lua);
 		Object o2 = op2.eval(lua);
 		if( o1 instanceof Number && o2 instanceof Number ) {
@@ -25,12 +25,12 @@ final class LeExpr extends BinaryOpExpr {
 			String s2 = (String)o2;
 			return s1.compareTo(s2) <= 0;
 		}
-		LuaFunction fn = lua.getBinHandler(se,"__le",o1,o2);
+		LuanFunction fn = lua.getBinHandler(se,"__le",o1,o2);
 		if( fn != null )
-			return Lua.toBoolean( Lua.first(lua.call(fn,se,"__le",o1,o2)) );
+			return Luan.toBoolean( Luan.first(lua.call(fn,se,"__le",o1,o2)) );
 		fn = lua.getBinHandler(se,"__lt",o1,o2);
 		if( fn != null )
-			return !Lua.toBoolean( Lua.first(lua.call(fn,se,"__lt",o2,o1)) );
-		throw new LuaException( lua, se, "attempt to compare " + Lua.type(o1) + " with " + Lua.type(o2) );
+			return !Luan.toBoolean( Luan.first(lua.call(fn,se,"__lt",o2,o1)) );
+		throw new LuanException( lua, se, "attempt to compare " + Luan.type(o1) + " with " + Luan.type(o2) );
 	}
 }

@@ -1,7 +1,7 @@
 package luan.interp;
 
-import luan.LuaException;
-import luan.LuaSource;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class Chunk extends CodeImpl implements Expr {
@@ -11,7 +11,7 @@ final class Chunk extends CodeImpl implements Expr {
 	final boolean isVarArg;
 	final UpValue.Getter[] upValueGetters;
 
-	Chunk(LuaSource.Element se,Stmt block,int stackSize,int numArgs,boolean isVarArg,UpValue.Getter[] upValueGetters) {
+	Chunk(LuanSource.Element se,Stmt block,int stackSize,int numArgs,boolean isVarArg,UpValue.Getter[] upValueGetters) {
 		super(se);
 		this.block = block;
 		this.stackSize = stackSize;
@@ -35,11 +35,11 @@ final class Chunk extends CodeImpl implements Expr {
 		}
 	}
 
-	LuaClosure newClosure(LuaStateImpl lua) {
-		return new LuaClosure(this,lua);
+	Closure newClosure(LuanStateImpl lua) {
+		return new Closure(this,lua);
 	}
 
-	@Override public Object eval(LuaStateImpl lua) {
+	@Override public Object eval(LuanStateImpl lua) {
 		return newClosure(lua);
 	}
 

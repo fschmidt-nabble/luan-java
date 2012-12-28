@@ -1,9 +1,9 @@
 package luan.interp;
 
 import java.util.List;
-import luan.Lua;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class ExpressionsExpr implements Expr {
@@ -13,11 +13,11 @@ final class ExpressionsExpr implements Expr {
 		this.expressions = expressions;
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
-		return Lua.first( expressions.eval(lua) );
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
+		return Luan.first( expressions.eval(lua) );
 	}
 
-	public LuaSource.Element se() {
+	public LuanSource.Element se() {
 		return expressions.se();
 	}
 

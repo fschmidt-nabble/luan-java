@@ -1,12 +1,12 @@
 package luan.interp;
 
-import luan.LuaException;
+import luan.LuanException;
 
 
 interface Stmt {
-	public void eval(LuaStateImpl lua) throws LuaException;
+	public void eval(LuanStateImpl lua) throws LuanException;
 
 	static final Stmt EMPTY = new Stmt() {
-		@Override public void eval(LuaStateImpl lua) {}
+		@Override public void eval(LuanStateImpl lua) {}
 	};
 }

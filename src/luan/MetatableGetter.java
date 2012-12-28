@@ -1,5 +1,5 @@
 package luan;
 
 public interface MetatableGetter {
-	public LuaTable getMetatable(Object obj);
+	public LuanTable getMetatable(Object obj);
 }

@@ -1,8 +1,8 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class NumericForStmt extends CodeImpl implements Stmt {
@@ -12,7 +12,7 @@ final class NumericForStmt extends CodeImpl implements Stmt {
 	private final Expr stepExpr;
 	private final Stmt block;
 
-	NumericForStmt(LuaSource.Element se,int iVar,Expr fromExpr,Expr toExpr,Expr stepExpr,Stmt block) {
+	NumericForStmt(LuanSource.Element se,int iVar,Expr fromExpr,Expr toExpr,Expr stepExpr,Stmt block) {
 		super(se);
 		this.iVar = iVar;
 		this.fromExpr = fromExpr;
@@ -21,7 +21,7 @@ final class NumericForStmt extends CodeImpl implements Stmt {
 		this.block = block;
 	}
 
-	@Override public void eval(LuaStateImpl lua) throws LuaException {
+	@Override public void eval(LuanStateImpl lua) throws LuanException {
 		double v = lua.checkNumber( se, fromExpr.eval(lua) ).doubleValue();
 		double limit = lua.checkNumber( se, toExpr.eval(lua) ).doubleValue();
 		double step = lua.checkNumber( se, stepExpr.eval(lua) ).doubleValue();
