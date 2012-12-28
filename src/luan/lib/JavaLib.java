@@ -187,11 +187,17 @@ public final class JavaLib {
 	}
 
 	public static Static getClass(LuanState luan,String name) throws LuanException {
+		Class cls;
 		try {
-			return new Static( Class.forName(name) );
+			cls = Class.forName(name);
 		} catch(ClassNotFoundException e) {
-			throw new LuanException(luan,LuanElement.JAVA,e);
+			try {
+				cls = Thread.currentThread().getContextClassLoader().loadClass(name);
+			} catch(ClassNotFoundException e2) {
+				throw new LuanException(luan,LuanElement.JAVA,e);
+			}
 		}
+		return new Static(cls);
 	}
 
 	public static void importClass(LuanState luan,String name) throws LuanException {

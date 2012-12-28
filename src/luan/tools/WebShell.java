@@ -27,7 +27,7 @@ import luan.lib.HtmlLib;
 public class WebShell extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(WebShell.class);
 
-	protected LuanState newLuanState() {
+	protected LuanState newLuanState() throws LuanException {
 		LuanState luan =  LuanCompiler.newLuanState();
 		BasicLib.register(luan);
 		JavaLib.register(luan);
