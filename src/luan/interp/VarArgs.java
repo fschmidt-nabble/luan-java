@@ -9,7 +9,7 @@ final class VarArgs extends CodeImpl implements Expressions {
 		super(se);
 	}
 
-	@Override public Object[] eval(LuanStateImpl lua) {
-		return lua.varArgs();
+	@Override public Object[] eval(LuanStateImpl luan) {
+		return luan.varArgs();
 	}
 }

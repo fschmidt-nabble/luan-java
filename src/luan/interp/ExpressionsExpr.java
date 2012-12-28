@@ -13,8 +13,8 @@ final class ExpressionsExpr implements Expr {
 		this.expressions = expressions;
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
-		return Luan.first( expressions.eval(lua) );
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		return Luan.first( expressions.eval(luan) );
 	}
 
 	public LuanSource.Element se() {

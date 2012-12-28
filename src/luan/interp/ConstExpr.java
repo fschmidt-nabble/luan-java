@@ -10,7 +10,7 @@ final class ConstExpr implements Expr {
 		this.obj = obj;
 	}
 
-	@Override public Object eval(LuanStateImpl lua) {
+	@Override public Object eval(LuanStateImpl luan) {
 		return obj;
 	}
 

@@ -13,10 +13,10 @@ final class WhileStmt implements Stmt {
 		this.doStmt = doStmt;
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
 		try {
-			while( Luan.toBoolean( cnd.eval(lua) ) ) {
-				doStmt.eval(lua);
+			while( Luan.toBoolean( cnd.eval(luan) ) ) {
+				doStmt.eval(luan);
 			}
 		} catch(BreakException e) {}
 	}

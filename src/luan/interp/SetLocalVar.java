@@ -8,7 +8,7 @@ final class SetLocalVar implements Settable {
 		this.index = index;
 	}
 
-	@Override public void set(LuanStateImpl lua,Object value) {
-		lua.stackSet( index, value );
+	@Override public void set(LuanStateImpl luan,Object value) {
+		luan.stackSet( index, value );
 	}
 }

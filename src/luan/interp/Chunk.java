@@ -35,12 +35,8 @@ final class Chunk extends CodeImpl implements Expr {
 		}
 	}
 
-	Closure newClosure(LuanStateImpl lua) {
-		return new Closure(this,lua);
-	}
-
-	@Override public Object eval(LuanStateImpl lua) {
-		return newClosure(lua);
+	@Override public Object eval(LuanStateImpl luan) {
+		return new Closure(luan,this);
 	}
 
 }

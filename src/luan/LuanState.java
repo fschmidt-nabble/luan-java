@@ -1,5 +1,7 @@
 package luan;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -8,6 +10,10 @@ public abstract class LuanState {
 	private final LuanTable global = new LuanTable();
 	private final List<MetatableGetter> mtGetters = new ArrayList<MetatableGetter>();
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
+
+	public InputStream in = System.in;
+	public PrintStream out = System.out;
+	public PrintStream err = System.err;
 
 	public final LuanTable global() {
 		return global;

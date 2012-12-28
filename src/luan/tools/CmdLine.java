@@ -17,12 +17,12 @@ import luan.interp.LuanCompiler;
 public class CmdLine {
 
 	public static void main(String[] args) {
-		LuanState lua = LuanCompiler.newLuaState();
-		BasicLib.register(lua);
-		JavaLib.register(lua);
-		StringLib.register(lua);
-		TableLib.register(lua);
-		BasicLib.make_standard(lua);
+		LuanState luan = LuanCompiler.newLuanState();
+		BasicLib.register(luan);
+		JavaLib.register(luan);
+		StringLib.register(luan);
+		TableLib.register(luan);
+		BasicLib.make_standard(luan);
 		boolean interactive = false;
 		boolean showVersion = false;
 		int i = 0;
@@ -43,15 +43,15 @@ public class CmdLine {
 						error("'-e' needs argument");
 					String cmd = args[i];
 					try {
-						LuanFunction fn = BasicLib.load(lua,cmd,"(command line)");
-						lua.call(fn,null,null);
+						LuanFunction fn = BasicLib.load(luan,cmd,"(command line)");
+						luan.call(fn,null,null);
 					} catch(LuanException e) {
 						System.err.println("command line error: "+e.getMessage());
 						System.exit(-1);
 					}
 				} else if( arg.equals("-") ) {
 					try {
-						BasicLib.do_file(lua,"stdin");
+						BasicLib.do_file(luan,"stdin");
 					} catch(LuanException e) {
 						System.err.println(e.getMessage());
 						System.exit(-1);
@@ -73,10 +73,10 @@ public class CmdLine {
 			for( int j=0; j<args.length; j++ ) {
 				argsTable.put( j, args[j] );
 			}
-			lua.global().put("arg",argsTable);
+			luan.global().put("arg",argsTable);
 			try {
-				LuanFunction fn = BasicLib.load_file(lua,file);
-				lua.call(fn,null,null,varArgs);
+				LuanFunction fn = BasicLib.load_file(luan,file);
+				luan.call(fn,null,null,varArgs);
 			} catch(LuanException e) {
 //				System.err.println("error: "+e.getMessage());
 				e.printStackTrace();
@@ -84,7 +84,7 @@ public class CmdLine {
 			}
 		}
 		if( interactive )
-			interactive(lua);
+			interactive(luan);
 	}
 
 	private static void error(String msg) {
@@ -101,15 +101,15 @@ public class CmdLine {
 		System.exit(-1);
 	}
 
-	static void interactive(LuanState lua) {
+	static void interactive(LuanState luan) {
 		while( true ) {
 			System.out.print("> ");
 			String input = new Scanner(System.in).nextLine();
 			try {
-				LuanFunction fn = BasicLib.load(lua,input,"stdin");
-				Object[] rtn = lua.call(fn,null,null);
+				LuanFunction fn = BasicLib.load(luan,input,"stdin");
+				Object[] rtn = luan.call(fn,null,null);
 				if( rtn.length > 0 )
-					BasicLib.print(lua,rtn);
+					BasicLib.print(luan,rtn);
 			} catch(LuanException e) {
 				System.out.println(e.getMessage());
 			}

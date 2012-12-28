@@ -10,7 +10,7 @@ import luan.LuanSource;
 final class ExpList implements Expressions {
 
 	private interface Adder {
-		public void addTo(LuanStateImpl lua,List<Object> list) throws LuanException;
+		public void addTo(LuanStateImpl luan,List<Object> list) throws LuanException;
 		public Code code();
 	}
 
@@ -21,8 +21,8 @@ final class ExpList implements Expressions {
 			this.expr = expr;
 		}
 
-		public void addTo(LuanStateImpl lua,List<Object> list) throws LuanException {
-			list.add( expr.eval(lua) );
+		public void addTo(LuanStateImpl luan,List<Object> list) throws LuanException {
+			list.add( expr.eval(luan) );
 		}
 
 		public Code code() {
@@ -38,8 +38,8 @@ final class ExpList implements Expressions {
 			this.expressions = expressions;
 		}
 
-		public void addTo(LuanStateImpl lua,List<Object> list) throws LuanException {
-			for( Object val : expressions.eval(lua) ) {
+		public void addTo(LuanStateImpl luan,List<Object> list) throws LuanException {
+			for( Object val : expressions.eval(luan) ) {
 				list.add( val );
 			}
 		}
@@ -81,7 +81,7 @@ final class ExpList implements Expressions {
 
 	static final Expressions emptyExpList = new Expressions() {
 
-		@Override public Object[] eval(LuanStateImpl lua) {
+		@Override public Object[] eval(LuanStateImpl luan) {
 			return EMPTY;
 		}
 
@@ -97,8 +97,8 @@ final class ExpList implements Expressions {
 			this.expr = expr;
 		}
 
-		@Override public Object[] eval(LuanStateImpl lua) throws LuanException {
-			return new Object[]{expr.eval(lua)};
+		@Override public Object[] eval(LuanStateImpl luan) throws LuanException {
+			return new Object[]{expr.eval(luan)};
 		}
 
 		@Override public LuanSource.Element se() {
@@ -112,10 +112,10 @@ final class ExpList implements Expressions {
 		this.adders = adders;
 	}
 
-	@Override public Object[] eval(LuanStateImpl lua) throws LuanException {
+	@Override public Object[] eval(LuanStateImpl luan) throws LuanException {
 		List<Object> list = new ArrayList<Object>();
 		for( Adder adder : adders ) {
-			adder.addTo(lua,list);
+			adder.addTo(luan,list);
 		}
 		return list.toArray();
 	}

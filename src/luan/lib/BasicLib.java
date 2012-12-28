@@ -21,8 +21,8 @@ import luan.interp.LuanCompiler;
 
 public final class BasicLib {
 
-	public static void register(LuanState lua) {
-		LuanTable global = lua.global();
+	public static void register(LuanState luan) {
+		LuanTable global = luan.global();
 		global.put( "_G", global );
 		add( global, "do_file", LuanState.class, String.class );
 		add( global, "error", LuanState.class, Object.class );
@@ -53,8 +53,8 @@ public final class BasicLib {
 		}
 	}
 
-	public static void make_standard(LuanState lua) {
-		LuanTable global = lua.global();
+	public static void make_standard(LuanState luan) {
+		LuanTable global = luan.global();
 		global.put( "dofile", global.get("do_file") );
 		global.put( "getmetatable", global.get("get_metatable") );
 		global.put( "loadfile", global.get("load_file") );
@@ -67,21 +67,21 @@ public final class BasicLib {
 		global.put( "tostring", global.get("to_string") );
 	}
 
-	public static void print(LuanState lua,Object... args) throws LuanException {
+	public static void print(LuanState luan,Object... args) throws LuanException {
 		for( int i=0; i<args.length; i++ ) {
 			if( i > 0 )
-				System.out.print('\t');
-			System.out.print( lua.toString(LuanElement.JAVA,args[i]) );
+				luan.out.print('\t');
+			luan.out.print( luan.toString(LuanElement.JAVA,args[i]) );
 		}
-		System.out.println();
+		luan.out.println();
 	}
 
 	public static String type(Object obj) {
 		return Luan.type(obj);
 	}
 
-	public static LuanFunction load(LuanState lua,String text,String sourceName) throws LuanException {
-		return LuanCompiler.compile(lua,new LuanSource(sourceName,text));
+	public static LuanFunction load(LuanState luan,String text,String sourceName) throws LuanException {
+		return LuanCompiler.compile(luan,new LuanSource(sourceName,text));
 	}
 
 	public static String readAll(Reader in)
@@ -106,23 +106,23 @@ public final class BasicLib {
 	}
 
 
-	public static LuanFunction load_file(LuanState lua,String fileName) throws LuanException {
+	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
 			String src = fileName==null ? readAll(new InputStreamReader(System.in)) : read(new File(fileName));
-			return load(lua,src,fileName);
+			return load(luan,src,fileName);
 		} catch(IOException e) {
-			throw new LuanException(lua,LuanElement.JAVA,e);
+			throw new LuanException(luan,LuanElement.JAVA,e);
 		}
 	}
 
-	public static Object[] do_file(LuanState lua,String fileName) throws LuanException {
-		LuanFunction fn = load_file(lua,fileName);
-		return lua.call(fn,LuanElement.JAVA,null);
+	public static Object[] do_file(LuanState luan,String fileName) throws LuanException {
+		LuanFunction fn = load_file(luan,fileName);
+		return luan.call(fn,LuanElement.JAVA,null);
 	}
 
 	private static LuanFunction pairs(final Iterator<Map.Entry<Object,Object>> iter) {
 		return new LuanFunction() {
-			public Object[] call(LuanState lua,Object[] args) {
+			public Object[] call(LuanState luan,Object[] args) {
 				if( !iter.hasNext() )
 					return LuanFunction.EMPTY_RTN;
 				Map.Entry<Object,Object> entry = iter.next();
@@ -139,8 +139,8 @@ public final class BasicLib {
 		return pairs( t.listIterator() );
 	}
 
-	public static LuanTable get_metatable(LuanState lua,Object obj) {
-		return lua.getMetatable(obj);
+	public static LuanTable get_metatable(LuanState luan,Object obj) {
+		return luan.getMetatable(obj);
 	}
 
 	public static LuanTable set_metatable(LuanTable table,LuanTable metatable) {
@@ -161,7 +161,7 @@ public final class BasicLib {
 		return table;
 	}
 
-	public static int raw_len(LuanState lua,Object v) throws LuanException {
+	public static int raw_len(LuanState luan,Object v) throws LuanException {
 		if( v instanceof String ) {
 			String s = (String)v;
 			return s.length();
@@ -170,19 +170,19 @@ public final class BasicLib {
 			LuanTable t = (LuanTable)v;
 			return t.length();
 		}
-		throw new LuanException( lua, LuanElement.JAVA, "bad argument #1 to 'raw_len' (table or string expected)" );
+		throw new LuanException( luan, LuanElement.JAVA, "bad argument #1 to 'raw_len' (table or string expected)" );
 	}
 
 	public static Number to_number(Object e,Integer base) {
 		return Luan.toNumber(e,base);
 	}
 
-	public static String to_string(LuanState lua,Object v) throws LuanException {
-		return lua.toString(LuanElement.JAVA,v);
+	public static String to_string(LuanState luan,Object v) throws LuanException {
+		return luan.toString(LuanElement.JAVA,v);
 	}
 
-	public static void error(LuanState lua,Object msg) throws LuanException {
-		throw new LuanException(lua,LuanElement.JAVA,msg);
+	public static void error(LuanState luan,Object msg) throws LuanException {
+		throw new LuanException(luan,LuanElement.JAVA,msg);
 	}
 
 }

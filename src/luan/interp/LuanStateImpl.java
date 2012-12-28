@@ -61,7 +61,7 @@ final class LuanStateImpl extends LuanState {
 	}
 
 	private Frame frame = null;
-	Object[] returnValues;
+	Object[] returnValues = LuanFunction.EMPTY_RTN;
 	Closure tailFn;
 
 	// returns stack

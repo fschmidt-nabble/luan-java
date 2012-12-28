@@ -43,13 +43,13 @@ public final class LuanJavaFunction extends LuanFunction {
 		return method.getParameterTypes();
 	}
 
-	@Override public Object[] call(LuanState lua,Object[] args) throws LuanException {
-		args = fixArgs(lua,args);
+	@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
+		args = fixArgs(luan,args);
 		Object rtn;
 		try {
 			rtn = method.invoke(obj,args);
 		} catch(IllegalArgumentException e) {
-			checkArgs(lua,args);
+			checkArgs(luan,args);
 			throw e;
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
@@ -68,7 +68,7 @@ public final class LuanJavaFunction extends LuanFunction {
 		return rtnConverter.convert(rtn);
 	}
 
-	private void checkArgs(LuanState lua,Object[] args) throws LuanException {
+	private void checkArgs(LuanState luan,Object[] args) throws LuanException {
 		Class<?>[] a = getParameterTypes();
 		for( int i=0; i<a.length; i++ ) {
 			if( !a[i].isInstance(args[i]) ) {
@@ -76,12 +76,12 @@ public final class LuanJavaFunction extends LuanFunction {
 				String expected = a[i].getName();
 				if( !takesLuaState )
 					i++;
-				throw new LuanException(lua,LuanElement.JAVA,"bad argument #"+i+" ("+expected+" expected, got "+got+")");
+				throw new LuanException(luan,LuanElement.JAVA,"bad argument #"+i+" ("+expected+" expected, got "+got+")");
 			}
 		}
 	}
 
-	private Object[] fixArgs(LuanState lua,Object[] args) {
+	private Object[] fixArgs(LuanState luan,Object[] args) {
 		int n = argConverters.length;
 		Object[] rtn;
 		int start = 0;
@@ -92,7 +92,7 @@ public final class LuanJavaFunction extends LuanFunction {
 				n++;
 			rtn = new Object[n];
 			if( takesLuaState ) {
-				rtn[start++] = lua;
+				rtn[start++] = luan;
 			}
 			n = argConverters.length;
 			if( varArgCls != null ) {

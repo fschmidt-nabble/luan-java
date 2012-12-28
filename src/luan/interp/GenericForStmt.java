@@ -20,21 +20,21 @@ final class GenericForStmt extends CodeImpl implements Stmt {
 		this.block = block;
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
-		LuanFunction iter = lua.checkFunction( se, iterExpr.eval(lua) );
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
+		LuanFunction iter = luan.checkFunction( se, iterExpr.eval(luan) );
 		try {
 			while(true) {
-				Object[] vals = lua.call(iter,iterExpr.se(),iterExpr.se().text());
+				Object[] vals = luan.call(iter,iterExpr.se(),iterExpr.se().text());
 				if( vals.length==0 || vals[0]==null )
 					break;
 				for( int i=0; i<nVars; i++ ) {
-					lua.stackSet( iVars+i, i < vals.length ? vals[i] : null );
+					luan.stackSet( iVars+i, i < vals.length ? vals[i] : null );
 				}
-				block.eval(lua);
+				block.eval(luan);
 			}
 		} catch(BreakException e) {
 		} finally {
-			lua.stackClear(iVars,iVars+nVars);
+			luan.stackClear(iVars,iVars+nVars);
 		}
 	}
 

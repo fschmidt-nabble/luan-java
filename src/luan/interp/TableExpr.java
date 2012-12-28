@@ -26,12 +26,12 @@ final class TableExpr extends CodeImpl implements Expr {
 		this.expressions = expressions;
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		LuanTable table = new LuanTable();
 		for( Field field : fields ) {
-			table.put( field.key.eval(lua), field.value.eval(lua) );
+			table.put( field.key.eval(luan), field.value.eval(luan) );
 		}
-		Object[] a = expressions.eval(lua);
+		Object[] a = expressions.eval(luan);
 		for( int i=0; i<a.length; i++ ) {
 			table.put( i+1, a[i] );
 		}

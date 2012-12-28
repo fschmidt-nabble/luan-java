@@ -12,17 +12,17 @@ final class ConcatExpr extends BinaryOpExpr {
 		super(se,op1,op2);
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
-		Object o1 = op1.eval(lua);
-		Object o2 = op2.eval(lua);
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		Object o1 = op1.eval(luan);
+		Object o2 = op2.eval(luan);
 		String s1 = Luan.asString(o1);
 		String s2 = Luan.asString(o2);
 		if( s1 != null && s2 != null )
 			return s1 + s2;
-		LuanFunction fn = lua.getBinHandler(se,"__concat",o1,o2);
+		LuanFunction fn = luan.getBinHandler(se,"__concat",o1,o2);
 		if( fn != null )
-			return Luan.first(lua.call(fn,se,"__concat",o1,o2));
+			return Luan.first(luan.call(fn,se,"__concat",o1,o2));
 		String type = s1==null ? Luan.type(o1) : Luan.type(o2);
-		throw new LuanException( lua, se, "attempt to concatenate a " + type + " value" );
+		throw new LuanException( luan, se, "attempt to concatenate a " + type + " value" );
 	}
 }

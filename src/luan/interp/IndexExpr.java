@@ -13,29 +13,29 @@ final class IndexExpr extends BinaryOpExpr {
 		super(se,op1,op2);
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
-		return index(lua,op1.eval(lua),op2.eval(lua));
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		return index(luan,op1.eval(luan),op2.eval(luan));
 	}
 
-	private Object index(LuanStateImpl lua,Object t,Object key) throws LuanException {
+	private Object index(LuanStateImpl luan,Object t,Object key) throws LuanException {
 		Object h;
 		if( t instanceof LuanTable ) {
 			LuanTable tbl = (LuanTable)t;
 			Object value = tbl.get(key);
 			if( value != null )
 				return value;
-			h = lua.getHandler("__index",t);
+			h = luan.getHandler("__index",t);
 			if( h==null )
 				return null;
 		} else {
-			h = lua.getHandler("__index",t);
+			h = luan.getHandler("__index",t);
 			if( h==null )
-				throw new LuanException( lua, se, "attempt to index a " + Luan.type(t) + " value" );
+				throw new LuanException( luan, se, "attempt to index a " + Luan.type(t) + " value" );
 		}
 		if( h instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)h;
-			return Luan.first(lua.call(fn,se,"__index",t,key));
+			return Luan.first(luan.call(fn,se,"__index",t,key));
 		}
-		return index(lua,h,key);
+		return index(luan,h,key);
 	}
 }

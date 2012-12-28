@@ -13,9 +13,9 @@ import luan.LuanException;
 
 public final class StringLib {
 
-	public static void register(LuanState lua) {
+	public static void register(LuanState luan) {
 		LuanTable module = new LuanTable();
-		LuanTable global = lua.global();
+		LuanTable global = luan.global();
 		global.put("string",module);
 		try {
 			module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
@@ -129,7 +129,7 @@ public final class StringLib {
 	public static LuanFunction gmatch(String s,String pattern) {
 		final Matcher m = Pattern.compile(pattern).matcher(s);
 		return new LuanFunction() {
-			public Object[] call(LuanState lua,Object[] args) {
+			public Object[] call(LuanState luan,Object[] args) {
 				if( !m.find() )
 					return LuanFunction.EMPTY_RTN;
 				final int n = m.groupCount();
@@ -144,7 +144,7 @@ public final class StringLib {
 		};
 	}
 
-	public static Object[] gsub(LuanState lua,String s,String pattern,Object repl,Integer n) throws LuanException {
+	public static Object[] gsub(LuanState luan,String s,String pattern,Object repl,Integer n) throws LuanException {
 		int max = n==null ? Integer.MAX_VALUE : n;
 		final Matcher m = Pattern.compile(pattern).matcher(s);
 		if( repl instanceof String ) {
@@ -168,7 +168,7 @@ public final class StringLib {
 				if( Luan.toBoolean(val) ) {
 					String replacement = Luan.asString(val);
 					if( replacement==null )
-						throw new LuanException( lua, LuanElement.JAVA, "invalid replacement value (a "+Luan.type(val)+")" );
+						throw new LuanException( luan, LuanElement.JAVA, "invalid replacement value (a "+Luan.type(val)+")" );
 					m.appendReplacement(sb,replacement);
 				}
 				i++;
@@ -191,11 +191,11 @@ public final class StringLib {
 						args[j] = m.group(j);
 					}
 				}
-				Object val = Luan.first( lua.call(fn,LuanElement.JAVA,"repl-arg",args) );
+				Object val = Luan.first( luan.call(fn,LuanElement.JAVA,"repl-arg",args) );
 				if( Luan.toBoolean(val) ) {
 					String replacement = Luan.asString(val);
 					if( replacement==null )
-						throw new LuanException( lua, LuanElement.JAVA, "invalid replacement value (a "+Luan.type(val)+")" );
+						throw new LuanException( luan, LuanElement.JAVA, "invalid replacement value (a "+Luan.type(val)+")" );
 					m.appendReplacement(sb,replacement);
 				}
 				i++;
@@ -203,7 +203,7 @@ public final class StringLib {
 			m.appendTail(sb);
 			return new Object[]{ sb.toString(), i };
 		}
-		throw new LuanException( lua, LuanElement.JAVA, "bad argument #3 to 'gsub' (string/function/table expected)" );
+		throw new LuanException( luan, LuanElement.JAVA, "bad argument #3 to 'gsub' (string/function/table expected)" );
 	}
 
 }

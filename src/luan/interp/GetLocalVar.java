@@ -11,7 +11,7 @@ final class GetLocalVar extends CodeImpl implements Expr {
 		this.index = index;
 	}
 
-	@Override public Object eval(LuanStateImpl lua) {
-		return lua.stackGet(index);
+	@Override public Object eval(LuanStateImpl luan) {
+		return luan.stackGet(index);
 	}
 }

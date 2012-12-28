@@ -18,18 +18,18 @@ final class FnCall extends CodeImpl implements Expressions {
 		this.fnName = fnExpr.se().text();
 	}
 
-	@Override public Object[] eval(LuanStateImpl lua) throws LuanException {
-		return call( lua, fnExpr.eval(lua) );
+	@Override public Object[] eval(LuanStateImpl luan) throws LuanException {
+		return call( luan, fnExpr.eval(luan) );
 	}
 
-	private Object[] call(LuanStateImpl lua,Object o) throws LuanException {
+	private Object[] call(LuanStateImpl luan,Object o) throws LuanException {
 		if( o instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)o;
-			return lua.call( fn, se, fnName, args.eval(lua) );
+			return luan.call( fn, se, fnName, args.eval(luan) );
 		}
-		Object h = lua.getHandler("__call",o);
+		Object h = luan.getHandler("__call",o);
 		if( h != null )
-			return call(lua,h);
-		throw new LuanException( lua, se, "attempt to call a " + Luan.type(o) + " value" );
+			return call(luan,h);
+		throw new LuanException( luan, se, "attempt to call a " + Luan.type(o) + " value" );
 	}
 }

@@ -11,7 +11,7 @@ final class GetUpVar extends CodeImpl implements Expr {
 		this.index = index;
 	}
 
-	@Override public Object eval(LuanStateImpl lua) {
-		return lua.closure().upValues[index].get();
+	@Override public Object eval(LuanStateImpl luan) {
+		return luan.closure().upValues[index].get();
 	}
 }
