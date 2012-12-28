@@ -4,9 +4,9 @@ package luan;
 public class LuanException extends Exception {
 	private final String stackTrace;
 
-	public LuanException(LuanState lua,LuanElement el,Object msg) {
+	public LuanException(LuanState luan,LuanElement el,Object msg) {
 		super(message(msg),cause(msg));
-		stackTrace = stackTrace(lua,el,msg);
+		stackTrace = stackTrace(luan,el,msg);
 	}
 
 	@Override public String getMessage() {
@@ -35,10 +35,10 @@ public class LuanException extends Exception {
 		}
 	}
 
-	private static String stackTrace(LuanState lua,LuanElement el,Object msg) {
+	private static String stackTrace(LuanState luan,LuanElement el,Object msg) {
 		StringBuilder buf = new StringBuilder();
-		for( int i  = lua.stackTrace.size() - 1; i>=0; i-- ) {
-			StackTraceElement stackTraceElement = lua.stackTrace.get(i);
+		for( int i  = luan.stackTrace.size() - 1; i>=0; i-- ) {
+			StackTraceElement stackTraceElement = luan.stackTrace.get(i);
 			buf.append( "\n\t" ).append( el.toString(stackTraceElement.fnName) );
 			el = stackTraceElement.call;
 		}

@@ -23,14 +23,14 @@ final class ReturnStmt extends CodeImpl implements Stmt {
 		}
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
-		lua.returnValues = expressions.eval(lua);
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
+		luan.returnValues = expressions.eval(luan);
 		if( tailFnExpr != null ) {
-			LuanFunction tailFn = lua.checkFunction( se, tailFnExpr.eval(lua) );
+			LuanFunction tailFn = luan.checkFunction( se, tailFnExpr.eval(luan) );
 			if( tailFn instanceof Closure ) {
-				lua.tailFn = (Closure)tailFn;
+				luan.tailFn = (Closure)tailFn;
 			} else {
-				lua.returnValues =  lua.call(tailFn,tailFnExpr.se(),tailFnExpr.se().text(),lua.returnValues);
+				luan.returnValues =  luan.call(tailFn,tailFnExpr.se(),tailFnExpr.se().text(),luan.returnValues);
 			}
 		}
 		if( throwReturnException )

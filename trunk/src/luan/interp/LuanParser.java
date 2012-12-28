@@ -158,16 +158,20 @@ class LuanParser extends BaseParser<Object> {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			Spaces(),
+			start.set(currentIndex()),
 			FirstOf(
-				Sequence( ExpList(), EOI ),
 				Sequence(
-					start.set(currentIndex()),
+					ExpList(),
+					EOI,
+					push( new ReturnStmt( se(start.get()), (Expressions)pop() ) )
+				),
+				Sequence(
 					action( frame.isVarArg = true ),
 					Block(),
-					EOI,
-					push( newChunk(start.get()) )
+					EOI
 				)
-			)
+			),
+			push( newChunk(start.get()) )
 		);
 	}
 

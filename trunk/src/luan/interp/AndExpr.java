@@ -11,8 +11,8 @@ final class AndExpr extends BinaryOpExpr {
 		super(se,op1,op2);
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
-		Object v1 = op1.eval(lua);
-		return !Luan.toBoolean(v1) ? v1 : op2.eval(lua);
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		Object v1 = op1.eval(luan);
+		return !Luan.toBoolean(v1) ? v1 : op2.eval(luan);
 	}
 }

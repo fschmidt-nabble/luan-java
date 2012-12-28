@@ -15,11 +15,11 @@ final class IfStmt implements Stmt {
 		this.elseStmt = elseStmt;
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
-		if( Luan.toBoolean( cnd.eval(lua) ) ) {
-			thenStmt.eval(lua);
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
+		if( Luan.toBoolean( cnd.eval(luan) ) ) {
+			thenStmt.eval(luan);
 		} else {
-			elseStmt.eval(lua);
+			elseStmt.eval(luan);
 		}
 	}
 }

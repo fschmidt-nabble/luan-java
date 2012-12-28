@@ -13,11 +13,11 @@ final class RepeatStmt implements Stmt {
 		this.cnd = cnd;
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
 		try {
 			do {
-				doStmt.eval(lua);
-			} while( !Luan.toBoolean( cnd.eval(lua) ) );
+				doStmt.eval(luan);
+			} while( !Luan.toBoolean( cnd.eval(luan) ) );
 		} catch(BreakException e) {}
 	}
 }

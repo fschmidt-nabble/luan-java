@@ -12,9 +12,9 @@ final class LeExpr extends BinaryOpExpr {
 		super(se,op1,op2);
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
-		Object o1 = op1.eval(lua);
-		Object o2 = op2.eval(lua);
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		Object o1 = op1.eval(luan);
+		Object o2 = op2.eval(luan);
 		if( o1 instanceof Number && o2 instanceof Number ) {
 			Number n1 = (Number)o1;
 			Number n2 = (Number)o2;
@@ -25,12 +25,12 @@ final class LeExpr extends BinaryOpExpr {
 			String s2 = (String)o2;
 			return s1.compareTo(s2) <= 0;
 		}
-		LuanFunction fn = lua.getBinHandler(se,"__le",o1,o2);
+		LuanFunction fn = luan.getBinHandler(se,"__le",o1,o2);
 		if( fn != null )
-			return Luan.toBoolean( Luan.first(lua.call(fn,se,"__le",o1,o2)) );
-		fn = lua.getBinHandler(se,"__lt",o1,o2);
+			return Luan.toBoolean( Luan.first(luan.call(fn,se,"__le",o1,o2)) );
+		fn = luan.getBinHandler(se,"__lt",o1,o2);
 		if( fn != null )
-			return !Luan.toBoolean( Luan.first(lua.call(fn,se,"__lt",o2,o1)) );
-		throw new LuanException( lua, se, "attempt to compare " + Luan.type(o1) + " with " + Luan.type(o2) );
+			return !Luan.toBoolean( Luan.first(luan.call(fn,se,"__lt",o2,o1)) );
+		throw new LuanException( luan, se, "attempt to compare " + Luan.type(o1) + " with " + Luan.type(o2) );
 	}
 }

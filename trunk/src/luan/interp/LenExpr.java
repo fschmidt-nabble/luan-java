@@ -13,19 +13,19 @@ final class LenExpr extends UnaryOpExpr {
 		super(se,op);
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
-		Object o = op.eval(lua);
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		Object o = op.eval(luan);
 		if( o instanceof String ) {
 			String s = (String)o;
 			return s.length();
 		}
-		LuanFunction fn = lua.getHandlerFunction(se,"__len",o);
+		LuanFunction fn = luan.getHandlerFunction(se,"__len",o);
 		if( fn != null )
-			return Luan.first(lua.call(fn,se,"__len",o));
+			return Luan.first(luan.call(fn,se,"__len",o));
 		if( o instanceof LuanTable ) {
 			LuanTable t = (LuanTable)o;
 			return t.length();
 		}
-		throw new LuanException( lua, se, "attempt to get length of a " + Luan.type(o) + " value" );
+		throw new LuanException( luan, se, "attempt to get length of a " + Luan.type(o) + " value" );
 	}
 }

@@ -21,19 +21,19 @@ final class NumericForStmt extends CodeImpl implements Stmt {
 		this.block = block;
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
-		double v = lua.checkNumber( se, fromExpr.eval(lua) ).doubleValue();
-		double limit = lua.checkNumber( se, toExpr.eval(lua) ).doubleValue();
-		double step = lua.checkNumber( se, stepExpr.eval(lua) ).doubleValue();
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
+		double v = luan.checkNumber( se, fromExpr.eval(luan) ).doubleValue();
+		double limit = luan.checkNumber( se, toExpr.eval(luan) ).doubleValue();
+		double step = luan.checkNumber( se, stepExpr.eval(luan) ).doubleValue();
 		try {
 			while( step > 0.0 && v <= limit || step < 0.0 && v >= limit ) {
-				lua.stackSet( iVar, v );
-				block.eval(lua);
+				luan.stackSet( iVar, v );
+				block.eval(luan);
 				v += step;
 			}
 		} catch(BreakException e) {
 		} finally {
-			lua.stackClear(iVar,iVar+1);
+			luan.stackClear(iVar,iVar+1);
 		}
 	}
 

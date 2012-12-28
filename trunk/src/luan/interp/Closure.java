@@ -11,7 +11,7 @@ final class Closure extends LuanFunction {
 	final UpValue[] upValues;
 	private final static UpValue[] NO_UP_VALUES = new UpValue[0];
 
-	Closure(Chunk chunk,LuanStateImpl lua) {
+	Closure(LuanStateImpl luan,Chunk chunk) {
 		this.chunk = chunk;
 		UpValue.Getter[] upValueGetters = chunk.upValueGetters;
 		if( upValueGetters.length==0 ) {
@@ -19,16 +19,16 @@ final class Closure extends LuanFunction {
 		} else {
 			upValues = new UpValue[upValueGetters.length];
 			for( int i=0; i<upValues.length; i++ ) {
-				upValues[i] = upValueGetters[i].get(lua);
+				upValues[i] = upValueGetters[i].get(luan);
 			}
 		}
 	}
 
-	public Object[] call(LuanState lua,Object[] args) throws LuanException {
-		return call(this,(LuanStateImpl)lua,args);
+	public Object[] call(LuanState luan,Object[] args) throws LuanException {
+		return call(this,(LuanStateImpl)luan,args);
 	}
 
-	private static Object[] call(Closure closure,LuanStateImpl lua,Object[] args) throws LuanException {
+	private static Object[] call(Closure closure,LuanStateImpl luan,Object[] args) throws LuanException {
 		while(true) {
 			Chunk chunk = closure.chunk;
 			Object[] varArgs = null;
@@ -42,7 +42,7 @@ final class Closure extends LuanFunction {
 					varArgs = LuanFunction.EMPTY_RTN;
 				}
 			}
-			Object[] stack = lua.newFrame(closure,chunk.stackSize,varArgs);
+			Object[] stack = luan.newFrame(closure,chunk.stackSize,varArgs);
 			final int n = Math.min(args.length,chunk.numArgs);
 			for( int i=0; i<n; i++ ) {
 				stack[i] = args[i];
@@ -50,12 +50,12 @@ final class Closure extends LuanFunction {
 			Object[] returnValues;
 			Closure tailFn;
 			try {
-				chunk.block.eval(lua);
+				chunk.block.eval(luan);
 			} catch(ReturnException e) {
 			} finally {
-				returnValues = lua.returnValues;
-				closure = lua.tailFn;
-				lua.popFrame();
+				returnValues = luan.returnValues;
+				closure = luan.tailFn;
+				luan.popFrame();
 			}
 			if( closure == null )
 				return returnValues;

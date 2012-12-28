@@ -13,15 +13,15 @@ final class UnmExpr extends UnaryOpExpr {
 		super(se,op);
 	}
 
-	@Override public Object eval(LuanStateImpl lua) throws LuanException {
-		Object o = op.eval(lua);
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		Object o = op.eval(luan);
 		Number n = Luan.toNumber(o);
 		if( n != null )
 			return -n.doubleValue();
-		LuanFunction fn = lua.getHandlerFunction(se,"__unm",o);
+		LuanFunction fn = luan.getHandlerFunction(se,"__unm",o);
 		if( fn != null ) {
-			return Luan.first(lua.call(fn,se,"__unm",o));
+			return Luan.first(luan.call(fn,se,"__unm",o));
 		}
-		throw new LuanException(lua,se,"attempt to perform arithmetic on a "+Luan.type(o)+" value");
+		throw new LuanException(luan,se,"attempt to perform arithmetic on a "+Luan.type(o)+" value");
 	}
 }

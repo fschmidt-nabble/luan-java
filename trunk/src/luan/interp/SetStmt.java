@@ -17,11 +17,11 @@ final class SetStmt implements Stmt {
 		this.expressions = expressions;
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
-		final Object[] vals = expressions.eval(lua);
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
+		final Object[] vals = expressions.eval(luan);
 		for( int i=0; i<vars.length; i++ ) {
 			Object val = i < vals.length ? vals[i] : null;
-			vars[i].set(lua,val);
+			vars[i].set(luan,val);
 		}
 	}
 

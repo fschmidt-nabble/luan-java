@@ -36,7 +36,7 @@ final class UpValue {
 	}
 
 	static interface Getter {
-		public UpValue get(LuanStateImpl lua);
+		public UpValue get(LuanStateImpl luan);
 	}
 
 	static final class StackGetter implements Getter {
@@ -46,8 +46,8 @@ final class UpValue {
 			this.index = index;
 		}
 
-		public UpValue get(LuanStateImpl lua) {
-			return lua.getUpValue(index);
+		public UpValue get(LuanStateImpl luan) {
+			return luan.getUpValue(index);
 		}
 	}
 
@@ -58,14 +58,14 @@ final class UpValue {
 			this.index = index;
 		}
 
-		public UpValue get(LuanStateImpl lua) {
-			return lua.closure().upValues[index];
+		public UpValue get(LuanStateImpl luan) {
+			return luan.closure().upValues[index];
 		}
 	}
 
 	static final Getter globalGetter = new Getter() {
-		public UpValue get(LuanStateImpl lua) {
-			return new UpValue(lua.global());
+		public UpValue get(LuanStateImpl luan) {
+			return new UpValue(luan.global());
 		}
 	};
 

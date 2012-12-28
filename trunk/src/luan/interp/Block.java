@@ -16,13 +16,13 @@ final class Block implements Stmt {
 		this.stackEnd = stackEnd;
 	}
 
-	@Override public void eval(LuanStateImpl lua) throws LuanException {
+	@Override public void eval(LuanStateImpl luan) throws LuanException {
 		try {
 			for( Stmt stmt : stmts ) {
-				stmt.eval(lua);
+				stmt.eval(luan);
 			}
 		} finally {
-			lua.stackClear(stackStart,stackEnd);
+			luan.stackClear(stackStart,stackEnd);
 		}
 	}
 

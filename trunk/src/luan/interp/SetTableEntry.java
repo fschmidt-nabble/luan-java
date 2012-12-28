@@ -17,31 +17,31 @@ final class SetTableEntry extends CodeImpl implements Settable {
 		this.keyExpr = keyExpr;
 	}
 
-	@Override public void set(LuanStateImpl lua,Object value) throws LuanException {
-		newindex( lua, tableExpr.eval(lua), keyExpr.eval(lua), value );
+	@Override public void set(LuanStateImpl luan,Object value) throws LuanException {
+		newindex( luan, tableExpr.eval(luan), keyExpr.eval(luan), value );
 	}
 
-	private void newindex(LuanStateImpl lua,Object t,Object key,Object value) throws LuanException {
+	private void newindex(LuanStateImpl luan,Object t,Object key,Object value) throws LuanException {
 		Object h;
 		if( t instanceof LuanTable ) {
 			LuanTable table = (LuanTable)t;
 			Object old = table.put(key,value);
 			if( old != null )
 				return;
-			h = lua.getHandler("__newindex",t);
+			h = luan.getHandler("__newindex",t);
 			if( h==null )
 				return;
 			table.put(key,old);
 		} else {
-			h = lua.getHandler("__newindex",t);
+			h = luan.getHandler("__newindex",t);
 			if( h==null )
-				throw new LuanException( lua, se, "attempt to index a " + Luan.type(t) + " value" );
+				throw new LuanException( luan, se, "attempt to index a " + Luan.type(t) + " value" );
 		}
 		if( h instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)h;
-			lua.call(fn,se,"__newindex",t,key,value);
+			luan.call(fn,se,"__newindex",t,key,value);
 		}
-		newindex(lua,h,key,value);
+		newindex(luan,h,key,value);
 	}
 
 }
