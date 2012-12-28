@@ -1,7 +1,7 @@
 package luan;
 
 
-public abstract class LuaElement {
+public abstract class LuanElement {
 
 	final String toString(String fnName) {
 		return location() + ": in " + (fnName==null ? "main chunk" : "function '"+fnName+"'");
@@ -9,7 +9,7 @@ public abstract class LuaElement {
 
 	abstract String location();
 
-	public static final LuaElement JAVA = new LuaElement(){
+	public static final LuanElement JAVA = new LuanElement(){
 		@Override String location() {
 			return "Java";
 		}

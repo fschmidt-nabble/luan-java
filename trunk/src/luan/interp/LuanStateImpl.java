@@ -2,34 +2,34 @@ package luan.interp;
 
 import java.util.List;
 import java.util.ArrayList;
-import luan.Lua;
-import luan.LuaState;
-import luan.LuaTable;
-import luan.LuaFunction;
+import luan.Luan;
+import luan.LuanState;
+import luan.LuanTable;
+import luan.LuanFunction;
 import luan.MetatableGetter;
-import luan.LuaException;
-import luan.LuaElement;
+import luan.LuanException;
+import luan.LuanElement;
 
 
-final class LuaStateImpl extends LuaState {
+final class LuanStateImpl extends LuanState {
 
-	final Object arithmetic(LuaElement el,String op,Object o1,Object o2) throws LuaException {
-		LuaFunction fn = getBinHandler(el,op,o1,o2);
+	final Object arithmetic(LuanElement el,String op,Object o1,Object o2) throws LuanException {
+		LuanFunction fn = getBinHandler(el,op,o1,o2);
 		if( fn != null )
-			return Lua.first(call(fn,el,op,o1,o2));
-		String type = Lua.toNumber(o1)==null ? Lua.type(o1) : Lua.type(o2);
-		throw new LuaException(this,el,"attempt to perform arithmetic on a "+type+" value");
+			return Luan.first(call(fn,el,op,o1,o2));
+		String type = Luan.toNumber(o1)==null ? Luan.type(o1) : Luan.type(o2);
+		throw new LuanException(this,el,"attempt to perform arithmetic on a "+type+" value");
 	}
 
 
 	private static class Frame {
 		final Frame previousFrame;
-		final LuaClosure closure;
+		final Closure closure;
 		final Object[] stack;
 		final Object[] varArgs;
 		UpValue[] downValues = null;
 
-		Frame( Frame previousFrame, LuaClosure closure, int stackSize, Object[] varArgs) {
+		Frame( Frame previousFrame, Closure closure, int stackSize, Object[] varArgs) {
 			this.previousFrame = previousFrame;
 			this.closure = closure;
 			this.stack = new Object[stackSize];
@@ -62,16 +62,16 @@ final class LuaStateImpl extends LuaState {
 
 	private Frame frame = null;
 	Object[] returnValues;
-	LuaClosure tailFn;
+	Closure tailFn;
 
 	// returns stack
-	Object[] newFrame(LuaClosure closure, int stackSize, Object[] varArgs) {
+	Object[] newFrame(Closure closure, int stackSize, Object[] varArgs) {
 		frame = new Frame(frame,closure,stackSize,varArgs);
 		return frame.stack;
 	}
 
 	void popFrame() {
-		returnValues = LuaFunction.EMPTY_RTN;
+		returnValues = LuanFunction.EMPTY_RTN;
 		tailFn = null;
 		frame = frame.previousFrame;
 	}
@@ -92,7 +92,7 @@ final class LuaStateImpl extends LuaState {
 		return frame.varArgs;
 	}
 
-	LuaClosure closure() {
+	Closure closure() {
 		return frame.closure;
 	}
 

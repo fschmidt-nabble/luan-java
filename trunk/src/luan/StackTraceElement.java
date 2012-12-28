@@ -2,10 +2,10 @@ package luan;
 
 
 final class StackTraceElement {
-	final LuaElement call;
+	final LuanElement call;
 	final String fnName;
 
-	StackTraceElement(LuaElement call,String fnName) {
+	StackTraceElement(LuanElement call,String fnName) {
 		this.call = call;
 		this.fnName = fnName;
 	}

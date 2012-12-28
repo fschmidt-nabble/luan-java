@@ -1,17 +1,17 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class NotExpr extends UnaryOpExpr {
 
-	NotExpr(LuaSource.Element se,Expr op) {
+	NotExpr(LuanSource.Element se,Expr op) {
 		super(se,op);
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
-		return !Lua.toBoolean(op.eval(lua));
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
+		return !Luan.toBoolean(op.eval(lua));
 	}
 }

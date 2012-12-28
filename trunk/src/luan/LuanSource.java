@@ -1,21 +1,21 @@
 package luan;
 
 
-public final class LuaSource {
+public final class LuanSource {
 	public final String name;
 	public final String text;
 
-	public LuaSource(String name,String text) {
+	public LuanSource(String name,String text) {
 		this.name = name;
 		this.text = text;
 	}
 
-	public static final class Element extends LuaElement {
-		public final LuaSource source;
+	public static final class Element extends LuanElement {
+		public final LuanSource source;
 		public final int start;
 		public final int end;
 
-		public Element(LuaSource source,int start,int end) {
+		public Element(LuanSource source,int start,int end) {
 			if( source==null )
 				throw new NullPointerException("source is null");
 			this.source = source;

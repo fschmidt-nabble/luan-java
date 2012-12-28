@@ -1,17 +1,17 @@
 package luan.interp;
 
-import luan.LuaFunction;
-import luan.LuaState;
-import luan.LuaElement;
-import luan.LuaException;
+import luan.LuanFunction;
+import luan.LuanState;
+import luan.LuanElement;
+import luan.LuanException;
 
 
-final class LuaClosure extends LuaFunction {
+final class Closure extends LuanFunction {
 	private final Chunk chunk;
 	final UpValue[] upValues;
 	private final static UpValue[] NO_UP_VALUES = new UpValue[0];
 
-	LuaClosure(Chunk chunk,LuaStateImpl lua) {
+	Closure(Chunk chunk,LuanStateImpl lua) {
 		this.chunk = chunk;
 		UpValue.Getter[] upValueGetters = chunk.upValueGetters;
 		if( upValueGetters.length==0 ) {
@@ -24,11 +24,11 @@ final class LuaClosure extends LuaFunction {
 		}
 	}
 
-	public Object[] call(LuaState lua,Object[] args) throws LuaException {
-		return call(this,(LuaStateImpl)lua,args);
+	public Object[] call(LuanState lua,Object[] args) throws LuanException {
+		return call(this,(LuanStateImpl)lua,args);
 	}
 
-	private static Object[] call(LuaClosure closure,LuaStateImpl lua,Object[] args) throws LuaException {
+	private static Object[] call(Closure closure,LuanStateImpl lua,Object[] args) throws LuanException {
 		while(true) {
 			Chunk chunk = closure.chunk;
 			Object[] varArgs = null;
@@ -39,7 +39,7 @@ final class LuaClosure extends LuaFunction {
 						varArgs[i] = args[chunk.numArgs+i];
 					}
 				} else {
-					varArgs = LuaFunction.EMPTY_RTN;
+					varArgs = LuanFunction.EMPTY_RTN;
 				}
 			}
 			Object[] stack = lua.newFrame(closure,chunk.stackSize,varArgs);
@@ -48,7 +48,7 @@ final class LuaClosure extends LuaFunction {
 				stack[i] = args[i];
 			}
 			Object[] returnValues;
-			LuaClosure tailFn;
+			Closure tailFn;
 			try {
 				chunk.block.eval(lua);
 			} catch(ReturnException e) {

@@ -1,8 +1,8 @@
 package luan.interp;
 
-import luan.LuaException;
-import luan.LuaTable;
-import luan.LuaSource;
+import luan.LuanException;
+import luan.LuanTable;
+import luan.LuanSource;
 
 
 final class TableExpr extends CodeImpl implements Expr {
@@ -20,14 +20,14 @@ final class TableExpr extends CodeImpl implements Expr {
 	private final Field[] fields;
 	private final Expressions expressions;
 
-	TableExpr(LuaSource.Element se,Field[] fields,Expressions expressions) {
+	TableExpr(LuanSource.Element se,Field[] fields,Expressions expressions) {
 		super(se);
 		this.fields = fields;
 		this.expressions = expressions;
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
-		LuaTable table = new LuaTable();
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
+		LuanTable table = new LuanTable();
 		for( Field field : fields ) {
 			table.put( field.key.eval(lua), field.value.eval(lua) );
 		}

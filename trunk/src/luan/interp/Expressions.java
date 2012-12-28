@@ -1,8 +1,8 @@
 package luan.interp;
 
-import luan.LuaException;
+import luan.LuanException;
 
 
 interface Expressions extends Code {
-	public Object[] eval(LuaStateImpl lua) throws LuaException;
+	public Object[] eval(LuanStateImpl lua) throws LuanException;
 }

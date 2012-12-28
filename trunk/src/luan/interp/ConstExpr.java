@@ -1,6 +1,6 @@
 package luan.interp;
 
-import luan.LuaSource;
+import luan.LuanSource;
 
 
 final class ConstExpr implements Expr {
@@ -10,11 +10,11 @@ final class ConstExpr implements Expr {
 		this.obj = obj;
 	}
 
-	@Override public Object eval(LuaStateImpl lua) {
+	@Override public Object eval(LuanStateImpl lua) {
 		return obj;
 	}
 
-	@Override public final LuaSource.Element se() {
+	@Override public final LuanSource.Element se() {
 		return null;
 	}
 }

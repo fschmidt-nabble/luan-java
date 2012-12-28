@@ -1,8 +1,8 @@
 package luan.interp;
 
-import luan.LuaSource;
+import luan.LuanSource;
 
 
 interface Code {
-	public LuaSource.Element se();
+	public LuanSource.Element se();
 }

@@ -16,17 +16,17 @@ import org.parboiled.support.StringVar;
 import org.parboiled.support.StringBuilderVar;
 import org.parboiled.support.ValueStack;
 import org.parboiled.errors.ErrorUtils;
-import luan.Lua;
-import luan.LuaState;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanState;
+import luan.LuanSource;
 
 
-class LuaParser extends BaseParser<Object> {
+class LuanParser extends BaseParser<Object> {
 
-	LuaSource source;
+	LuanSource source;
 
-	LuaSource.Element se(int start) {
-		return new LuaSource.Element(source,start,currentIndex());
+	LuanSource.Element se(int start) {
+		return new LuanSource.Element(source,start,currentIndex());
 	}
 
 	static final String _ENV = "_ENV";

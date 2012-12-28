@@ -8,7 +8,7 @@ final class SetUpVar implements Settable {
 		this.index = index;
 	}
 
-	@Override public void set(LuaStateImpl lua,Object value) {
+	@Override public void set(LuanStateImpl lua,Object value) {
 		lua.closure().upValues[index].set(value);
 	}
 }

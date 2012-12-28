@@ -3,39 +3,39 @@ package luan.lib;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.Arrays;
-import luan.Lua;
-import luan.LuaState;
-import luan.LuaTable;
-import luan.LuaFunction;
-import luan.LuaJavaFunction;
-import luan.LuaElement;
-import luan.LuaException;
+import luan.Luan;
+import luan.LuanState;
+import luan.LuanTable;
+import luan.LuanFunction;
+import luan.LuanJavaFunction;
+import luan.LuanElement;
+import luan.LuanException;
 
 
 public final class TableLib {
 
-	public static void register(LuaState lua) {
-		LuaTable module = new LuaTable();
-		LuaTable global = lua.global();
+	public static void register(LuanState lua) {
+		LuanTable module = new LuanTable();
+		LuanTable global = lua.global();
 		global.put("table",module);
 		try {
-			add( module, "concat", LuaState.class, LuaTable.class, String.class, Integer.class, Integer.class );
-			add( module, "insert", LuaState.class, LuaTable.class, Integer.TYPE, Object.class );
+			add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
+			add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );
 			add( module, "pack", new Object[0].getClass() );
-			add( module, "remove", LuaState.class, LuaTable.class, Integer.TYPE );
-			add( module, "sort", LuaState.class, LuaTable.class, LuaFunction.class );
-			add( module, "sub_list", LuaTable.class, Integer.TYPE, Integer.TYPE );
-			add( module, "unpack", LuaTable.class );
+			add( module, "remove", LuanState.class, LuanTable.class, Integer.TYPE );
+			add( module, "sort", LuanState.class, LuanTable.class, LuanFunction.class );
+			add( module, "sub_list", LuanTable.class, Integer.TYPE, Integer.TYPE );
+			add( module, "unpack", LuanTable.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private static void add(LuaTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuaJavaFunction(TableLib.class.getMethod(method,parameterTypes),null) );
+	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
+		t.put( method, new LuanJavaFunction(TableLib.class.getMethod(method,parameterTypes),null) );
 	}
 
-	public static String concat(LuaState lua,LuaTable list,String sep,Integer i,Integer j) throws LuaException {
+	public static String concat(LuanState lua,LuanTable list,String sep,Integer i,Integer j) throws LuanException {
 		int first = i==null ? 1 : i;
 		int last = j==null ? list.length() : j;
 		StringBuilder buf = new StringBuilder();
@@ -45,27 +45,27 @@ public final class TableLib {
 				break;
 			if( sep!=null && k > first )
 				buf.append(sep);
-			String s = Lua.asString(val);
+			String s = Luan.asString(val);
 			if( s==null )
-				throw new LuaException( lua, LuaElement.JAVA, "invalid value ("+Lua.type(val)+") at index "+k+" in table for 'concat'" );
+				throw new LuanException( lua, LuanElement.JAVA, "invalid value ("+Luan.type(val)+") at index "+k+" in table for 'concat'" );
 			buf.append(val);
 		}
 		return buf.toString();
 	}
 
-	public static void insert(LuaState lua,LuaTable list,int pos,Object value) throws LuaException {
+	public static void insert(LuanState lua,LuanTable list,int pos,Object value) throws LuanException {
 		try {
 			list.insert(pos,value);
 		} catch(IndexOutOfBoundsException e) {
-			throw new LuaException( lua, LuaElement.JAVA, e);
+			throw new LuanException( lua, LuanElement.JAVA, e);
 		}
 	}
 
-	public static Object remove(LuaState lua,LuaTable list,int pos) throws LuaException {
+	public static Object remove(LuanState lua,LuanTable list,int pos) throws LuanException {
 		try {
 			return list.remove(pos);
 		} catch(IndexOutOfBoundsException e) {
-			throw new LuaException( lua, LuaElement.JAVA, e);
+			throw new LuanException( lua, LuanElement.JAVA, e);
 		}
 	}
 
@@ -73,15 +73,15 @@ public final class TableLib {
 		public boolean isLessThan(Object o1,Object o2);
 	}
 
-	public static void sort(final LuaState lua,LuaTable list,final LuaFunction comp) throws LuaException {
+	public static void sort(final LuanState lua,LuanTable list,final LuanFunction comp) throws LuanException {
 		final LessThan lt;
 		if( comp==null ) {
 			lt = new LessThan() {
 				public boolean isLessThan(Object o1,Object o2) {
 					try {
-						return lua.isLessThan(LuaElement.JAVA,o1,o2);
-					} catch(LuaException e) {
-						throw new LuaRuntimeException(e);
+						return lua.isLessThan(LuanElement.JAVA,o1,o2);
+					} catch(LuanException e) {
+						throw new LuanRuntimeException(e);
 					}
 				}
 			};
@@ -89,9 +89,9 @@ public final class TableLib {
 			lt = new LessThan() {
 				public boolean isLessThan(Object o1,Object o2) {
 					try {
-						return Lua.toBoolean(Lua.first(lua.call(comp,LuaElement.JAVA,"comp-arg",o1,o2)));
-					} catch(LuaException e) {
-						throw new LuaRuntimeException(e);
+						return Luan.toBoolean(Luan.first(lua.call(comp,LuanElement.JAVA,"comp-arg",o1,o2)));
+					} catch(LuanException e) {
+						throw new LuanRuntimeException(e);
 					}
 				}
 			};
@@ -102,20 +102,20 @@ public final class TableLib {
 					return lt.isLessThan(o1,o2) ? -1 : lt.isLessThan(o2,o1) ? 1 : 0;
 				}
 			} );
-		} catch(LuaRuntimeException e) {
-			throw (LuaException)e.getCause();
+		} catch(LuanRuntimeException e) {
+			throw (LuanException)e.getCause();
 		}
 	}
 
-	public static LuaTable pack(Object[] args) {
-		return new LuaTable(new ArrayList<Object>(Arrays.asList(args)));
+	public static LuanTable pack(Object[] args) {
+		return new LuanTable(new ArrayList<Object>(Arrays.asList(args)));
 	}
 
-	public static Object[] unpack(LuaTable list) {
+	public static Object[] unpack(LuanTable list) {
 		return list.listToArray();
 	}
 
-	public static LuaTable sub_list(LuaTable list,int from,int to) {
+	public static LuanTable sub_list(LuanTable list,int from,int to) {
 		return list.subList(from,to);
 	}
 

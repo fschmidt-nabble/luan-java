@@ -6,18 +6,18 @@ import luan.lib.BasicLib;
 import luan.lib.JavaLib;
 import luan.lib.StringLib;
 import luan.lib.TableLib;
-import luan.Lua;
-import luan.LuaState;
-import luan.LuaFunction;
-import luan.LuaTable;
-import luan.LuaException;
-import luan.interp.LuaCompiler;
+import luan.Luan;
+import luan.LuanState;
+import luan.LuanFunction;
+import luan.LuanTable;
+import luan.LuanException;
+import luan.interp.LuanCompiler;
 
 
 public class CmdLine {
 
 	public static void main(String[] args) {
-		LuaState lua = LuaCompiler.newLuaState();
+		LuanState lua = LuanCompiler.newLuaState();
 		BasicLib.register(lua);
 		JavaLib.register(lua);
 		StringLib.register(lua);
@@ -43,16 +43,16 @@ public class CmdLine {
 						error("'-e' needs argument");
 					String cmd = args[i];
 					try {
-						LuaFunction fn = BasicLib.load(lua,cmd,"(command line)");
+						LuanFunction fn = BasicLib.load(lua,cmd,"(command line)");
 						lua.call(fn,null,null);
-					} catch(LuaException e) {
+					} catch(LuanException e) {
 						System.err.println("command line error: "+e.getMessage());
 						System.exit(-1);
 					}
 				} else if( arg.equals("-") ) {
 					try {
 						BasicLib.do_file(lua,"stdin");
-					} catch(LuaException e) {
+					} catch(LuanException e) {
 						System.err.println(e.getMessage());
 						System.exit(-1);
 					}
@@ -64,20 +64,20 @@ public class CmdLine {
 			}
 		}
 		if( showVersion )
-			System.out.println(Lua.version);
+			System.out.println(Luan.version);
 		if( i < args.length ) {
 			String file = args[i++];
 			Object[] varArgs = new Object[args.length-1];
 			System.arraycopy(args,1,varArgs,0,varArgs.length);
-			LuaTable argsTable = new LuaTable();
+			LuanTable argsTable = new LuanTable();
 			for( int j=0; j<args.length; j++ ) {
 				argsTable.put( j, args[j] );
 			}
 			lua.global().put("arg",argsTable);
 			try {
-				LuaFunction fn = BasicLib.load_file(lua,file);
+				LuanFunction fn = BasicLib.load_file(lua,file);
 				lua.call(fn,null,null,varArgs);
-			} catch(LuaException e) {
+			} catch(LuanException e) {
 //				System.err.println("error: "+e.getMessage());
 				e.printStackTrace();
 				System.exit(-1);
@@ -101,16 +101,16 @@ public class CmdLine {
 		System.exit(-1);
 	}
 
-	static void interactive(LuaState lua) {
+	static void interactive(LuanState lua) {
 		while( true ) {
 			System.out.print("> ");
 			String input = new Scanner(System.in).nextLine();
 			try {
-				LuaFunction fn = BasicLib.load(lua,input,"stdin");
+				LuanFunction fn = BasicLib.load(lua,input,"stdin");
 				Object[] rtn = lua.call(fn,null,null);
 				if( rtn.length > 0 )
 					BasicLib.print(lua,rtn);
-			} catch(LuaException e) {
+			} catch(LuanException e) {
 				System.out.println(e.getMessage());
 			}
 		}

@@ -1,9 +1,9 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
-import luan.LuaFunction;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanException;
+import luan.LuanFunction;
+import luan.LuanSource;
 
 
 final class ReturnStmt extends CodeImpl implements Stmt {
@@ -11,7 +11,7 @@ final class ReturnStmt extends CodeImpl implements Stmt {
 	private final Expr tailFnExpr;
 	boolean throwReturnException = true;
 
-	ReturnStmt(LuaSource.Element se,Expressions expressions) {
+	ReturnStmt(LuanSource.Element se,Expressions expressions) {
 		super(se);
 		if( expressions instanceof FnCall ) {  // tail call
 			FnCall fnCall = (FnCall)expressions;
@@ -23,12 +23,12 @@ final class ReturnStmt extends CodeImpl implements Stmt {
 		}
 	}
 
-	@Override public void eval(LuaStateImpl lua) throws LuaException {
+	@Override public void eval(LuanStateImpl lua) throws LuanException {
 		lua.returnValues = expressions.eval(lua);
 		if( tailFnExpr != null ) {
-			LuaFunction tailFn = lua.checkFunction( se, tailFnExpr.eval(lua) );
-			if( tailFn instanceof LuaClosure ) {
-				lua.tailFn = (LuaClosure)tailFn;
+			LuanFunction tailFn = lua.checkFunction( se, tailFnExpr.eval(lua) );
+			if( tailFn instanceof Closure ) {
+				lua.tailFn = (Closure)tailFn;
 			} else {
 				lua.returnValues =  lua.call(tailFn,tailFnExpr.se(),tailFnExpr.se().text(),lua.returnValues);
 			}

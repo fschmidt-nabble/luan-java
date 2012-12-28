@@ -1,16 +1,16 @@
 package luan.interp;
 
-import luan.LuaSource;
+import luan.LuanSource;
 
 
 class CodeImpl implements Code {
-	final LuaSource.Element se;
+	final LuanSource.Element se;
 
-	CodeImpl(LuaSource.Element se) {
+	CodeImpl(LuanSource.Element se) {
 		this.se = se;
 	}
 
-	@Override public final LuaSource.Element se() {
+	@Override public final LuanSource.Element se() {
 		return se;
 	}
 }

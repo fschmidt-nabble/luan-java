@@ -1,31 +1,31 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaTable;
-import luan.LuaFunction;
-import luan.LuaException;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanTable;
+import luan.LuanFunction;
+import luan.LuanException;
+import luan.LuanSource;
 
 
 final class LenExpr extends UnaryOpExpr {
 
-	LenExpr(LuaSource.Element se,Expr op) {
+	LenExpr(LuanSource.Element se,Expr op) {
 		super(se,op);
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
 		Object o = op.eval(lua);
 		if( o instanceof String ) {
 			String s = (String)o;
 			return s.length();
 		}
-		LuaFunction fn = lua.getHandlerFunction(se,"__len",o);
+		LuanFunction fn = lua.getHandlerFunction(se,"__len",o);
 		if( fn != null )
-			return Lua.first(lua.call(fn,se,"__len",o));
-		if( o instanceof LuaTable ) {
-			LuaTable t = (LuaTable)o;
+			return Luan.first(lua.call(fn,se,"__len",o));
+		if( o instanceof LuanTable ) {
+			LuanTable t = (LuanTable)o;
 			return t.length();
 		}
-		throw new LuaException( lua, se, "attempt to get length of a " + Lua.type(o) + " value" );
+		throw new LuanException( lua, se, "attempt to get length of a " + Luan.type(o) + " value" );
 	}
 }

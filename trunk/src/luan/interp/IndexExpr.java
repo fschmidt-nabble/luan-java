@@ -1,26 +1,26 @@
 package luan.interp;
 
-import luan.Lua;
-import luan.LuaException;
-import luan.LuaTable;
-import luan.LuaFunction;
-import luan.LuaSource;
+import luan.Luan;
+import luan.LuanException;
+import luan.LuanTable;
+import luan.LuanFunction;
+import luan.LuanSource;
 
 
 final class IndexExpr extends BinaryOpExpr {
 
-	IndexExpr(LuaSource.Element se,Expr op1,Expr op2) {
+	IndexExpr(LuanSource.Element se,Expr op1,Expr op2) {
 		super(se,op1,op2);
 	}
 
-	@Override public Object eval(LuaStateImpl lua) throws LuaException {
+	@Override public Object eval(LuanStateImpl lua) throws LuanException {
 		return index(lua,op1.eval(lua),op2.eval(lua));
 	}
 
-	private Object index(LuaStateImpl lua,Object t,Object key) throws LuaException {
+	private Object index(LuanStateImpl lua,Object t,Object key) throws LuanException {
 		Object h;
-		if( t instanceof LuaTable ) {
-			LuaTable tbl = (LuaTable)t;
+		if( t instanceof LuanTable ) {
+			LuanTable tbl = (LuanTable)t;
 			Object value = tbl.get(key);
 			if( value != null )
 				return value;
@@ -30,11 +30,11 @@ final class IndexExpr extends BinaryOpExpr {
 		} else {
 			h = lua.getHandler("__index",t);
 			if( h==null )
-				throw new LuaException( lua, se, "attempt to index a " + Lua.type(t) + " value" );
+				throw new LuanException( lua, se, "attempt to index a " + Luan.type(t) + " value" );
 		}
-		if( h instanceof LuaFunction ) {
-			LuaFunction fn = (LuaFunction)h;
-			return Lua.first(lua.call(fn,se,"__index",t,key));
+		if( h instanceof LuanFunction ) {
+			LuanFunction fn = (LuanFunction)h;
+			return Luan.first(lua.call(fn,se,"__index",t,key));
 		}
 		return index(lua,h,key);
 	}
