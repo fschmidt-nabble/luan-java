@@ -6,6 +6,7 @@ import luan.lib.BasicLib;
 import luan.lib.JavaLib;
 import luan.lib.StringLib;
 import luan.lib.TableLib;
+import luan.lib.HtmlLib;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanFunction;
@@ -16,12 +17,18 @@ import luan.interp.LuanCompiler;
 
 public class CmdLine {
 
-	public static void main(String[] args) {
+	public static LuanState newStandardLuan() {
 		LuanState luan = LuanCompiler.newLuanState();
 		BasicLib.register(luan);
 		JavaLib.register(luan);
 		StringLib.register(luan);
 		TableLib.register(luan);
+		HtmlLib.register(luan);
+		return luan;
+	}
+
+	public static void main(String[] args) {
+		LuanState luan = newStandardLuan();
 		BasicLib.make_standard(luan);
 		boolean interactive = false;
 		boolean showVersion = false;
@@ -106,13 +113,17 @@ public class CmdLine {
 			System.out.print("> ");
 			String input = new Scanner(System.in).nextLine();
 			try {
-				LuanFunction fn = BasicLib.load(luan,input,"stdin");
-				Object[] rtn = luan.call(fn,null,null);
+				Object[] rtn = eval(luan,input,"stdin");
 				if( rtn.length > 0 )
 					BasicLib.print(luan,rtn);
 			} catch(LuanException e) {
 				System.out.println(e.getMessage());
 			}
 		}
+	}
+
+	public static Object[] eval(LuanState luan,String cmd,String sourceName) throws LuanException {
+		LuanFunction fn = BasicLib.load(luan,cmd,sourceName);
+		return luan.call(fn,null,null);
 	}
 }
