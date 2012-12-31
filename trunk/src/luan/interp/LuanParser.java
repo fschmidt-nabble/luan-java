@@ -221,6 +221,7 @@ class LuanParser extends BaseParser<Object> {
 			LocalStmt(stmts),
 			Sequence(
 				FirstOf(
+					OutputStmt(),
 					ReturnStmt(),
 					FunctionStmt(),
 					LocalFunctionStmt(),
@@ -237,6 +238,34 @@ class LuanParser extends BaseParser<Object> {
 				),
 				stmts.get().add( (Stmt)pop() )
 			)
+		);
+	}
+
+	Rule OutputStmt() {
+		Var<Integer> start = new Var<Integer>();
+		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
+		return Sequence(
+			start.set(currentIndex()),
+			"%>", Optional( EndOfLine() ),
+			ZeroOrMore(
+				FirstOf(
+					Sequence(
+						OneOrMore(
+							TestNot("<%"),
+							ANY
+						),
+						addToExpList(builder.get(),new ConstExpr(match()))
+					),
+					Sequence(
+						"<%=", Spaces(),
+						Expr(),
+						addToExpList(builder.get()),
+						"%>"
+					)
+				)
+			),
+			"<%", Spaces(),
+			push( new OutputStmt( se(start.get()), builder.get().build() ) )
 		);
 	}
 
@@ -793,6 +822,11 @@ class LuanParser extends BaseParser<Object> {
 		} else {
 			bld.add( (Expr)obj );
 		}
+		return true;
+	}
+
+	boolean addToExpList(ExpList.Builder bld, Expr expr) {
+		bld.add(expr);
 		return true;
 	}
 
