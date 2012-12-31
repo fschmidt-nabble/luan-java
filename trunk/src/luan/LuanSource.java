@@ -20,7 +20,7 @@ public final class LuanSource {
 				throw new NullPointerException("source is null");
 			this.source = source;
 			this.start = start;
-			while( Character.isWhitespace(source.text.charAt(end-1)) ) {
+			while( end > 0 && Character.isWhitespace(source.text.charAt(end-1)) ) {
 				end--;
 			}
 			this.end = end;
