@@ -18,9 +18,6 @@ import luan.LuanState;
 import luan.LuanException;
 import luan.interp.LuanCompiler;
 import luan.lib.BasicLib;
-import luan.lib.JavaLib;
-import luan.lib.StringLib;
-import luan.lib.TableLib;
 import luan.lib.HtmlLib;
 
 
@@ -28,18 +25,11 @@ public class WebShell extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(WebShell.class);
 
 	protected LuanState newLuanState() throws LuanException {
-		LuanState luan =  LuanCompiler.newLuanState();
-		BasicLib.register(luan);
-		JavaLib.register(luan);
-		StringLib.register(luan);
-		TableLib.register(luan);
-		HtmlLib.register(luan);
-		return luan;
+		return CmdLine.newStandardLuan();
 	}
 
 	protected Object[] eval(LuanState luan,String cmd) throws LuanException {
-		LuanFunction fn = BasicLib.load(luan,cmd,"WebShell");
-		return luan.call(fn,null,null);
+		return CmdLine.eval(luan,cmd,"WebShell");
 	}
 
 	protected void service(HttpServletRequest request,HttpServletResponse response)
