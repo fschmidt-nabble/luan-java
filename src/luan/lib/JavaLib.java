@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Collections;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -110,7 +111,7 @@ public final class JavaLib {
 				}
 			}
 		}
-		throw new LuanException(luan,LuanElement.JAVA,"invalid index for java object: "+key);
+		throw new LuanException(luan,LuanElement.JAVA,"invalid member for java object: "+key);
 	}
 
 	private static Object member(Object obj,List<AccessibleObject> members) throws LuanException {
@@ -166,7 +167,10 @@ public final class JavaLib {
 			}
 			memberMap.put(cls,clsMap);
 		}
-		return clsMap.get(name);
+		List<AccessibleObject> rtn = clsMap.get(name);
+		if( rtn==null )
+			rtn = Collections.emptyList();
+		return rtn;
 	}
 
 	private static synchronized List<AccessibleObject> getStaticMembers(Class cls,String name) {
@@ -222,7 +226,7 @@ public final class JavaLib {
 		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			for( LuanJavaFunction fn : fnMap.get(args.length) ) {
 				try {
-					return fn.call(luan,args);
+					return fn.rawCall(luan,args);
 				} catch(IllegalArgumentException e) {}
 			}
 			throw new LuanException(luan,LuanElement.JAVA,"no method matched args");
