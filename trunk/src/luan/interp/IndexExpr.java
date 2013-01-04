@@ -30,7 +30,7 @@ final class IndexExpr extends BinaryOpExpr {
 		} else {
 			h = luan.getHandler("__index",t);
 			if( h==null )
-				throw new LuanException( luan, se, "attempt to index a " + Luan.type(t) + " value" );
+				throw new LuanException( luan, op1.se(), "attempt to index '"+op1.se().text()+"' (a " + Luan.type(t) + " value)" );
 		}
 		if( h instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)h;

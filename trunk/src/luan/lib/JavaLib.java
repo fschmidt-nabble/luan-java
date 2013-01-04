@@ -81,13 +81,13 @@ public final class JavaLib {
 						}
 					}
 				} else {
-					List<AccessibleObject> members = getStaticMembers(cls,name);
+					List<Member> members = getStaticMembers(cls,name);
 					if( !members.isEmpty() ) {
 						return member(null,members);
 					}
 				}
 			}
-			throw new LuanException(luan,LuanElement.JAVA,"invalid index for java class: "+key);
+			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for: "+obj);
 		}
 		Class cls = obj.getClass();
 		if( cls.isArray() ) {
@@ -98,30 +98,33 @@ public final class JavaLib {
 			if( i != null ) {
 				return Array.get(obj,i);
 			}
-			throw new LuanException(luan,LuanElement.JAVA,"invalid index for java array: "+key);
+			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java array: "+obj);
 		}
 		if( key instanceof String ) {
 			String name = (String)key;
 			if( "instanceof".equals(name) ) {
 				return new LuanJavaFunction(instanceOf,new InstanceOf(obj));
 			} else {
-				List<AccessibleObject> members = getMembers(cls,name);
+				List<Member> members = getMembers(cls,name);
 				if( !members.isEmpty() ) {
 					return member(obj,members);
 				}
 			}
 		}
-		throw new LuanException(luan,LuanElement.JAVA,"invalid member for java object: "+key);
+		throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java object: "+obj);
 	}
 
-	private static Object member(Object obj,List<AccessibleObject> members) throws LuanException {
+	private static Object member(Object obj,List<Member> members) throws LuanException {
 		try {
-			for( AccessibleObject m : members ) {
-				m.setAccessible(true);
+			for( Member m : members ) {
+				if( m instanceof AccessibleObject )
+					((AccessibleObject)m).setAccessible(true);
 			}
 			if( members.size()==1 ) {
-				AccessibleObject member = members.get(0);
-				if( member instanceof Field ) {
+				Member member = members.get(0);
+				if( member instanceof Static ) {
+					return member;
+				} else if( member instanceof Field ) {
 					Field field = (Field)member;
 					return field.get(obj);
 				} else {
@@ -130,7 +133,7 @@ public final class JavaLib {
 				}
 			} else {
 				List<LuanJavaFunction> fns = new ArrayList<LuanJavaFunction>();
-				for( AccessibleObject member : members ) {
+				for( Member member : members ) {
 					Method method = (Method)member;
 					fns.add(new LuanJavaFunction(method,obj));
 				}
@@ -141,52 +144,81 @@ public final class JavaLib {
 		}
 	}
 
-	private static Map<Class,Map<String,List<AccessibleObject>>> memberMap = new HashMap<Class,Map<String,List<AccessibleObject>>>();
+	private static Map<Class,Map<String,List<Member>>> memberMap = new HashMap<Class,Map<String,List<Member>>>();
 
-	private static synchronized List<AccessibleObject> getMembers(Class cls,String name) {
-		Map<String,List<AccessibleObject>> clsMap = memberMap.get(cls);
+	private static synchronized List<Member> getMembers(Class cls,String name) {
+		Map<String,List<Member>> clsMap = memberMap.get(cls);
 		if( clsMap == null ) {
-			clsMap = new HashMap<String,List<AccessibleObject>>();
+			clsMap = new HashMap<String,List<Member>>();
+			for( Class c : cls.getClasses() ) {
+				String s = c.getSimpleName();
+				List<Member> list = clsMap.get(s);
+				if( list == null ) {
+					list = new ArrayList<Member>();
+					clsMap.put(s,list);
+				}
+				list.add(new Static(c));
+			}
 			for( Field field : cls.getFields() ) {
 				String s = field.getName();
-				List<AccessibleObject> list = clsMap.get(s);
+				List<Member> list = clsMap.get(s);
 				if( list == null ) {
-					list = new ArrayList<AccessibleObject>();
+					list = new ArrayList<Member>();
 					clsMap.put(s,list);
 				}
 				list.add(field);
 			}
 			for( Method method : cls.getMethods() ) {
 				String s = method.getName();
-				List<AccessibleObject> list = clsMap.get(s);
+				List<Member> list = clsMap.get(s);
 				if( list == null ) {
-					list = new ArrayList<AccessibleObject>();
+					list = new ArrayList<Member>();
 					clsMap.put(s,list);
 				}
 				list.add(method);
 			}
 			memberMap.put(cls,clsMap);
 		}
-		List<AccessibleObject> rtn = clsMap.get(name);
+		List<Member> rtn = clsMap.get(name);
 		if( rtn==null )
 			rtn = Collections.emptyList();
 		return rtn;
 	}
 
-	private static synchronized List<AccessibleObject> getStaticMembers(Class cls,String name) {
-		List<AccessibleObject> staticMembers = new ArrayList<AccessibleObject>();
-		for( AccessibleObject m : getMembers(cls,name) ) {
-			if( Modifier.isStatic(((Member)m).getModifiers()) )
+	private static synchronized List<Member> getStaticMembers(Class cls,String name) {
+		List<Member> staticMembers = new ArrayList<Member>();
+		for( Member m : getMembers(cls,name) ) {
+			if( Modifier.isStatic(m.getModifiers()) )
 				staticMembers.add(m);
 		}
 		return staticMembers;
 	}
 
-	static class Static {
+	static final class Static implements Member {
 		final Class cls;
 
 		Static(Class cls) {
 			this.cls = cls;
+		}
+
+		@Override public String toString() {
+			return cls.toString();
+		}
+
+		@Override public Class<?> getDeclaringClass() {
+			return cls.getDeclaringClass();
+		}
+
+		@Override public String getName() {
+			return cls.getName();
+		}
+
+		@Override public int getModifiers() {
+			return cls.getModifiers();
+		}
+
+		@Override public boolean isSynthetic() {
+			return cls.isSynthetic();
 		}
 	}
 
