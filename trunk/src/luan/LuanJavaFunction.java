@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
 
 
 public final class LuanJavaFunction extends LuanFunction {
@@ -44,13 +45,19 @@ public final class LuanJavaFunction extends LuanFunction {
 	}
 
 	@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
+		try {
+			return rawCall(luan,args);
+		} catch(IllegalArgumentException e) {
+			checkArgs(luan,args);
+			throw e;
+		}
+	}
+
+	public Object[] rawCall(LuanState luan,Object[] args) throws LuanException {
 		args = fixArgs(luan,args);
 		Object rtn;
 		try {
 			rtn = method.invoke(obj,args);
-		} catch(IllegalArgumentException e) {
-			checkArgs(luan,args);
-			throw e;
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch(InvocationTargetException e) {
@@ -323,6 +330,11 @@ public final class LuanJavaFunction extends LuanFunction {
 				@SuppressWarnings("unchecked")
 				Set<Object> set = (Set<Object>)obj;
 				return new LuanTable(set);
+			}
+			Class cls = obj.getClass();
+			if( cls.isArray() && !cls.getComponentType().isPrimitive() ) {
+				Object[] a = (Object[])obj;
+				return new LuanTable(Arrays.asList(a));
 			}
 			return obj;
 		}

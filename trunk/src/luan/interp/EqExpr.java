@@ -23,7 +23,7 @@ final class EqExpr extends BinaryOpExpr {
 			Number n2 = (Number)o2;
 			return n1.doubleValue() == n2.doubleValue();
 		}
-		if( !o1.getClass().equals(o2.getClass()) )
+		if( o1==null || o2==null || !o1.getClass().equals(o2.getClass()) )
 			return false;
 		LuanTable mt1 = luan.getMetatable(o1);
 		LuanTable mt2 = luan.getMetatable(o2);

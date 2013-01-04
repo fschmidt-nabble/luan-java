@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
 import luan.lib.JavaLib;
+import luan.lib.MathLib;
 import luan.lib.StringLib;
 import luan.lib.TableLib;
 import luan.lib.HtmlLib;
@@ -21,6 +22,7 @@ public class CmdLine {
 		LuanState luan = LuanCompiler.newLuanState();
 		BasicLib.register(luan);
 		JavaLib.register(luan);
+		MathLib.register(luan);
 		StringLib.register(luan);
 		TableLib.register(luan);
 		HtmlLib.register(luan);
