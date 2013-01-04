@@ -65,7 +65,7 @@ public final class LuanJavaFunction extends LuanFunction {
 			if( cause instanceof Error )
 				throw (Error)cause;
 			if( cause instanceof RuntimeException )
-				throw (RuntimeException)cause;
+				throw new LuanException(luan,LuanElement.JAVA,cause);
 			if( cause instanceof LuanException )
 				throw (LuanException)cause;
 			throw new RuntimeException(e);

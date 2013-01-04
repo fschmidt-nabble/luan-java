@@ -1092,7 +1092,8 @@ class LuanParser extends BaseParser<Object> {
 			FirstOf(
 				AnyOf(" \t"),
 				Comment(),
-				Sequence( '\\', EndOfLine() )
+				Sequence( '\\', EndOfLine() ),
+				Sequence( AnyOf("\r\n"), parens > 0 )
 			)
 		);
 	}
