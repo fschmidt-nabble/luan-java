@@ -372,6 +372,26 @@ public final class LuanJavaFunction extends LuanFunction {
 		}
 	};
 
+	private static class ArgArray implements ArgConverter {
+		private final Object[] a;
+
+		ArgArray(Class cls) {
+			a = (Object[])Array.newInstance(cls.getComponentType(),0);
+		}
+
+		public Object convert(Object obj) {
+			if( obj instanceof LuanTable ) {
+				LuanTable t = (LuanTable)obj;
+				if( t.isList() ) {
+					try {
+						return t.asList().toArray(a);
+					} catch(ArrayStoreException e) {}
+				}
+			}
+			return obj;
+		}
+	}
+
 	private static boolean takesLuaState(JavaMethod m) {
 		Class<?>[] paramTypes = m.getParameterTypes();
 		return paramTypes.length > 0 && paramTypes[0].equals(LuanState.class);
@@ -416,6 +436,8 @@ public final class LuanJavaFunction extends LuanFunction {
 			return ARG_LIST;
 		if( cls.equals(Set.class) )
 			return ARG_SET;
+		if( cls.isArray() && !cls.getComponentType().isPrimitive() )
+			return new ArgArray(cls);
 		return ARG_SAME;
 	}
 
