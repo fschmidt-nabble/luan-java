@@ -150,6 +150,15 @@ public final class JavaLib {
 		Map<String,List<Member>> clsMap = memberMap.get(cls);
 		if( clsMap == null ) {
 			clsMap = new HashMap<String,List<Member>>();
+			for( Method method : cls.getMethods() ) {
+				String s = method.getName();
+				List<Member> list = clsMap.get(s);
+				if( list == null ) {
+					list = new ArrayList<Member>();
+					clsMap.put(s,list);
+				}
+				list.add(method);
+			}
 			for( Class c : cls.getClasses() ) {
 				String s = c.getSimpleName();
 				List<Member> list = clsMap.get(s);
@@ -161,21 +170,18 @@ public final class JavaLib {
 			}
 			for( Field field : cls.getFields() ) {
 				String s = field.getName();
-				List<Member> list = clsMap.get(s);
-				if( list == null ) {
-					list = new ArrayList<Member>();
-					clsMap.put(s,list);
+				try {
+					if( !cls.getField(s).equals(field) )
+						continue;  // not accessible
+				} catch(NoSuchFieldException e) {
+					throw new RuntimeException(e);
 				}
+				List<Member> list = clsMap.get(s);
+				if( list != null )
+					throw new RuntimeException("can't add field '"+s+"' to "+cls+" because these are already defined: "+list);
+				list = new ArrayList<Member>();
+				clsMap.put(s,list);
 				list.add(field);
-			}
-			for( Method method : cls.getMethods() ) {
-				String s = method.getName();
-				List<Member> list = clsMap.get(s);
-				if( list == null ) {
-					list = new ArrayList<Member>();
-					clsMap.put(s,list);
-				}
-				list.add(method);
 			}
 			memberMap.put(cls,clsMap);
 		}
