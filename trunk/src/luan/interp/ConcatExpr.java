@@ -15,8 +15,9 @@ final class ConcatExpr extends BinaryOpExpr {
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		Object o1 = op1.eval(luan);
 		Object o2 = op2.eval(luan);
-		String s1 = Luan.asString(o1);
-		String s2 = Luan.asString(o2);
+		String s1 = luan.toString(op1.se(),o1);
+		String s2 = luan.toString(op2.se(),o2);
+/*
 		if( s1 != null && s2 != null )
 			return s1 + s2;
 		LuanFunction fn = luan.getBinHandler(se,"__concat",o1,o2);
@@ -24,5 +25,7 @@ final class ConcatExpr extends BinaryOpExpr {
 			return Luan.first(luan.call(fn,se,"__concat",o1,o2));
 		String type = s1==null ? Luan.type(o1) : Luan.type(o2);
 		throw new LuanException( luan, se, "attempt to concatenate a " + type + " value" );
+*/
+		return s1 + s2;
 	}
 }
