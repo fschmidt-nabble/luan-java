@@ -40,6 +40,10 @@ public final class LuanJavaFunction extends LuanFunction {
 		}
 	}
 
+	@Override public String toString() {
+		return "java-function: " + method;
+	}
+
 	public Class<?>[] getParameterTypes() {
 		return method.getParameterTypes();
 	}
