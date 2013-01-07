@@ -41,6 +41,7 @@ public final class JavaLib {
 	private static final LuanTable mt = new LuanTable();
 	static {
 		add( mt, "__index", LuanState.class, Object.class, Object.class );
+		add( mt, "__newindex", LuanState.class, Object.class, Object.class, Object.class );
 	}
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) {
@@ -139,6 +140,53 @@ public final class JavaLib {
 				}
 				return new AmbiguousJavaFunction(fns);
 			}
+		} catch(IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void __newindex(LuanState luan,Object obj,Object key,Object value) throws LuanException {
+		if( obj instanceof Static ) {
+			if( key instanceof String ) {
+				String name = (String)key;
+				Static st = (Static)obj;
+				Class cls = st.cls;
+				List<Member> members = getStaticMembers(cls,name);
+				if( !members.isEmpty() ) {
+					if( members.size() != 1 )
+						throw new RuntimeException("not field '"+name+"' of "+obj);
+					setMember(obj,members,value);
+					return;
+				}
+			}
+			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for: "+obj);
+		}
+		Class cls = obj.getClass();
+		if( cls.isArray() ) {
+			Integer i = Luan.asInteger(key);
+			if( i != null ) {
+				Array.set(obj,i,value);
+				return;
+			}
+			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java array: "+obj);
+		}
+		if( key instanceof String ) {
+			String name = (String)key;
+			List<Member> members = getMembers(cls,name);
+			if( !members.isEmpty() ) {
+				if( members.size() != 1 )
+					throw new RuntimeException("not field '"+name+"' of "+obj);
+				setMember(obj,members,value);
+				return;
+			}
+		}
+		throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java object: "+obj);
+	}
+
+	private static void setMember(Object obj,List<Member> members,Object value) {
+		Field field = (Field)members.get(0);
+		try {
+			field.set(obj,value);
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
