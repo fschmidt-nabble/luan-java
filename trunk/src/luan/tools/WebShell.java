@@ -25,11 +25,11 @@ public class WebShell extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(WebShell.class);
 
 	protected LuanState newLuanState() throws LuanException {
-		return CmdLine.newStandardLuan();
+		return LuanState.newStandard();
 	}
 
 	protected Object[] eval(LuanState luan,String cmd) throws LuanException {
-		return CmdLine.eval(luan,cmd,"WebShell");
+		return luan.eval(cmd,"WebShell");
 	}
 
 	protected void service(HttpServletRequest request,HttpServletResponse response)

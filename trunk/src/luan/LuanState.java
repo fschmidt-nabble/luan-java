@@ -4,9 +4,35 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.ArrayList;
+import luan.interp.LuanCompiler;
+import luan.lib.BasicLib;
+import luan.lib.JavaLib;
+import luan.lib.MathLib;
+import luan.lib.StringLib;
+import luan.lib.TableLib;
+import luan.lib.HtmlLib;
 
 
 public abstract class LuanState {
+
+	public static LuanState newStandard() {
+		LuanState luan = LuanCompiler.newLuanState();
+		BasicLib.register(luan);
+		JavaLib.register(luan);
+		MathLib.register(luan);
+		StringLib.register(luan);
+		TableLib.register(luan);
+		HtmlLib.register(luan);
+		return luan;
+	}
+
+	public Object[] eval(String cmd,String sourceName) throws LuanException {
+		LuanFunction fn = BasicLib.load(this,cmd,sourceName);
+		return call(fn,null,null);
+	}
+
+
+
 	private final LuanTable global = new LuanTable();
 	private final List<MetatableGetter> mtGetters = new ArrayList<MetatableGetter>();
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();

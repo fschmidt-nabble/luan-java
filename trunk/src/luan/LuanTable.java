@@ -34,15 +34,15 @@ public class LuanTable {
 		}
 	}
 
-	boolean isList() {
+	public boolean isList() {
 		return map==null || map.isEmpty();
 	}
 
-	List<Object> asList() {
+	public List<Object> asList() {
 		return list!=null ? list : Collections.emptyList();
 	}
 
-	Map<Object,Object> asMap() {
+	public Map<Object,Object> asMap() {
 		if( list == null || list.isEmpty() )
 			return map!=null ? map : Collections.emptyMap();
 		Map<Object,Object> rtn = map!=null ? new HashMap<Object,Object>(map) : new HashMap<Object,Object>();
@@ -53,7 +53,7 @@ public class LuanTable {
 		return rtn;
 	}
 
-	boolean isSet() {
+	public boolean isSet() {
 		if( list != null ) {
 			for( Object obj : list ) {
 				if( obj!=null && !obj.equals(Boolean.TRUE) )
@@ -69,7 +69,7 @@ public class LuanTable {
 		return true;
 	}
 
-	Set<Object> asSet() {
+	public Set<Object> asSet() {
 		if( list == null || list.isEmpty() )
 			return map!=null ? map.keySet() : Collections.emptySet();
 		Set<Object> rtn = map!=null ? new HashSet<Object>(map.keySet()) : new HashSet<Object>();

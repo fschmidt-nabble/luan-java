@@ -3,34 +3,17 @@ package luan.tools;
 import java.util.Arrays;
 import java.util.Scanner;
 import luan.lib.BasicLib;
-import luan.lib.JavaLib;
-import luan.lib.MathLib;
-import luan.lib.StringLib;
-import luan.lib.TableLib;
-import luan.lib.HtmlLib;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanFunction;
 import luan.LuanTable;
 import luan.LuanException;
-import luan.interp.LuanCompiler;
 
 
 public class CmdLine {
 
-	public static LuanState newStandardLuan() {
-		LuanState luan = LuanCompiler.newLuanState();
-		BasicLib.register(luan);
-		JavaLib.register(luan);
-		MathLib.register(luan);
-		StringLib.register(luan);
-		TableLib.register(luan);
-		HtmlLib.register(luan);
-		return luan;
-	}
-
 	public static void main(String[] args) {
-		LuanState luan = newStandardLuan();
+		LuanState luan = LuanState.newStandard();
 		BasicLib.make_standard(luan);
 		boolean interactive = false;
 		boolean showVersion = false;
@@ -115,7 +98,7 @@ public class CmdLine {
 			System.out.print("> ");
 			String input = new Scanner(System.in).nextLine();
 			try {
-				Object[] rtn = eval(luan,input,"stdin");
+				Object[] rtn = luan.eval(input,"stdin");
 				if( rtn.length > 0 )
 					BasicLib.print(luan,rtn);
 			} catch(LuanException e) {
@@ -124,8 +107,4 @@ public class CmdLine {
 		}
 	}
 
-	public static Object[] eval(LuanState luan,String cmd,String sourceName) throws LuanException {
-		LuanFunction fn = BasicLib.load(luan,cmd,sourceName);
-		return luan.call(fn,null,null);
-	}
 }
