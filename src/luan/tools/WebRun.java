@@ -18,7 +18,7 @@ public class WebRun extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(WebRun.class);
 
 	protected LuanState newLuanState() throws LuanException {
-		return CmdLine.newStandardLuan();
+		return LuanState.newStandard();
 	}
 
 	protected void service(HttpServletRequest request,HttpServletResponse response)
@@ -35,7 +35,7 @@ public class WebRun extends HttpServlet {
 			luan.out = out;
 			luan.global().put("request",request);
 			luan.global().put("response",response);
-			CmdLine.eval(luan,code,"WebRun");
+			luan.eval(code,"WebRun");
 		} catch(LuanException e) {
 			logger.error(null,e);
 			response.reset();
