@@ -35,7 +35,7 @@ public final class JavaLib {
 		try {
 			global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
 			module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
-			add( module, "proxy", LuanState.class, Static.class, LuanTable.class );
+			add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
@@ -344,7 +344,7 @@ public final class JavaLib {
 	}
 
 
-	public static Object proxy(final LuanState luan,Static st,final LuanTable t) throws LuanException {
+	public static Object proxy(final LuanState luan,Static st,final LuanTable t,final Object base) throws LuanException {
 		return Proxy.newProxyInstance(
 			st.cls.getClassLoader(),
 			new Class[]{st.cls},
@@ -353,7 +353,10 @@ public final class JavaLib {
 					throws Throwable
 				{
 					String name = method.getName();
-					LuanFunction fn = luan.checkFunction(LuanElement.JAVA,t.get(name));
+					Object fnObj = t.get(name);
+					if( fnObj==null && base!=null )
+						return method.invoke(base,args);
+					LuanFunction fn = luan.checkFunction(LuanElement.JAVA,fnObj);
 					return Luan.first(luan.call(fn,LuanElement.JAVA,name,args));
 				}
 			}
