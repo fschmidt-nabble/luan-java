@@ -7,6 +7,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +35,7 @@ public final class JavaLib {
 		try {
 			global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
 			module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
+			add( module, "proxy", LuanState.class, Static.class, LuanTable.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
@@ -340,4 +343,20 @@ public final class JavaLib {
 		}
 	}
 
+
+	public static Object proxy(final LuanState luan,Static st,final LuanTable t) throws LuanException {
+		return Proxy.newProxyInstance(
+			st.cls.getClassLoader(),
+			new Class[]{st.cls},
+			new InvocationHandler() {
+				public Object invoke(Object proxy,Method method, Object[] args)
+					throws Throwable
+				{
+					String name = method.getName();
+					LuanFunction fn = luan.checkFunction(LuanElement.JAVA,t.get(name));
+					return Luan.first(luan.call(fn,LuanElement.JAVA,name,args));
+				}
+			}
+		);
+	}
 }
