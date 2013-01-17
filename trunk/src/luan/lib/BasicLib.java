@@ -24,33 +24,39 @@ public final class BasicLib {
 	public static void register(LuanState luan) {
 		LuanTable global = luan.global();
 		global.put( "_G", global );
-		add( global, "do_file", LuanState.class, String.class );
-		add( global, "error", LuanState.class, Object.class );
-		add( global, "get_metatable", LuanState.class, Object.class );
-		add( global, "ipairs", LuanTable.class );
-		add( global, "load", LuanState.class, String.class, String.class );
-		add( global, "load_file", LuanState.class, String.class );
-		add( global, "pairs", LuanTable.class );
-		add( global, "print", LuanState.class, new Object[0].getClass() );
-		add( global, "raw_equal", Object.class, Object.class );
-		add( global, "raw_get", LuanTable.class, Object.class );
-		add( global, "raw_len", LuanState.class, Object.class );
-		add( global, "raw_set", LuanTable.class, Object.class, Object.class );
-		add( global, "set_metatable", LuanTable.class, LuanTable.class );
-		add( global, "to_number", Object.class, Integer.class );
-		add( global, "to_string", LuanState.class, Object.class );
-		add( global, "type", Object.class );
-		global.put( "_VERSION", Luan.version );
-
-		add( global, "make_standard", LuanState.class );
-	}
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) {
 		try {
-			t.put( method, new LuanJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
+			global.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
+			add( global, "assert_boolean", LuanState.class, Boolean.TYPE );
+			add( global, "assert_nil", LuanState.class, Object.class );
+			add( global, "assert_number", LuanState.class, Number.class );
+			add( global, "assert_string", LuanState.class, String.class );
+			add( global, "assert_table", LuanState.class, LuanTable.class );
+			add( global, "do_file", LuanState.class, String.class );
+			add( global, "error", LuanState.class, Object.class );
+			add( global, "get_metatable", LuanState.class, Object.class );
+			add( global, "ipairs", LuanTable.class );
+			add( global, "load", LuanState.class, String.class, String.class );
+			add( global, "load_file", LuanState.class, String.class );
+			add( global, "pairs", LuanTable.class );
+			add( global, "print", LuanState.class, new Object[0].getClass() );
+			add( global, "raw_equal", Object.class, Object.class );
+			add( global, "raw_get", LuanTable.class, Object.class );
+			add( global, "raw_len", LuanState.class, Object.class );
+			add( global, "raw_set", LuanTable.class, Object.class, Object.class );
+			add( global, "set_metatable", LuanTable.class, LuanTable.class );
+			add( global, "to_number", Object.class, Integer.class );
+			add( global, "to_string", LuanState.class, Object.class );
+			add( global, "type", Object.class );
+			global.put( "_VERSION", Luan.version );
+	
+			add( global, "make_standard", LuanState.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
+		t.put( method, new LuanJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static void make_standard(LuanState luan) {
@@ -183,6 +189,44 @@ public final class BasicLib {
 
 	public static void error(LuanState luan,Object msg) throws LuanException {
 		throw new LuanException(luan,LuanElement.JAVA,msg);
+	}
+
+	public static Object assert_(LuanState luan,Object v,String msg) throws LuanException {
+		if( Luan.toBoolean(v) )
+			return v;
+		if( msg == null )
+			msg = "assertion failed!";
+		throw new LuanException( luan, LuanElement.JAVA, msg );
+	}
+
+	private static void checkNotNull(LuanState luan,Object v,String expected) throws LuanException {
+		if( v == null )
+			throw new LuanException(luan,LuanElement.JAVA,"bad argument #1 ("+expected+" expected, got nil)");
+	}
+
+	public static String assert_string(LuanState luan,String v) throws LuanException {
+		checkNotNull(luan,v,"string");
+		return v;
+	}
+
+	public static Number assert_number(LuanState luan,Number v) throws LuanException {
+		checkNotNull(luan,v,"number");
+		return v;
+	}
+
+	public static LuanTable assert_table(LuanState luan,LuanTable v) throws LuanException {
+		checkNotNull(luan,v,"table");
+		return v;
+	}
+
+	public static boolean assert_boolean(LuanState luan,boolean v) throws LuanException {
+		return v;
+	}
+
+	public static Object assert_nil(LuanState luan,Object v) throws LuanException {
+		if( v != null )
+			throw new LuanException(luan,LuanElement.JAVA,"bad argument #1 (nil expected, got "+Luan.type(v)+")");
+		return v;
 	}
 
 }
