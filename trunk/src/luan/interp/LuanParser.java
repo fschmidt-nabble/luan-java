@@ -16,6 +16,7 @@ import org.parboiled.support.StringVar;
 import org.parboiled.support.StringBuilderVar;
 import org.parboiled.support.ValueStack;
 import org.parboiled.errors.ErrorUtils;
+import org.parboiled.annotations.Cached;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanSource;
@@ -84,21 +85,10 @@ class LuanParser extends BaseParser<Object> {
 	static final UpValue.Getter[] NO_UP_VALUE_GETTERS = new UpValue.Getter[0];
 
 	int nEquals;
-	int parens = 0;
 	Frame frame = new Frame();
 
 	boolean nEquals(int n) {
 		nEquals = n;
-		return true;
-	}
-
-	boolean incParens() {
-		parens++;
-		return true;
-	}
-
-	boolean decParens() {
-		parens--;
 		return true;
 	}
 
@@ -157,11 +147,11 @@ class LuanParser extends BaseParser<Object> {
 	Rule Target() {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
-			Spaces(),
+			Spaces(false),
 			start.set(currentIndex()),
 			FirstOf(
 				Sequence(
-					ExpList(),
+					ExpList(false),
 					push( new ReturnStmt( se(start.get()), (Expressions)pop() ) ),
 					push( newChunk(start.get()) ),
 					EOI
@@ -208,7 +198,7 @@ class LuanParser extends BaseParser<Object> {
 					EndOfLine()
 				)
 			),
-			Spaces()
+			Spaces(false)
 		);
 	}
 
@@ -257,14 +247,14 @@ class LuanParser extends BaseParser<Object> {
 						addToExpList(builder.get(),new ConstExpr(match()))
 					),
 					Sequence(
-						"<%=", Spaces(),
-						Expr(),
+						"<%=", Spaces(false),
+						Expr(false),
 						addToExpList(builder.get()),
 						"%>"
 					)
 				)
 			),
-			"<%", Spaces(),
+			"<%", Spaces(false),
 			push( new OutputStmt( se(start.get()), builder.get().build() ) )
 		);
 	}
@@ -273,14 +263,14 @@ class LuanParser extends BaseParser<Object> {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			Keyword("return"), Expressions(),
+			Keyword("return",false), Expressions(false),
 			push( new ReturnStmt( se(start.get()), (Expressions)pop() ) )
 		);
 	}
 
 	Rule FunctionStmt() {
 		return Sequence(
-			Keyword("function"), FnName(), Function(),
+			Keyword("function",false), FnName(), Function(false),
 			push( new SetStmt( (Settable)pop(1), expr(pop()) ) )
 		);
 	}
@@ -290,11 +280,11 @@ class LuanParser extends BaseParser<Object> {
 		return Sequence(
 			start.set(currentIndex()),
 			push(null),  // marker
-			Name(),
+			Name(false),
 			ZeroOrMore(
-				'.', Spaces(),
+				'.', Spaces(false),
 				makeVarExp(start.get()),
-				NameExpr()
+				NameExpr(false)
 			),
 			makeSettableVar(start.get())
 		);
@@ -302,17 +292,17 @@ class LuanParser extends BaseParser<Object> {
 
 	Rule LocalFunctionStmt() {
 		return Sequence(
-			Keyword("local"), Keyword("function"),
-			Name(),
+			Keyword("local",false), Keyword("function",false),
+			Name(false),
 			addSymbol( (String)pop() ),
-			Function(),
+			Function(false),
 			push( new SetStmt( new SetLocalVar(symbolsSize()-1), expr(pop()) ) )
 		);
 	}
 
 	Rule BreakStmt() {
 		return Sequence(
-			Keyword("break"),
+			Keyword("break",false),
 			frame.loops > 0,
 			push( new BreakStmt() )
 		);
@@ -324,9 +314,9 @@ class LuanParser extends BaseParser<Object> {
 		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
 			start.set(currentIndex()),
-			Keyword("for"), NameList(names), Keyword("in"), Expr(), Keyword("do"),
+			Keyword("for",false), NameList(false,names), Keyword("in",false), Expr(false), Keyword("do",false),
 			addSymbols(names.get()),
-			LoopBlock(), Keyword("end"),
+			LoopBlock(), Keyword("end",false),
 			push( new GenericForStmt( se(start.get()), stackStart.get(), symbolsSize() - stackStart.get(), expr(pop(1)), (Stmt)pop() ) ),
 			popSymbols( symbolsSize() - stackStart.get() )
 		);
@@ -336,15 +326,15 @@ class LuanParser extends BaseParser<Object> {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			Keyword("for"), Name(), '=', Spaces(), Expr(), Keyword("to"), Expr(),
+			Keyword("for",false), Name(false), '=', Spaces(false), Expr(false), Keyword("to",false), Expr(false),
 			push( new ConstExpr(1) ),  // default step
 			Optional(
-				Keyword("step"),
+				Keyword("step",false),
 				drop(),
-				Expr()
+				Expr(false)
 			),
 			addSymbol( (String)pop(3) ),  // add "for" var to symbols
-			Keyword("do"), LoopBlock(), Keyword("end"),
+			Keyword("do",false), LoopBlock(), Keyword("end",false),
 			push( new NumericForStmt( se(start.get()), symbolsSize()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
 			popSymbols(1)
 		);
@@ -352,9 +342,9 @@ class LuanParser extends BaseParser<Object> {
 
 	Rule TryStmt() {
 		return Sequence(
-			Keyword("try"), Block(),
-			Keyword("catch"), Name(), addSymbol( (String)pop() ),
-			Keyword("do"), Block(), Keyword("end"),
+			Keyword("try",false), Block(),
+			Keyword("catch",false), Name(false), addSymbol( (String)pop() ),
+			Keyword("do",false), Block(), Keyword("end",false),
 			push( new TryStmt( (Stmt)pop(1), symbolsSize()-1, (Stmt)pop() ) ),
 			popSymbols(1)
 		);
@@ -362,28 +352,28 @@ class LuanParser extends BaseParser<Object> {
 
 	Rule DoStmt() {
 		return Sequence(
-			Keyword("do"), Block(), Keyword("end")
+			Keyword("do",false), Block(), Keyword("end",false)
 		);
 	}
 
 	Rule LocalStmt(Var<List<Stmt>> stmts) {
 		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
-			Keyword("local"), NameList(names),
+			Keyword("local",false), NameList(false,names),
 			Optional(
-				'=', Spaces(), ExpList(),
+				'=', Spaces(false), ExpList(false),
 				stmts.get().add( newSetLocalStmt(names.get().size()) )
 			),
 			addSymbols(names.get())
 		);
 	}
 
-	Rule NameList(Var<List<String>> names) {
+	Rule NameList(boolean inParens,Var<List<String>> names) {
 		return Sequence(
-			Name(),
+			Name(inParens),
 			names.get().add( (String)pop() ),
 			ZeroOrMore(
-				',', Spaces(), Name(),
+				',', Spaces(inParens), Name(inParens),
 				names.get().add( (String)pop() )
 			)
 		);
@@ -401,14 +391,14 @@ class LuanParser extends BaseParser<Object> {
 
 	Rule WhileStmt() {
 		return Sequence(
-			Keyword("while"), Expr(), Keyword("do"), LoopBlock(), Keyword("end"),
+			Keyword("while",false), Expr(false), Keyword("do",false), LoopBlock(), Keyword("end",false),
 			push( new WhileStmt( expr(pop(1)), (Stmt)pop() ) )
 		);
 	}
 
 	Rule RepeatStmt() {
 		return Sequence(
-			Keyword("repeat"), LoopBlock(), Keyword("until"), Expr(),
+			Keyword("repeat",false), LoopBlock(), Keyword("until",false), Expr(false),
 			push( new RepeatStmt( (Stmt)pop(1), expr(pop()) ) )
 		);
 	}
@@ -420,17 +410,17 @@ class LuanParser extends BaseParser<Object> {
 	Rule IfStmt() {
 		Var<Integer> n = new Var<Integer>(1);
 		return Sequence(
-			Keyword("if"), Expr(), Keyword("then"), Block(),
+			Keyword("if",false), Expr(false), Keyword("then",false), Block(),
 			push(Stmt.EMPTY),
 			ZeroOrMore(
-				Keyword("elseif"), drop(), Expr(), Keyword("then"), Block(),
+				Keyword("elseif",false), drop(), Expr(false), Keyword("then",false), Block(),
 				push(Stmt.EMPTY),
 				n.set(n.get()+1)
 			),
 			Optional(
-				Keyword("else"), drop(), Block()
+				Keyword("else",false), drop(), Block()
 			),
-			Keyword("end"),
+			Keyword("end",false),
 			buildIfStmt(n.get())
 		);
 	}
@@ -448,15 +438,15 @@ class LuanParser extends BaseParser<Object> {
 	Rule SetStmt() {
 		return Sequence(
 			VarList(),
-			'=', Spaces(),
-			ExpList(),
+			'=', Spaces(false),
+			ExpList(false),
 			push( newSetStmt() )
 		);
 	}
 
 	Rule ExpressionsStmt() {
 		return Sequence(
-			ExpList(),
+			ExpList(false),
 			push( new ExpressionsStmt((Expressions)pop()) )
 		);
 	}
@@ -474,7 +464,7 @@ class LuanParser extends BaseParser<Object> {
 			SettableVar(),
 			vars.get().add( (Settable)pop() ),
 			ZeroOrMore(
-				',', Spaces(), SettableVar(),
+				',', Spaces(false), SettableVar(),
 				vars.get().add( (Settable)pop() )
 			),
 			push(vars.get())
@@ -485,7 +475,7 @@ class LuanParser extends BaseParser<Object> {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			Var(),
+			Var(false),
 			makeSettableVar(start.get())
 		);
 	}
@@ -510,139 +500,151 @@ class LuanParser extends BaseParser<Object> {
 		return push( new SetTableEntry( se(start), env(), new ConstExpr(name) ) );
 	}
 
-	Rule Expr() {
+	@Cached
+	Rule Expr(boolean inParens) {
 		return FirstOf(
-			VarArgs(),
-			OrExpr()
+			VarArgs(inParens),
+			OrExpr(inParens)
 		);
 	}
 
-	Rule OrExpr() {
+	@Cached
+	Rule OrExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			AndExpr(),
-			ZeroOrMore( "or", Spaces(), AndExpr(), push( new OrExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
+			AndExpr(inParens),
+			ZeroOrMore( Keyword("or",inParens), AndExpr(inParens), push( new OrExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
-	Rule AndExpr() {
+	@Cached
+	Rule AndExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			RelExpr(),
-			ZeroOrMore( "and", Spaces(), RelExpr(), push( new AndExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
+			RelExpr(inParens),
+			ZeroOrMore( Keyword("and",inParens), RelExpr(inParens), push( new AndExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
-	Rule RelExpr() {
+	@Cached
+	Rule RelExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			ConcatExpr(),
+			ConcatExpr(inParens),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( "==", Spaces(), ConcatExpr(), push( new EqExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( "~=", Spaces(), ConcatExpr(), push( new NotExpr(se(start.get()),new EqExpr(se(start.get()),expr(pop(1)),expr(pop()))) ) ),
-					Sequence( "<=", Spaces(), ConcatExpr(), push( new LeExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( ">=", Spaces(), ConcatExpr(), push( new LeExpr(se(start.get()),expr(pop()),expr(pop())) ) ),
-					Sequence( "<", Spaces(), ConcatExpr(), push( new LtExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( ">", Spaces(), ConcatExpr(), push( new LtExpr(se(start.get()),expr(pop()),expr(pop())) ) )
+					Sequence( "==", Spaces(inParens), ConcatExpr(inParens), push( new EqExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( "~=", Spaces(inParens), ConcatExpr(inParens), push( new NotExpr(se(start.get()),new EqExpr(se(start.get()),expr(pop(1)),expr(pop()))) ) ),
+					Sequence( "<=", Spaces(inParens), ConcatExpr(inParens), push( new LeExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( ">=", Spaces(inParens), ConcatExpr(inParens), push( new LeExpr(se(start.get()),expr(pop()),expr(pop())) ) ),
+					Sequence( "<", Spaces(inParens), ConcatExpr(inParens), push( new LtExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( ">", Spaces(inParens), ConcatExpr(inParens), push( new LtExpr(se(start.get()),expr(pop()),expr(pop())) ) )
 				)
 			)
 		);
 	}
 
-	Rule ConcatExpr() {
+	@Cached
+	Rule ConcatExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			SumExpr(),
-			Optional( "..", Spaces(), ConcatExpr(), push( new ConcatExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
+			SumExpr(inParens),
+			Optional( "..", Spaces(inParens), ConcatExpr(inParens), push( new ConcatExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
-	Rule SumExpr() {
+	@Cached
+	Rule SumExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			TermExpr(),
+			TermExpr(inParens),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( '+', Spaces(), TermExpr(), push( new AddExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( '-', TestNot('-'), Spaces(), TermExpr(), push( new SubExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
+					Sequence( '+', Spaces(inParens), TermExpr(inParens), push( new AddExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( '-', TestNot('-'), Spaces(inParens), TermExpr(inParens), push( new SubExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 				)
 			)
 		);
 	}
 
-	Rule TermExpr() {
+	@Cached
+	Rule TermExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			UnaryExpr(),
+			UnaryExpr(inParens),
 			ZeroOrMore(
 				FirstOf(
-					Sequence( '*', Spaces(), UnaryExpr(), push( new MulExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( '/', Spaces(), UnaryExpr(), push( new DivExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( '%', Spaces(), UnaryExpr(), push( new ModExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
+					Sequence( '*', Spaces(inParens), UnaryExpr(inParens), push( new MulExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( '/', Spaces(inParens), UnaryExpr(inParens), push( new DivExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
+					Sequence( '%', Spaces(inParens), UnaryExpr(inParens), push( new ModExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 				)
 			)
 		);
 	}
 
-	Rule UnaryExpr() {
+	@Cached
+	Rule UnaryExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
 			FirstOf(
-				Sequence( '#', Spaces(), PowExpr(), push( new LenExpr(se(start.get()),expr(pop())) ) ),
-				Sequence( '-', TestNot('-'), Spaces(), PowExpr(), push( new UnmExpr(se(start.get()),expr(pop())) ) ),
-				Sequence( "not", Spaces(), PowExpr(), push( new NotExpr(se(start.get()),expr(pop())) ) ),
-				PowExpr()
+				Sequence( '#', Spaces(inParens), PowExpr(inParens), push( new LenExpr(se(start.get()),expr(pop())) ) ),
+				Sequence( '-', TestNot('-'), Spaces(inParens), PowExpr(inParens), push( new UnmExpr(se(start.get()),expr(pop())) ) ),
+				Sequence( Keyword("not",inParens), PowExpr(inParens), push( new NotExpr(se(start.get()),expr(pop())) ) ),
+				PowExpr(inParens)
 			)
 		);
 	}
 
-	Rule PowExpr() {
+	@Cached
+	Rule PowExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			SingleExpr(),
-			Optional( '^', Spaces(), PowExpr(), push( new PowExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
+			SingleExpr(inParens),
+			Optional( '^', Spaces(inParens), PowExpr(inParens), push( new PowExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
 		);
 	}
 
-	Rule SingleExpr() {
+	@Cached
+	Rule SingleExpr(boolean inParens) {
 		return FirstOf(
-			FunctionExpr(),
-			TableExpr(),
-			VarExp(),
-			LiteralExpr()
+			FunctionExpr(inParens),
+			TableExpr(inParens),
+			VarExp(inParens),
+			Literal(inParens)
 		);
 	}
 
-	Rule FunctionExpr() {
-		return Sequence( "function", Spaces(), Function() );
+	@Cached
+	Rule FunctionExpr(boolean inParens) {
+		return Sequence( "function", Spaces(inParens), Function(inParens) );
 	}
 
-	Rule Function() {
+	@Cached
+	Rule Function(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
 		return Sequence(
 			start.set(currentIndex()),
-			'(', incParens(), Spaces(),
+			'(', Spaces(true),
 			action( frame = new Frame(frame) ),
 			Optional(
 				FirstOf(
 					Sequence(
-						NameList(names), addSymbols(names.get()),
-						Optional( ',', Spaces(), VarArgName() )
+						NameList(true,names), addSymbols(names.get()),
+						Optional( ',', Spaces(true), VarArgName() )
 					),
 					VarArgName()
 				)
 			),
-			')', decParens(), Spaces(), Block(), Keyword("end"),
+			')', Spaces(inParens), Block(), Keyword("end",inParens),
 			push( newChunk(start.get()) ),
 			action( frame = frame.parent )
 		);
@@ -650,28 +652,30 @@ class LuanParser extends BaseParser<Object> {
 
 	Rule VarArgName() {
 		return Sequence(
-			"...", Spaces(),
+			"...", Spaces(true),
 			action( frame.isVarArg = true )
 		);
 	}
 
-	Rule VarArgs() {
+	@Cached
+	Rule VarArgs(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			"...", Spaces(),
+			"...", Spaces(inParens),
 			frame.isVarArg,
 			push( new VarArgs(se(start.get())) )
 		);
 	}
 
-	Rule TableExpr() {
+	@Cached
+	Rule TableExpr(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		Var<List<TableExpr.Field>> fields = new Var<List<TableExpr.Field>>(new ArrayList<TableExpr.Field>());
 		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
 		return Sequence(
 			start.set(currentIndex()),
-			'{', incParens(), Spaces(),
+			'{', Spaces(true),
 			Optional(
 				Field(fields,builder),
 				ZeroOrMore(
@@ -680,25 +684,25 @@ class LuanParser extends BaseParser<Object> {
 				),
 				Optional( FieldSep() )
 			),
-			'}', decParens(),
-			Spaces(),
+			'}',
+			Spaces(inParens),
 			push( new TableExpr( se(start.get()), fields.get().toArray(new TableExpr.Field[0]), builder.get().build() ) )
 		);
 	}
 
 	Rule FieldSep() {
-		return Sequence( AnyOf(",;"), Spaces() );
+		return Sequence( AnyOf(",;"), Spaces(true) );
 	}
 
 	Rule Field(Var<List<TableExpr.Field>> fields,Var<ExpList.Builder> builder) {
 		return FirstOf(
 			Sequence(
-				FirstOf( SubExpr(), NameExpr() ),
-				'=', Spaces(), Expr(),
+				FirstOf( SubExpr(true), NameExpr(true) ),
+				'=', Spaces(true), Expr(true),
 				fields.get().add( new TableExpr.Field( expr(pop(1)), expr(pop()) ) )
 			),
 			Sequence(
-				Expr(),
+				Expr(true),
 				addToExpList(builder.get())
 			)
 		);
@@ -710,37 +714,39 @@ class LuanParser extends BaseParser<Object> {
 		return (Expr)obj;
 	}
 
-	Rule VarExp() {
+	@Cached
+	Rule VarExp(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
-			Var(),
+			Var(inParens),
 			makeVarExp(start.get())
 		);
 	}
 
-	Rule Var() {
+	@Cached
+	Rule Var(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
 		return Sequence(
 			start.set(currentIndex()),
 			FirstOf(
 				Sequence(
-					'(', incParens(), Spaces(), Expr(), ')', decParens(), Spaces(),
+					'(', Spaces(true), Expr(true), ')', Spaces(inParens),
 					push(expr(pop())),
 					push(null)  // marker
 				),
 				Sequence(
 					push(null),  // marker
-					Name()
+					Name(inParens)
 				)
 			),
 			ZeroOrMore(
 				makeVarExp(start.get()),
 				FirstOf(
-					SubExpr(),
-					Sequence( '.', Spaces(), NameExpr() ),
+					SubExpr(inParens),
+					Sequence( '.', Spaces(inParens), NameExpr(inParens) ),
 					Sequence(
-						Args(start),
+						Args(inParens,start),
 						push(null)  // marker
 					)
 				)
@@ -776,18 +782,18 @@ class LuanParser extends BaseParser<Object> {
 	}
 
 	// function should be on top of the stack
-	Rule Args(Var<Integer> start) {
+	Rule Args(boolean inParens,Var<Integer> start) {
 		return Sequence(
 			FirstOf(
 				Sequence(
-					'(', incParens(), Spaces(), Expressions(), ')', decParens(), Spaces()
+					'(', Spaces(true), Expressions(true), ')', Spaces(inParens)
 				),
 				Sequence(
-					TableExpr(),
+					TableExpr(inParens),
 					push( new ExpList.SingleExpList(expr(pop())) )
 				),
 				Sequence(
-					StringLiteral(), Spaces(),
+					StringLiteral(inParens),
 					push( new ExpList.SingleExpList(new ConstExpr(pop())) )
 				)
 			),
@@ -795,20 +801,22 @@ class LuanParser extends BaseParser<Object> {
 		);
 	}
 
-	Rule Expressions() {
+	@Cached
+	Rule Expressions(boolean inParens) {
 		return FirstOf(
-			ExpList(),
+			ExpList(inParens),
 			push( ExpList.emptyExpList )
 		);
 	}
 
-	Rule ExpList() {
+	@Cached
+	Rule ExpList(boolean inParens) {
 		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
 		return Sequence(
-			Expr(),
+			Expr(inParens),
 			addToExpList(builder.get()),
 			ZeroOrMore(
-				',', Spaces(), Expr(),
+				',', Spaces(inParens), Expr(inParens),
 				addToExpList(builder.get())
 			),
 			push( builder.get().build() )
@@ -830,18 +838,21 @@ class LuanParser extends BaseParser<Object> {
 		return true;
 	}
 
-	Rule SubExpr() {
-		return Sequence( '[', incParens(), Spaces(), Expr(), ']', decParens(), Spaces() );
+	@Cached
+	Rule SubExpr(boolean inParens) {
+		return Sequence( '[', Spaces(true), Expr(true), ']', Spaces(inParens) );
 	}
 
-	Rule NameExpr() {
+	@Cached
+	Rule NameExpr(boolean inParens) {
 		return Sequence(
-			Name(),
+			Name(inParens),
 			push( new ConstExpr((String)pop()) )
 		);
 	}
 
-	Rule Name() {
+	@Cached
+	Rule Name(boolean inParens) {
 		return Sequence(
 			Sequence(
 				NameFirstChar(),
@@ -849,7 +860,7 @@ class LuanParser extends BaseParser<Object> {
 			),
 			!keywords.contains(match()),
 			push(match()),
-			Spaces()
+			Spaces(inParens)
 		);
 	}
 
@@ -865,11 +876,11 @@ class LuanParser extends BaseParser<Object> {
 		);
 	}
 
-	Rule Keyword(String keyword) {
+	Rule Keyword(String keyword,boolean inParens) {
 		return Sequence(
 			keyword,
 			TestNot( NameChar() ),
-			Spaces()
+			Spaces(inParens)
 		);
 	}
 
@@ -902,43 +913,47 @@ class LuanParser extends BaseParser<Object> {
 		"while"
 	));
 
-	Rule LiteralExpr() {
+	@Cached
+	Rule Literal(boolean inParens) {
 		return Sequence(
-			Literal(), Spaces(),
+			FirstOf(
+				NilLiteral(inParens),
+				BooleanLiteral(inParens),
+				NumberLiteral(inParens),
+				StringLiteral(inParens)
+			),
 			push(new ConstExpr(pop()))
 		);
 	}
 
-	Rule Literal() {
+	@Cached
+	Rule NilLiteral(boolean inParens) {
+		return Sequence( Keyword("nil",inParens), push(null) );
+	}
+
+	@Cached
+	Rule BooleanLiteral(boolean inParens) {
 		return FirstOf(
-			NilLiteral(),
-			BooleanLiteral(),
-			NumberLiteral(),
-			StringLiteral()
+			Sequence( Keyword("true",inParens), push(true) ),
+			Sequence( Keyword("false",inParens), push(false) )
 		);
 	}
 
-	Rule NilLiteral() {
-		return Sequence( "nil", push(null) );
-	}
-
-	Rule BooleanLiteral() {
-		return FirstOf(
-			Sequence( "true", push(true) ),
-			Sequence( "false", push(false) )
-		);
-	}
-
-	Rule NumberLiteral() {
-		return FirstOf(
-			Sequence(
-				IgnoreCase("0x"),
-				HexNumber()
+	@Cached
+	Rule NumberLiteral(boolean inParens) {
+		return Sequence(
+			FirstOf(
+				Sequence(
+					IgnoreCase("0x"),
+					HexNumber()
+				),
+				Sequence(
+					DecNumber(),
+					push(Double.valueOf(match()))
+				)
 			),
-			Sequence(
-				DecNumber(),
-				push(Double.valueOf(match()))
-			)
+			TestNot( NameChar() ),
+			Spaces(inParens)
 		);
 	}
 
@@ -1011,11 +1026,15 @@ class LuanParser extends BaseParser<Object> {
 		);
 	}
 
-	Rule StringLiteral() {
-		return FirstOf(
-			QuotedString('"'),
-			QuotedString('\''),
-			LongString()
+	@Cached
+	Rule StringLiteral(boolean inParens) {
+		return Sequence(
+			FirstOf(
+				QuotedString('"'),
+				QuotedString('\''),
+				LongString()
+			),
+			Spaces(inParens)
 		);
 	}
 
@@ -1087,13 +1106,14 @@ class LuanParser extends BaseParser<Object> {
 		);
 	}
 
-	Rule Spaces() {
+	@Cached
+	Rule Spaces(boolean inParens) {
 		return ZeroOrMore(
 			FirstOf(
 				AnyOf(" \t"),
 				Comment(),
-				Sequence( '\\', EndOfLine() )//,
-//				Sequence( AnyOf("\r\n"), parens > 0 )
+				Sequence( '\\', EndOfLine() ),
+				Sequence( AnyOf("\r\n"), inParens )
 			)
 		);
 	}
