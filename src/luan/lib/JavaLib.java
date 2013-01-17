@@ -84,6 +84,8 @@ public final class JavaLib {
 							return new AmbiguousJavaFunction(fns);
 						}
 					}
+				} else if( "assert".equals(name) ) {
+					return new LuanJavaFunction(assertClass,new AssertClass(cls));
 				} else {
 					List<Member> members = getStaticMembers(cls,name);
 					if( !members.isEmpty() ) {
@@ -338,6 +340,33 @@ public final class JavaLib {
 		try {
 			instanceOf = InstanceOf.class.getMethod("instanceOf",Static.class);
 			instanceOf.setAccessible(true);
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+
+	private static class AssertClass {
+		private final Class cls;
+
+		AssertClass(Class cls) {
+			this.cls = cls;
+		}
+
+		public Object assertClass(LuanState luan,Object v) throws LuanException {
+			if( !cls.isInstance(v) ) {
+				String got = v.getClass().getSimpleName();
+				String expected = cls.getSimpleName();
+				throw new LuanException(luan,LuanElement.JAVA,"bad argument #1 ("+expected+" expected, got "+got+")");
+			}
+			return v;
+		}
+	}
+	private static final Method assertClass;
+	static {
+		try {
+			assertClass = AssertClass.class.getMethod("assertClass",LuanState.class,Object.class);
+			assertClass.setAccessible(true);
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
