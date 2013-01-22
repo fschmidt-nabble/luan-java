@@ -98,7 +98,7 @@ public class LuanTable {
 					}
 					if( gotNull )
 						sb.append(i+1).append('=');
-					sb.append(obj);
+					sb.append(Luan.toString(obj));
 				}
 			}
 		}
@@ -109,7 +109,7 @@ public class LuanTable {
 				} else {
 					sb.append(", ");
 				}
-				sb.append(entry.getKey()).append('=').append(entry.getValue());
+				sb.append(Luan.toString(entry.getKey())).append('=').append(Luan.toString(entry.getValue()));
 			}
 		}
 		sb.append('}');

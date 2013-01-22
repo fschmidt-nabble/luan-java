@@ -1,7 +1,7 @@
 package luan;
 
 
-public class Luan {
+public final class Luan {
 	public static final String version = "Luan 0.0";
 
 	public static String type(Object obj) {
@@ -77,4 +77,18 @@ public class Luan {
 		int i = n.intValue();
 		return i==n.doubleValue() ? Integer.valueOf(i) : null;
 	}
+
+	public static String toString(Object obj) {
+		if( obj == null )
+			return "nil";
+		if( obj instanceof Number )
+			return Luan.toString((Number)obj);
+		if( obj instanceof LuanException ) {
+			LuanException le = (LuanException)obj;
+			return le.getMessage();
+		}
+		return obj.toString();
+	}
+
+	private Luan() {}  // never
 }
