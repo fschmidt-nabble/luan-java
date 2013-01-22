@@ -95,15 +95,7 @@ public abstract class LuanState {
 		LuanFunction fn = getHandlerFunction(el,"__tostring",obj);
 		if( fn != null )
 			return checkString( el, Luan.first( call(fn,el,"__tostring",obj) ) );
-		if( obj == null )
-			return "nil";
-		if( obj instanceof Number )
-			return Luan.toString((Number)obj);
-		if( obj instanceof LuanException ) {
-			LuanException le = (LuanException)obj;
-			return le.getMessage();
-		}
-		return obj.toString();
+		return Luan.toString(obj);
 	}
 
 	public final LuanFunction getHandlerFunction(LuanElement el,String op,Object obj) throws LuanException {
