@@ -86,17 +86,18 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	private void checkArgs(LuanState luan,Object[] args) throws LuanException {
 		Class<?>[] a = getParameterTypes();
-		for( int i=0; i<a.length; i++ ) {
+		int start = takesLuaState ? 1 : 0;
+		for( int i=start; i<a.length; i++ ) {
 			Class<?> paramType = a[i];
 			Object arg = args[i];
 			if( !paramType.isInstance(arg) ) {
 				String expected = paramType.getSimpleName();
 				if( arg==null ) {
 					if( paramType.isPrimitive() )
-						throw new LuanException(luan,LuanElement.JAVA,"bad argument #"+(i+1)+" ("+expected+" expected, got nil)");
+						throw new LuanException(luan,LuanElement.JAVA,"bad argument #"+(i+1-start)+" ("+expected+" expected, got nil)");
 				} else {
 					String got = arg.getClass().getSimpleName();
-					throw new LuanException(luan,LuanElement.JAVA,"bad argument #"+(i+1)+" ("+expected+" expected, got "+got+")");
+					throw new LuanException(luan,LuanElement.JAVA,"bad argument #"+(i+1-start)+" ("+expected+" expected, got "+got+")");
 				}
 			}
 		}
