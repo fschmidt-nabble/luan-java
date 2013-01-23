@@ -49,8 +49,9 @@ public final class LuanJavaFunction extends LuanFunction {
 	}
 
 	@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
+		args = fixArgs(luan,args);
 		try {
-			return rawCall(luan,args);
+			return doCall(luan,args);
 		} catch(IllegalArgumentException e) {
 			checkArgs(luan,args);
 			throw e;
@@ -59,6 +60,10 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	public Object[] rawCall(LuanState luan,Object[] args) throws LuanException {
 		args = fixArgs(luan,args);
+		return doCall(luan,args);
+	}
+
+	private Object[] doCall(LuanState luan,Object[] args) throws LuanException {
 		Object rtn;
 		try {
 			rtn = method.invoke(obj,args);
@@ -81,11 +86,6 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	private void checkArgs(LuanState luan,Object[] args) throws LuanException {
 		Class<?>[] a = getParameterTypes();
-		if( takesLuaState ) {
-			Class<?>[] t = new Class<?>[a.length-1];
-			System.arraycopy(a,1,t,0,t.length);
-			a = t;
-		}
 		for( int i=0; i<a.length; i++ ) {
 			Class<?> paramType = a[i];
 			Object arg = args[i];
