@@ -51,6 +51,7 @@ public class WebShell extends HttpServlet {
 			if( cmd != null ) {
 				Writer writer = new OutputStreamWriter(history);
 				writer.write( "% " + HtmlLib.encode(cmd) + "\r\n" );
+				writer.flush();
 				try {
 					LuanState luan  = (LuanState)session.getValue("luan");
 					if( luan==null ) {
