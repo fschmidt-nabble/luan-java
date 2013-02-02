@@ -122,10 +122,6 @@ public final class JavaLib {
 
 	private static Object member(Object obj,List<Member> members) throws LuanException {
 		try {
-			for( Member m : members ) {
-				if( m instanceof AccessibleObject )
-					((AccessibleObject)m).setAccessible(true);
-			}
 			if( members.size()==1 ) {
 				Member member = members.get(0);
 				if( member instanceof Static ) {
@@ -203,22 +199,10 @@ public final class JavaLib {
 		Map<String,List<Member>> clsMap = memberMap.get(cls);
 		if( clsMap == null ) {
 			clsMap = new HashMap<String,List<Member>>();
-			for( Method method : cls.getMethods() ) {
-				String s = method.getName();
-				List<Member> list = clsMap.get(s);
-				if( list == null ) {
-					list = new ArrayList<Member>();
-					clsMap.put(s,list);
-				}
-				list.add(method);
-			}
 			for( Class c : cls.getClasses() ) {
 				String s = c.getSimpleName();
-				List<Member> list = clsMap.get(s);
-				if( list == null ) {
-					list = new ArrayList<Member>();
-					clsMap.put(s,list);
-				}
+				List<Member> list = new ArrayList<Member>();
+				clsMap.put(s,list);
 				list.add(new Static(c));
 			}
 			for( Field field : cls.getFields() ) {
@@ -229,12 +213,26 @@ public final class JavaLib {
 				} catch(NoSuchFieldException e) {
 					throw new RuntimeException(e);
 				}
-				List<Member> list = clsMap.get(s);
-				if( list != null )
-					throw new RuntimeException("can't add field '"+s+"' to "+cls+" because these are already defined: "+list);
+				List<Member> list = new ArrayList<Member>();
+				clsMap.put(s,list);
 				list = new ArrayList<Member>();
 				clsMap.put(s,list);
 				list.add(field);
+			}
+			for( Method method : cls.getMethods() ) {
+				String s = method.getName();
+				List<Member> list = clsMap.get(s);
+				if( list == null || !(list.get(0) instanceof Method) ) {
+					list = new ArrayList<Member>();
+					clsMap.put(s,list);
+				}
+				list.add(method);
+			}
+			for( List<Member> members : clsMap.values() ) {
+				for( Member m : members ) {
+					if( m instanceof AccessibleObject )
+						((AccessibleObject)m).setAccessible(true);
+				}
 			}
 			memberMap.put(cls,clsMap);
 		}
