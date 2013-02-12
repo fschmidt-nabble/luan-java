@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 
 
 public class LuanTable {
@@ -80,7 +81,14 @@ public class LuanTable {
 	}
 
 	@Override public String toString() {
+		return toString( Collections.newSetFromMap(new IdentityHashMap<LuanTable,Boolean>()) );
+	}
+
+	private String toString(Set<LuanTable> set) {
 //		return "table: " + Integer.toHexString(hashCode());
+		if( !set.add(this) ) {
+			return "...";
+		}
 		StringBuilder sb = new StringBuilder();
 		sb.append('{');
 		boolean isFirst = true;
@@ -98,7 +106,7 @@ public class LuanTable {
 					}
 					if( gotNull )
 						sb.append(i+1).append('=');
-					sb.append(Luan.toString(obj));
+					sb.append(toString(set,obj));
 				}
 			}
 		}
@@ -109,11 +117,20 @@ public class LuanTable {
 				} else {
 					sb.append(", ");
 				}
-				sb.append(Luan.toString(entry.getKey())).append('=').append(Luan.toString(entry.getValue()));
+				sb.append(toString(set,entry.getKey())).append('=').append(toString(set,entry.getValue()));
 			}
 		}
 		sb.append('}');
 		return sb.toString();
+	}
+
+	private static String toString(Set<LuanTable> set,Object obj) {
+		if( obj instanceof LuanTable ) {
+			LuanTable t = (LuanTable)obj;
+			return t.toString(set);
+		} else {
+			return Luan.toString(obj);
+		}
 	}
 
 	public Object get(Object key) {
