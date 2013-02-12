@@ -21,46 +21,51 @@ import luan.interp.LuanCompiler;
 
 public final class BasicLib {
 
-	public static void register(LuanState luan) {
-		LuanTable global = luan.global();
-		global.put( "_G", global );
-		try {
-			global.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
-			add( global, "assert_boolean", LuanState.class, Boolean.TYPE );
-			add( global, "assert_nil", LuanState.class, Object.class );
-			add( global, "assert_number", LuanState.class, Number.class );
-			add( global, "assert_string", LuanState.class, String.class );
-			add( global, "assert_table", LuanState.class, LuanTable.class );
-			add( global, "do_file", LuanState.class, String.class );
-			add( global, "error", LuanState.class, Object.class );
-			add( global, "get_metatable", LuanState.class, Object.class );
-			add( global, "ipairs", LuanTable.class );
-			add( global, "load", LuanState.class, String.class, String.class );
-			add( global, "load_file", LuanState.class, String.class );
-			add( global, "pairs", LuanTable.class );
-			add( global, "print", LuanState.class, new Object[0].getClass() );
-			add( global, "raw_equal", Object.class, Object.class );
-			add( global, "raw_get", LuanTable.class, Object.class );
-			add( global, "raw_len", LuanState.class, Object.class );
-			add( global, "raw_set", LuanTable.class, Object.class, Object.class );
-			add( global, "set_metatable", LuanTable.class, LuanTable.class );
-			add( global, "to_number", Object.class, Integer.class );
-			add( global, "to_string", LuanState.class, Object.class );
-			add( global, "type", Object.class );
-			global.put( "_VERSION", Luan.version );
-	
-			add( global, "make_standard", LuanState.class );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
+	public static final String NAME = "basic";
+
+	public static final LuanFunction LOADER = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			LuanTable global = luan.global;
+			global.put( "_G", global );
+			try {
+				global.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
+				add( global, "assert_boolean", LuanState.class, Boolean.TYPE );
+				add( global, "assert_nil", LuanState.class, Object.class );
+				add( global, "assert_number", LuanState.class, Number.class );
+				add( global, "assert_string", LuanState.class, String.class );
+				add( global, "assert_table", LuanState.class, LuanTable.class );
+				add( global, "do_file", LuanState.class, String.class );
+				add( global, "error", LuanState.class, Object.class );
+				add( global, "get_metatable", LuanState.class, Object.class );
+				add( global, "ipairs", LuanTable.class );
+				add( global, "load", LuanState.class, String.class, String.class );
+				add( global, "load_file", LuanState.class, String.class );
+				add( global, "pairs", LuanTable.class );
+				add( global, "print", LuanState.class, new Object[0].getClass() );
+				add( global, "raw_equal", Object.class, Object.class );
+				add( global, "raw_get", LuanTable.class, Object.class );
+				add( global, "raw_len", LuanState.class, Object.class );
+				add( global, "raw_set", LuanTable.class, Object.class, Object.class );
+				add( global, "set_metatable", LuanTable.class, LuanTable.class );
+				add( global, "to_number", Object.class, Integer.class );
+				add( global, "to_string", LuanState.class, Object.class );
+				add( global, "type", Object.class );
+				global.put( "_VERSION", Luan.version );
+		
+				add( global, "make_standard", LuanState.class );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return LuanFunction.EMPTY_RTN;
 		}
-	}
+	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static void make_standard(LuanState luan) {
-		LuanTable global = luan.global();
+		LuanTable global = luan.global;
 		global.put( "dofile", global.get("do_file") );
 		global.put( "getmetatable", global.get("get_metatable") );
 		global.put( "loadfile", global.get("load_file") );

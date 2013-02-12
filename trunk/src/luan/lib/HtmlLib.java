@@ -2,21 +2,27 @@ package luan.lib;
 
 import luan.LuanState;
 import luan.LuanTable;
+import luan.LuanFunction;
 import luan.LuanJavaFunction;
 
 
 public final class HtmlLib {
 
-	public static void register(LuanState luan) {
-		LuanTable module = new LuanTable();
-		LuanTable global = luan.global();
-		global.put("html",module);
-		try {
-			add( module, "encode", String.class );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
+	public static final String NAME = "html";
+
+	public static final LuanFunction LOADER = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) {
+			LuanTable module = new LuanTable();
+			LuanTable global = luan.global;
+			global.put(NAME,module);
+			try {
+				add( module, "encode", String.class );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return LuanFunction.EMPTY_RTN;
 		}
-	}
+	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(HtmlLib.class.getMethod(method,parameterTypes),null) );

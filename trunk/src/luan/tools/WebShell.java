@@ -59,8 +59,8 @@ public class WebShell extends HttpServlet {
 						session.putValue("luan",luan);
 					}
 					luan.out = new PrintStream(history);
-					luan.global().put("request",request);
-					luan.global().put("response",response);
+					luan.global.put("request",request);
+					luan.global.put("response",response);
 					Object[] result = eval(luan,cmd);
 					if( result.length > 0 ) {
 						for( int i=0; i<result.length; i++ ) {

@@ -14,22 +14,27 @@ import luan.LuanException;
 
 public final class TableLib {
 
-	public static void register(LuanState luan) {
-		LuanTable module = new LuanTable();
-		LuanTable global = luan.global();
-		global.put("table",module);
-		try {
-			add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
-			add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );
-			add( module, "pack", new Object[0].getClass() );
-			add( module, "remove", LuanState.class, LuanTable.class, Integer.TYPE );
-			add( module, "sort", LuanState.class, LuanTable.class, LuanFunction.class );
-			add( module, "sub_list", LuanTable.class, Integer.TYPE, Integer.TYPE );
-			add( module, "unpack", LuanTable.class );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
+	public static final String NAME = "table";
+
+	public static final LuanFunction LOADER = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			LuanTable module = new LuanTable();
+			LuanTable global = luan.global;
+			global.put(NAME,module);
+			try {
+				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
+				add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );
+				add( module, "pack", new Object[0].getClass() );
+				add( module, "remove", LuanState.class, LuanTable.class, Integer.TYPE );
+				add( module, "sort", LuanState.class, LuanTable.class, LuanFunction.class );
+				add( module, "sub_list", LuanTable.class, Integer.TYPE, Integer.TYPE );
+				add( module, "unpack", LuanTable.class );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return LuanFunction.EMPTY_RTN;
 		}
-	}
+	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(TableLib.class.getMethod(method,parameterTypes),null) );

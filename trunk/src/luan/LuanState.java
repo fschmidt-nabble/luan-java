@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 import luan.interp.LuanCompiler;
 import luan.lib.BasicLib;
+import luan.lib.PackageLib;
 import luan.lib.JavaLib;
 import luan.lib.MathLib;
 import luan.lib.StringLib;
@@ -15,15 +16,44 @@ import luan.lib.HtmlLib;
 
 public abstract class LuanState {
 
+	public final LuanTable global = new LuanTable();
+	public final LuanTable loaded = new LuanTable();
+	public final LuanTable preload = new LuanTable();
+
+	public InputStream in = System.in;
+	public PrintStream out = System.out;
+	public PrintStream err = System.err;
+
+	private final List<MetatableGetter> mtGetters = new ArrayList<MetatableGetter>();
+	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
+
+
+	public Object load(LuanFunction loader,String modName) throws LuanException {
+		return load(loader,modName,null);
+	}
+
+	public Object load(LuanFunction loader,String modName,Object extra) throws LuanException {
+		Object mod = Luan.first(call(loader,LuanElement.JAVA,"loader",modName,extra));
+		if( mod == null )
+			mod = true;
+		loaded.put(modName,mod);
+		return mod;
+	}
+
 	public static LuanState newStandard() {
-		LuanState luan = LuanCompiler.newLuanState();
-		BasicLib.register(luan);
-		JavaLib.register(luan);
-		MathLib.register(luan);
-		StringLib.register(luan);
-		TableLib.register(luan);
-		HtmlLib.register(luan);
-		return luan;
+		try {
+			LuanState luan = LuanCompiler.newLuanState();
+			luan.load(BasicLib.LOADER,BasicLib.NAME);
+			luan.load(PackageLib.LOADER,PackageLib.NAME);
+			luan.load(JavaLib.LOADER,JavaLib.NAME);
+			luan.load(MathLib.LOADER,MathLib.NAME);
+			luan.load(StringLib.LOADER,StringLib.NAME);
+			luan.load(TableLib.LOADER,TableLib.NAME);
+			luan.load(HtmlLib.LOADER,HtmlLib.NAME);
+			return luan;
+		} catch(LuanException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public Object[] eval(String cmd,String sourceName) throws LuanException {
@@ -31,19 +61,6 @@ public abstract class LuanState {
 		return call(fn,null,null);
 	}
 
-
-
-	private final LuanTable global = new LuanTable();
-	private final List<MetatableGetter> mtGetters = new ArrayList<MetatableGetter>();
-	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
-
-	public InputStream in = System.in;
-	public PrintStream out = System.out;
-	public PrintStream err = System.err;
-
-	public final LuanTable global() {
-		return global;
-	}
 
 	public final LuanTable getMetatable(Object obj) {
 		if( obj instanceof LuanTable ) {
