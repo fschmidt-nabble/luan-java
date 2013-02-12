@@ -27,19 +27,24 @@ import luan.LuanElement;
 
 public final class JavaLib {
 
-	public static void register(LuanState luan) {
-		luan.addMetatableGetter(mg);
-		LuanTable module = new LuanTable();
-		LuanTable global = luan.global();
-		global.put("java",module);
-		try {
-			global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
-			module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
-			add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
+	public static final String NAME = "java";
+
+	public static final LuanFunction LOADER = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			luan.addMetatableGetter(mg);
+			LuanTable module = new LuanTable();
+			LuanTable global = luan.global;
+			global.put(NAME,module);
+			try {
+				global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
+				module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
+				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return LuanFunction.EMPTY_RTN;
 		}
-	}
+	};
 
 	private static final LuanTable mt = new LuanTable();
 	static {
@@ -294,7 +299,7 @@ public final class JavaLib {
 	}
 
 	public static void importClass(LuanState luan,String name) throws LuanException {
-		luan.global().put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
+		luan.global.put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
 	}
 
 	static class AmbiguousJavaFunction extends LuanFunction {

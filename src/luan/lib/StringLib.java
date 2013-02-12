@@ -13,27 +13,32 @@ import luan.LuanException;
 
 public final class StringLib {
 
-	public static void register(LuanState luan) {
-		LuanTable module = new LuanTable();
-		LuanTable global = luan.global();
-		global.put("string",module);
-		try {
-			module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
-			module.put( "char", new LuanJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
-			add( module, "find", String.class, String.class, Integer.class, Boolean.class );
-			add( module, "gmatch", String.class, String.class );
-			add( module, "gsub", LuanState.class, String.class, String.class, Object.class, Integer.class );
-			add( module, "len", String.class );
-			add( module, "lower", String.class );
-			add( module, "match", String.class, String.class, Integer.class );
-			add( module, "rep", String.class, Integer.TYPE, String.class );
-			add( module, "reverse", String.class );
-			add( module, "sub", String.class, Integer.TYPE, Integer.class );
-			add( module, "upper", String.class );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
+	public static final String NAME = "string";
+
+	public static final LuanFunction LOADER = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			LuanTable module = new LuanTable();
+			LuanTable global = luan.global;
+			global.put(NAME,module);
+			try {
+				module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
+				module.put( "char", new LuanJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
+				add( module, "find", String.class, String.class, Integer.class, Boolean.class );
+				add( module, "gmatch", String.class, String.class );
+				add( module, "gsub", LuanState.class, String.class, String.class, Object.class, Integer.class );
+				add( module, "len", String.class );
+				add( module, "lower", String.class );
+				add( module, "match", String.class, String.class, Integer.class );
+				add( module, "rep", String.class, Integer.TYPE, String.class );
+				add( module, "reverse", String.class );
+				add( module, "sub", String.class, Integer.TYPE, Integer.class );
+				add( module, "upper", String.class );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return LuanFunction.EMPTY_RTN;
 		}
-	}
+	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(StringLib.class.getMethod(method,parameterTypes),null) );

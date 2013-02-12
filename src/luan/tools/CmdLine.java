@@ -65,7 +65,7 @@ public class CmdLine {
 			for( int j=0; j<args.length; j++ ) {
 				argsTable.put( j, args[j] );
 			}
-			luan.global().put("arg",argsTable);
+			luan.global.put("arg",argsTable);
 			try {
 				LuanFunction fn = BasicLib.load_file(luan,file);
 				luan.call(fn,null,null,varArgs);
