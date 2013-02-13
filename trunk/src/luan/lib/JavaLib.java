@@ -34,7 +34,6 @@ public final class JavaLib {
 			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
 			LuanTable global = luan.global;
-			global.put(NAME,module);
 			try {
 				global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
 				module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
@@ -42,7 +41,7 @@ public final class JavaLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return LuanFunction.EMPTY_RTN;
+			return new Object[]{module};
 		}
 	};
 

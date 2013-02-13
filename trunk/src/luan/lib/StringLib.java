@@ -19,7 +19,6 @@ public final class StringLib {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			LuanTable module = new LuanTable();
 			LuanTable global = luan.global;
-			global.put(NAME,module);
 			try {
 				module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
 				module.put( "char", new LuanJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
@@ -36,7 +35,7 @@ public final class StringLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return LuanFunction.EMPTY_RTN;
+			return new Object[]{module};
 		}
 	};
 

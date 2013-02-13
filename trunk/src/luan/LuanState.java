@@ -28,16 +28,13 @@ public abstract class LuanState {
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
 
-	public Object load(LuanFunction loader,String modName) throws LuanException {
-		return load(loader,modName,null);
-	}
-
-	public Object load(LuanFunction loader,String modName,Object extra) throws LuanException {
-		Object mod = Luan.first(call(loader,LuanElement.JAVA,"loader",modName,extra));
+	public void load(LuanFunction loader,String modName) throws LuanException {
+		Object mod = Luan.first(call(loader,LuanElement.JAVA,"loader",modName));
 		if( mod == null )
 			mod = true;
 		loaded.put(modName,mod);
-		return mod;
+		if( mod instanceof LuanTable )
+			global.put(modName,mod);
 	}
 
 	public static LuanState newStandard() {

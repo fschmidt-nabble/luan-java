@@ -14,13 +14,12 @@ public final class MathLib {
 		public Object[] call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			LuanTable global = luan.global;
-			global.put(NAME,module);
 			try {
 				add( module, "floor", Double.TYPE );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return LuanFunction.EMPTY_RTN;
+			return new Object[]{module};
 		}
 	};
 
