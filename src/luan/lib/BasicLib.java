@@ -1,8 +1,6 @@
 package luan.lib;
 
 import java.io.File;
-import java.io.Reader;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -95,31 +93,10 @@ public final class BasicLib {
 		return LuanCompiler.compile(luan,new LuanSource(sourceName,text));
 	}
 
-	public static String readAll(Reader in)
-		throws IOException
-	{
-		char[] a = new char[8192];
-		StringBuilder buf = new StringBuilder();
-		int n;
-		while( (n=in.read(a)) != -1 ) {
-			buf.append(a,0,n);
-		}
-		return buf.toString();
-	}
-
-	public static String read(File file)
-		throws IOException
-	{
-		Reader in = new FileReader(file);
-		String s = readAll(in);
-		in.close();
-		return s;
-	}
-
 
 	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
-			String src = fileName==null ? readAll(new InputStreamReader(System.in)) : read(new File(fileName));
+			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
 			return load(luan,src,fileName);
 		} catch(IOException e) {
 			throw new LuanException(luan,LuanElement.JAVA,e);

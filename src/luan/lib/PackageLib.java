@@ -1,8 +1,9 @@
 package luan.lib;
 
 import java.io.File;
-import java.util.List;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -20,20 +21,17 @@ public final class PackageLib {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			LuanTable global = luan.global;
 			LuanTable module = new LuanTable();
-			List<Object> searchers = new ArrayList<Object>();
 			module.put("loaded",luan.loaded);
 			module.put("preload",luan.preload);
-			module.put("path","?.lua");
+//			module.put("path","?.lua");
 			try {
 				add( global, "require", LuanState.class, String.class );
 				add( module, "module", LuanState.class, String.class );
 				add( module, "search_path", String.class, String.class );
-				searchers.add( new LuanJavaFunction(PackageLib.class.getMethod("preloadSearcher",LuanState.class,String.class),null) );
-				searchers.add( new LuanJavaFunction(PackageLib.class.getMethod("fileSearcher",LuanState.class,String.class),null) );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			module.put("searchers",new LuanTable(searchers));
+			module.put("searchers",new LuanTable(Arrays.<Object>asList(preloadSearcher,fileSearcher,javaFileSearcher)));
 			return new Object[]{module};
 		}
 	};
@@ -49,10 +47,9 @@ public final class PackageLib {
 	}
 
 	public static Object module(LuanState luan,String modName) throws LuanException {
-		LuanTable module = (LuanTable)luan.global.get(NAME);
 		Object mod = luan.loaded.get(modName);
 		if( mod == null ) {
-			LuanTable searchers = (LuanTable)module.get("searchers");
+			LuanTable searchers = (LuanTable)luan.get("package.searchers");
 			for( Object s : searchers.asList() ) {
 				LuanFunction searcher = (LuanFunction)s;
 				Object[] a = luan.call(searcher,LuanElement.JAVA,"searcher",modName);
@@ -89,15 +86,56 @@ public final class PackageLib {
 		}
 	};
 
-	public static Object[] fileSearcher(LuanState luan,String modName) {
-		LuanTable module = (LuanTable)luan.global.get(NAME);
-		String path = (String)module.get("path");
-		String file = search_path(modName,path);
-		return file==null ? LuanFunction.EMPTY_RTN : new Object[]{fileLoader,file};
-	}
+	public static final LuanFunction fileSearcher = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			String modName = (String)args[0];
+			String path = (String)luan.get("package.path");
+			if( path==null )
+				return LuanFunction.EMPTY_RTN;
+			String file = search_path(modName,path);
+			return file==null ? LuanFunction.EMPTY_RTN : new Object[]{fileLoader,file};
+		}
+	};
 
-	public static Object preloadSearcher(LuanState luan,String modName) {
-		return luan.preload.get(modName);
-	}
-		
+	public static final LuanFunction preloadSearcher = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			String modName = (String)args[0];
+			return new Object[]{luan.preload.get(modName)};
+		}
+	};
+
+
+
+
+	private static final LuanFunction javaFileLoader = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			try {
+				String modName = (String)args[0];
+				URL url = (URL)args[1];
+				String src = Utils.read(url);
+				LuanFunction fn = BasicLib.load(luan,src,url.toString());
+				return luan.call(fn,LuanElement.JAVA,modName,args);
+			} catch(IOException e) {
+				throw new LuanException(luan,LuanElement.JAVA,e);
+			}
+		}
+	};
+
+	public static final LuanFunction javaFileSearcher = new LuanFunction() {
+		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			String modName = (String)args[0];
+			String path = (String)luan.get("package.jpath");
+			if( path==null )
+				return LuanFunction.EMPTY_RTN;
+			for( String s : path.split(";") ) {
+				String file = s.replaceAll("\\?",modName);
+				URL url = ClassLoader.getSystemResource(file);
+				if( url != null ) {
+					return new Object[]{javaFileLoader,url};
+				}
+			}
+			return LuanFunction.EMPTY_RTN;
+		}
+	};
+
 }
