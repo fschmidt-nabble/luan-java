@@ -28,6 +28,30 @@ public abstract class LuanState {
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
 
+	public Object get(String name) {
+		String[] a = name.split("\\.");
+		LuanTable t = global;
+		for( int i=0; i<a.length-1; i++ ) {
+			Object obj = t.get(a[i]);
+			if( !(obj instanceof LuanTable) )
+				return null;
+			t = (LuanTable)obj;
+		}
+		return t.get(a[a.length-1]);
+	}
+
+	public Object set(String name,Object value) {
+		String[] a = name.split("\\.");
+		LuanTable t = global;
+		for( int i=0; i<a.length-1; i++ ) {
+			Object obj = t.get(a[i]);
+			if( !(obj instanceof LuanTable) )
+				return null;
+			t = (LuanTable)obj;
+		}
+		return t.put(a[a.length-1],value);
+	}
+
 	public void load(LuanFunction loader,String modName) throws LuanException {
 		Object mod = Luan.first(call(loader,LuanElement.JAVA,"loader",modName));
 		if( mod == null )
