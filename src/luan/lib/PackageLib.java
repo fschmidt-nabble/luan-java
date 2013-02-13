@@ -21,12 +21,12 @@ public final class PackageLib {
 			LuanTable global = luan.global;
 			LuanTable module = new LuanTable();
 			List<Object> searchers = new ArrayList<Object>();
-			global.put(NAME,module);
 			module.put("loaded",luan.loaded);
 			module.put("preload",luan.preload);
 			module.put("path","?.lua");
 			try {
 				add( global, "require", LuanState.class, String.class );
+				add( module, "module", LuanState.class, String.class );
 				add( module, "search_path", String.class, String.class );
 				searchers.add( new LuanJavaFunction(PackageLib.class.getMethod("preloadSearcher",LuanState.class,String.class),null) );
 				searchers.add( new LuanJavaFunction(PackageLib.class.getMethod("fileSearcher",LuanState.class,String.class),null) );
@@ -34,7 +34,7 @@ public final class PackageLib {
 				throw new RuntimeException(e);
 			}
 			module.put("searchers",new LuanTable(searchers));
-			return LuanFunction.EMPTY_RTN;
+			return new Object[]{module};
 		}
 	};
 
@@ -42,7 +42,13 @@ public final class PackageLib {
 		t.put( method, new LuanJavaFunction(PackageLib.class.getMethod(method,parameterTypes),null) );
 	}
 
-	public static Object require(LuanState luan,String modName) throws LuanException {
+	public static void require(LuanState luan,String modName) throws LuanException {
+		Object mod = module(luan,modName);
+		if( mod instanceof LuanTable )
+			luan.global.put(modName,mod);
+	}
+
+	public static Object module(LuanState luan,String modName) throws LuanException {
 		LuanTable module = (LuanTable)luan.global.get(NAME);
 		Object mod = luan.loaded.get(modName);
 		if( mod == null ) {
@@ -53,7 +59,10 @@ public final class PackageLib {
 				if( a.length >= 1 && a[0] instanceof LuanFunction ) {
 					LuanFunction loader = (LuanFunction)a[0];
 					Object extra = a.length >= 2 ? a[1] : null;
-					mod = luan.load(loader,modName,extra);
+					mod = Luan.first(luan.call(loader,LuanElement.JAVA,"loader",modName,extra));
+					if( mod == null )
+						mod = true;
+					luan.loaded.put(modName,mod);
 				}
 			}
 			if( mod == null )
@@ -62,9 +71,9 @@ public final class PackageLib {
 		return mod;
 	}
 
-	public static String search_path(String NAME,String path) {
+	public static String search_path(String name,String path) {
 		for( String s : path.split(";") ) {
-			String file = s.replaceAll("\\?",NAME);
+			String file = s.replaceAll("\\?",name);
 			if( new File(file).exists() )
 				return file;
 		}
@@ -73,7 +82,10 @@ public final class PackageLib {
 
 	private static final LuanFunction fileLoader = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
-			return BasicLib.do_file(luan,(String)args[1]);
+			String modName = (String)args[0];
+			String fileName = (String)args[1];
+			LuanFunction fn = BasicLib.load_file(luan,fileName);
+			return luan.call(fn,LuanElement.JAVA,modName,args);
 		}
 	};
 

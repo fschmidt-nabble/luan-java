@@ -20,7 +20,6 @@ public final class TableLib {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			LuanTable module = new LuanTable();
 			LuanTable global = luan.global;
-			global.put(NAME,module);
 			try {
 				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
 				add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );
@@ -32,7 +31,7 @@ public final class TableLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return LuanFunction.EMPTY_RTN;
+			return new Object[]{module};
 		}
 	};
 
