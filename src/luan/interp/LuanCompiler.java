@@ -21,7 +21,7 @@ public final class LuanCompiler {
 		ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(src.text);
 //		ParsingResult<?> result = new TracingParseRunner(parser.Target()).run(src);
 		if( result.hasErrors() )
-			throw new LuanException( luan, null, ErrorUtils.printParseErrors(result) );
+			throw new LuanException( luan, LuanElement.COMPILER, ErrorUtils.printParseErrors(result) );
 		Chunk chunk = (Chunk)result.resultValue;
 		return new Closure((LuanStateImpl)luan,chunk);
 	}
