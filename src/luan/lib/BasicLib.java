@@ -23,7 +23,7 @@ public final class BasicLib {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
-			LuanTable global = luan.global;
+			LuanTable global = luan.global();
 			global.put( "_G", global );
 			try {
 				global.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
@@ -63,7 +63,7 @@ public final class BasicLib {
 	}
 
 	public static void make_standard(LuanState luan) {
-		LuanTable global = luan.global;
+		LuanTable global = luan.global();
 		global.put( "dofile", global.get("do_file") );
 		global.put( "getmetatable", global.get("get_metatable") );
 		global.put( "loadfile", global.get("load_file") );

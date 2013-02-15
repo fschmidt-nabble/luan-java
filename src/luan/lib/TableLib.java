@@ -20,7 +20,7 @@ public final class TableLib {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global;
+			LuanTable global = luan.global();
 			try {
 				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
 				add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );

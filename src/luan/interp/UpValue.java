@@ -1,7 +1,10 @@
 package luan.interp;
 
+import luan.DeepCloner;
+import luan.DeepCloneable;
 
-final class UpValue {
+
+final class UpValue implements DeepCloneable<UpValue> {
 	private Object[] stack;
 	private int index;
 	private boolean isClosed = false;
@@ -15,6 +18,23 @@ final class UpValue {
 	UpValue(Object value) {
 		this.value = value;
 		this.isClosed = true;
+	}
+
+	private UpValue() {}
+
+	@Override public UpValue shallowClone() {
+		return new UpValue();
+	}
+
+	@Override public void deepenClone(UpValue clone,DeepCloner cloner) {
+		clone.isClosed = isClosed;
+		if( isClosed ) {
+			clone.value = cloner.get(value);
+		} else {
+			clone.stack = stack.clone();
+			cloner.deepenClone(clone.stack);
+			clone.index = index;
+		}
 	}
 
 	Object get() {
@@ -65,7 +85,7 @@ final class UpValue {
 
 	static final Getter globalGetter = new Getter() {
 		public UpValue get(LuanStateImpl luan) {
-			return new UpValue(luan.global);
+			return new UpValue(luan.global());
 		}
 	};
 

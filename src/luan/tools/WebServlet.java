@@ -25,6 +25,8 @@ public class WebServlet extends HttpServlet {
 
 	public static final String HTTP_SERVER = "http_server";
 
+	protected LuanState luanState = null;
+
 	protected void loadLibs(LuanState luan) throws LuanException {
 		luan.load(BasicLib.LOADER,BasicLib.NAME);
 		luan.load(PackageLib.LOADER,PackageLib.NAME);
@@ -36,7 +38,7 @@ public class WebServlet extends HttpServlet {
 
 	protected void loadLuan(LuanState luan) throws LuanException {
 		PackageLib.require(luan,HTTP_SERVER);
-		Object fn = luan.global.get(HttpLib.FN_NAME);
+		Object fn = luan.global().get(HttpLib.FN_NAME);
 		if( !(fn instanceof LuanFunction) )
 			throw new LuanException( luan, LuanElement.JAVA, "function '"+HttpLib.FN_NAME+"' not defined" );
 	}
@@ -48,8 +50,12 @@ public class WebServlet extends HttpServlet {
 		return luan;
 	}
 
-	protected LuanState getLuanState() throws LuanException {
-		return newLuanState();
+	protected  LuanState getLuanState() throws LuanException {
+		synchronized(this) {
+			if( luanState == null )
+				luanState = newLuanState();
+		}
+		return luanState.deepClone();
 	}
 
 	protected void service(HttpServletRequest request,HttpServletResponse response)

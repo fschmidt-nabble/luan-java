@@ -14,21 +14,53 @@ import luan.lib.TableLib;
 import luan.lib.HtmlLib;
 
 
-public abstract class LuanState {
+public abstract class LuanState implements DeepCloneable<LuanState> {
 
-	public final LuanTable global = new LuanTable();
-	public final LuanTable loaded = new LuanTable();
-	public final LuanTable preload = new LuanTable();
+	private LuanTable global;
+	private LuanTable loaded;
+	private LuanTable preload;
 
 	public InputStream in = System.in;
 	public PrintStream out = System.out;
 	public PrintStream err = System.err;
 
-	private final List<MetatableGetter> mtGetters = new ArrayList<MetatableGetter>();
+	private final List<MetatableGetter> mtGetters;
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
+	protected LuanState() {
+		global = new LuanTable();
+		loaded = new LuanTable();
+		preload = new LuanTable();
+		mtGetters = new ArrayList<MetatableGetter>();
+	}
 
-	public Object get(String name) {
+	protected LuanState(LuanState luan) {
+		mtGetters = new ArrayList<MetatableGetter>(luan.mtGetters);
+	}
+
+	public final LuanState deepClone() {
+		return new DeepCloner().deepClone(this);
+	}
+
+	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
+		clone.global = cloner.deepClone(global);
+		clone.loaded = cloner.deepClone(loaded);
+		clone.preload = cloner.deepClone(preload);
+	}
+
+	public final LuanTable global() {
+		return global;
+	}
+
+	public final LuanTable loaded() {
+		return loaded;
+	}
+
+	public final LuanTable preload() {
+		return preload;
+	}
+
+	public final Object get(String name) {
 		String[] a = name.split("\\.");
 		LuanTable t = global;
 		for( int i=0; i<a.length-1; i++ ) {
@@ -40,7 +72,7 @@ public abstract class LuanState {
 		return t.get(a[a.length-1]);
 	}
 
-	public Object set(String name,Object value) {
+	public final Object set(String name,Object value) {
 		String[] a = name.split("\\.");
 		LuanTable t = global;
 		for( int i=0; i<a.length-1; i++ ) {
@@ -52,7 +84,7 @@ public abstract class LuanState {
 		return t.put(a[a.length-1],value);
 	}
 
-	public void load(LuanFunction loader,String modName) throws LuanException {
+	public final void load(LuanFunction loader,String modName) throws LuanException {
 		Object mod = Luan.first(call(loader,LuanElement.JAVA,"loader",modName));
 		if( mod == null )
 			mod = true;
@@ -77,7 +109,7 @@ public abstract class LuanState {
 		}
 	}
 
-	public Object[] eval(String cmd,String sourceName) throws LuanException {
+	public final Object[] eval(String cmd,String sourceName) throws LuanException {
 		LuanFunction fn = BasicLib.load(this,cmd,sourceName);
 		return call(fn,null,null);
 	}
@@ -100,7 +132,7 @@ public abstract class LuanState {
 		mtGetters.add(mg);
 	}
 
-	public Object[] call(LuanFunction fn,LuanElement calledFrom,String fnName,Object... args) throws LuanException {
+	public final Object[] call(LuanFunction fn,LuanElement calledFrom,String fnName,Object... args) throws LuanException {
 		stackTrace.add( new StackTraceElement(calledFrom,fnName) );
 		try {
 			return fn.call(this,args);

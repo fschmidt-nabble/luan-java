@@ -9,18 +9,10 @@ import luan.LuanFunction;
 import luan.MetatableGetter;
 import luan.LuanException;
 import luan.LuanElement;
+import luan.DeepCloner;
 
 
 final class LuanStateImpl extends LuanState {
-
-	final Object arithmetic(LuanElement el,String op,Object o1,Object o2) throws LuanException {
-		LuanFunction fn = getBinHandler(el,op,o1,o2);
-		if( fn != null )
-			return Luan.first(call(fn,el,op,o1,o2));
-		String type = Luan.toNumber(o1)==null ? Luan.type(o1) : Luan.type(o2);
-		throw new LuanException(this,el,"attempt to perform arithmetic on a "+type+" value");
-	}
-
 
 	private static class Frame {
 		final Frame previousFrame;
@@ -64,6 +56,18 @@ final class LuanStateImpl extends LuanState {
 	Object[] returnValues = LuanFunction.EMPTY_RTN;
 	Closure tailFn;
 
+	public LuanStateImpl() {}
+
+	private LuanStateImpl(LuanStateImpl luan) {
+		super(luan);
+	}
+
+	@Override public LuanState shallowClone() {
+		if( frame != null )
+			throw new IllegalStateException("frame isn't null");
+		return new LuanStateImpl(this);
+	}
+
 	// returns stack
 	Object[] newFrame(Closure closure, int stackSize, Object[] varArgs) {
 		frame = new Frame(frame,closure,stackSize,varArgs);
@@ -99,4 +103,14 @@ final class LuanStateImpl extends LuanState {
 	UpValue getUpValue(int index) {
 		return frame.getUpValue(index);
 	}
+
+
+	final Object arithmetic(LuanElement el,String op,Object o1,Object o2) throws LuanException {
+		LuanFunction fn = getBinHandler(el,op,o1,o2);
+		if( fn != null )
+			return Luan.first(call(fn,el,op,o1,o2));
+		String type = Luan.toNumber(o1)==null ? Luan.type(o1) : Luan.type(o2);
+		throw new LuanException(this,el,"attempt to perform arithmetic on a "+type+" value");
+	}
+
 }
