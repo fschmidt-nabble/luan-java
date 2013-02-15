@@ -31,8 +31,7 @@ final class UpValue implements DeepCloneable<UpValue> {
 		if( isClosed ) {
 			clone.value = cloner.get(value);
 		} else {
-			clone.stack = stack.clone();
-			cloner.deepenClone(clone.stack);
+			clone.stack = cloner.deepClone(stack);
 			clone.index = index;
 		}
 	}
@@ -79,7 +78,7 @@ final class UpValue implements DeepCloneable<UpValue> {
 		}
 
 		public UpValue get(LuanStateImpl luan) {
-			return luan.closure().upValues[index];
+			return luan.closure().upValues()[index];
 		}
 	}
 

@@ -18,10 +18,21 @@ public final class DeepCloner {
 		return rtn;
 	}
 
-	public void deepenClone(Object[] a) {
-		for( int i=0; i<a.length; i++ ) {
-			a[i] = get(a[i]);
+	public <T> T[] deepClone(T[] obj) {
+		if( obj.length == 0 )
+			return obj;
+		@SuppressWarnings("unchecked")
+		T[] rtn = (T[])cloned.get(obj);
+		if( rtn == null ) {
+			rtn = obj.clone();
+			cloned.put(obj,rtn);
+			for( int i=0; i<rtn.length; i++ ) {
+				@SuppressWarnings("unchecked")
+				T t = (T)get(rtn[i]);
+				rtn[i] = t;
+			}
 		}
+		return rtn;
 	}
 
 	public Object get(Object obj) {
