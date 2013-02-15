@@ -10,6 +10,7 @@ import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
+import luan.LuanRuntimeException;
 
 
 public final class TableLib {
