@@ -19,10 +19,10 @@ public final class PackageLib {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
-			LuanTable global = luan.global;
+			LuanTable global = luan.global();
 			LuanTable module = new LuanTable();
-			module.put("loaded",luan.loaded);
-			module.put("preload",luan.preload);
+			module.put("loaded",luan.loaded());
+			module.put("preload",luan.preload());
 //			module.put("path","?.lua");
 			try {
 				add( global, "require", LuanState.class, String.class );
@@ -43,11 +43,11 @@ public final class PackageLib {
 	public static void require(LuanState luan,String modName) throws LuanException {
 		Object mod = module(luan,modName);
 		if( mod instanceof LuanTable )
-			luan.global.put(modName,mod);
+			luan.global().put(modName,mod);
 	}
 
 	public static Object module(LuanState luan,String modName) throws LuanException {
-		Object mod = luan.loaded.get(modName);
+		Object mod = luan.loaded().get(modName);
 		if( mod == null ) {
 			LuanTable searchers = (LuanTable)luan.get("package.searchers");
 			for( Object s : searchers.asList() ) {
@@ -59,7 +59,7 @@ public final class PackageLib {
 					mod = Luan.first(luan.call(loader,LuanElement.JAVA,"loader",modName,extra));
 					if( mod == null )
 						mod = true;
-					luan.loaded.put(modName,mod);
+					luan.loaded().put(modName,mod);
 				}
 			}
 			if( mod == null )
@@ -100,7 +100,7 @@ public final class PackageLib {
 	public static final LuanFunction preloadSearcher = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			String modName = (String)args[0];
-			return new Object[]{luan.preload.get(modName)};
+			return new Object[]{luan.preload().get(modName)};
 		}
 	};
 

@@ -13,7 +13,7 @@ public final class HtmlLib {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global;
+			LuanTable global = luan.global();
 			try {
 				add( module, "encode", String.class );
 			} catch(NoSuchMethodException e) {

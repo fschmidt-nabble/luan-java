@@ -23,12 +23,12 @@ public final class HttpLib {
 	public static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response)
 		throws LuanException, IOException
 	{
-		LuanFunction fn = (LuanFunction)luan.global.get(FN_NAME);
+		LuanFunction fn = (LuanFunction)luan.global().get(FN_NAME);
 		ServletOutputStream sout = response.getOutputStream();
 		luan.out = new PrintStream(sout);
 
 		LuanTable module = new LuanTable();
-		luan.global.put(NAME,module);
+		luan.global().put(NAME,module);
 
 		LuanTable parameters = new LuanTable();
 		LuanTable parameter_lists = new LuanTable();

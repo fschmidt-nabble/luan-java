@@ -33,7 +33,7 @@ public final class JavaLib {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global;
+			LuanTable global = luan.global();
 			try {
 				global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
 				module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
@@ -298,7 +298,7 @@ public final class JavaLib {
 	}
 
 	public static void importClass(LuanState luan,String name) throws LuanException {
-		luan.global.put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
+		luan.global().put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
 	}
 
 	static class AmbiguousJavaFunction extends LuanFunction {
