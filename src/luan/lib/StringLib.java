@@ -23,6 +23,7 @@ public final class StringLib {
 				module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
 				module.put( "char", new LuanJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
 				add( module, "find", String.class, String.class, Integer.class, Boolean.class );
+				add( module, "format", String.class, new Object[0].getClass() );
 				add( module, "gmatch", String.class, String.class );
 				add( module, "gsub", LuanState.class, String.class, String.class, Object.class, Integer.class );
 				add( module, "len", String.class );
@@ -68,8 +69,6 @@ public final class StringLib {
 	public static String char_(byte... bytes) {
 		return new String(bytes);
 	}
-
-	// format is hard because String.format() is too stupid to convert ints to floats.
 
 	public static int len(String s) {
 		return s.length();
@@ -208,6 +207,11 @@ public final class StringLib {
 			return new Object[]{ sb.toString(), i };
 		}
 		throw new LuanException( luan, LuanElement.JAVA, "bad argument #3 to 'gsub' (string/function/table expected)" );
+	}
+
+	// note - String.format() is too stupid to convert between ints and floats.
+	public static String format(String format,Object... args) {
+		return String.format(format,args);
 	}
 
 }
