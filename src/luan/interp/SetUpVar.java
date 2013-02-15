@@ -9,6 +9,6 @@ final class SetUpVar implements Settable {
 	}
 
 	@Override public void set(LuanStateImpl luan,Object value) {
-		luan.closure().upValues[index].set(value);
+		luan.closure().upValues()[index].set(value);
 	}
 }

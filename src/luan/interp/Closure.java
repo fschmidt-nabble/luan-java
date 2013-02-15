@@ -10,7 +10,7 @@ import luan.DeepCloneable;
 
 final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 	private final Chunk chunk;
-	final UpValue[] upValues;
+	private UpValue[] upValues;
 	private final static UpValue[] NO_UP_VALUES = new UpValue[0];
 
 	Closure(LuanStateImpl luan,Chunk chunk) {
@@ -28,7 +28,6 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 
 	private Closure(Closure c) {
 		this.chunk = c.chunk;
-		this.upValues = c.upValues==NO_UP_VALUES ? NO_UP_VALUES : c.upValues.clone();
 	}
 
 	@Override public Closure shallowClone() {
@@ -36,7 +35,11 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 	}
 
 	@Override public void deepenClone(Closure clone,DeepCloner cloner) {
-		cloner.deepenClone(clone.upValues);
+		clone.upValues = cloner.deepClone(upValues);
+	}
+
+	UpValue[] upValues() {
+		return upValues;
 	}
 
 	public Object[] call(LuanState luan,Object[] args) throws LuanException {
