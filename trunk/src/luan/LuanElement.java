@@ -14,4 +14,10 @@ public abstract class LuanElement {
 			return "Java";
 		}
 	};
+
+	public static final LuanElement COMPILER = new LuanElement(){
+		@Override String location() {
+			return "Compiler";
+		}
+	};
 }
