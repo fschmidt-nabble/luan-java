@@ -1,6 +1,4 @@
-package luan.lib;
-
-import luan.LuanException;
+package luan;
 
 
 public final class LuanRuntimeException extends RuntimeException {
