@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 
 
-public class LuanTable implements DeepCloneable<LuanTable> {
+public final class LuanTable implements DeepCloneable<LuanTable> {
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
 	private LuanTable metatable = null;
@@ -102,11 +102,14 @@ public class LuanTable implements DeepCloneable<LuanTable> {
 	}
 
 	@Override public String toString() {
+		return "table: " + Integer.toHexString(hashCode());
+	}
+/*
+	@Override public String toString() {
 		return toString( Collections.newSetFromMap(new IdentityHashMap<LuanTable,Boolean>()) );
 	}
 
 	private String toString(Set<LuanTable> set) {
-//		return "table: " + Integer.toHexString(hashCode());
 		if( !set.add(this) ) {
 			return "...";
 		}
@@ -153,7 +156,7 @@ public class LuanTable implements DeepCloneable<LuanTable> {
 			return Luan.toString(obj);
 		}
 	}
-
+*/
 	public Object get(Object key) {
 		if( list != null ) {
 			Integer iT = Luan.asInteger(key);
