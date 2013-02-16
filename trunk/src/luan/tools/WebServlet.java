@@ -50,7 +50,7 @@ public class WebServlet extends HttpServlet {
 		return luan;
 	}
 
-	protected  LuanState getLuanState() throws LuanException {
+	protected  LuanState getLuanState(HttpServletRequest request) throws LuanException {
 		synchronized(this) {
 			if( luanState == null )
 				luanState = newLuanState();
@@ -62,7 +62,7 @@ public class WebServlet extends HttpServlet {
 		throws ServletException, IOException
 	{
 		try {
-			LuanState luan = getLuanState();
+			LuanState luan = getLuanState(request);
 			HttpLib.service(luan,request,response);
 		} catch(LuanException e) {
 			throw new LuanRuntimeException(e);
