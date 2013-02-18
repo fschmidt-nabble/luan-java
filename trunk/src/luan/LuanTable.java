@@ -104,12 +104,12 @@ public final class LuanTable implements DeepCloneable<LuanTable> {
 	@Override public String toString() {
 		return "table: " + Integer.toHexString(hashCode());
 	}
-/*
-	@Override public String toString() {
-		return toString( Collections.newSetFromMap(new IdentityHashMap<LuanTable,Boolean>()) );
+
+	public String show() {
+		return show( Collections.newSetFromMap(new IdentityHashMap<LuanTable,Boolean>()) );
 	}
 
-	private String toString(Set<LuanTable> set) {
+	private String show(Set<LuanTable> set) {
 		if( !set.add(this) ) {
 			return "...";
 		}
@@ -130,7 +130,7 @@ public final class LuanTable implements DeepCloneable<LuanTable> {
 					}
 					if( gotNull )
 						sb.append(i+1).append('=');
-					sb.append(toString(set,obj));
+					sb.append(show(set,obj));
 				}
 			}
 		}
@@ -141,22 +141,22 @@ public final class LuanTable implements DeepCloneable<LuanTable> {
 				} else {
 					sb.append(", ");
 				}
-				sb.append(toString(set,entry.getKey())).append('=').append(toString(set,entry.getValue()));
+				sb.append(show(set,entry.getKey())).append('=').append(show(set,entry.getValue()));
 			}
 		}
 		sb.append('}');
 		return sb.toString();
 	}
 
-	private static String toString(Set<LuanTable> set,Object obj) {
+	private static String show(Set<LuanTable> set,Object obj) {
 		if( obj instanceof LuanTable ) {
 			LuanTable t = (LuanTable)obj;
-			return t.toString(set);
+			return t.show(set);
 		} else {
 			return Luan.toString(obj);
 		}
 	}
-*/
+
 	public Object get(Object key) {
 		if( list != null ) {
 			Integer iT = Luan.asInteger(key);

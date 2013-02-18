@@ -28,25 +28,21 @@ public class WebServlet extends HttpServlet {
 	protected LuanState luanState = null;
 
 	protected void loadLibs(LuanState luan) throws LuanException {
-		luan.load(BasicLib.LOADER,BasicLib.NAME);
-		luan.load(PackageLib.LOADER,PackageLib.NAME);
-		luan.load(MathLib.LOADER,MathLib.NAME);
-		luan.load(StringLib.LOADER,StringLib.NAME);
-		luan.load(TableLib.LOADER,TableLib.NAME);
-		luan.load(HtmlLib.LOADER,HtmlLib.NAME);
-	}
-
-	protected void loadLuan(LuanState luan) throws LuanException {
-		PackageLib.require(luan,HTTP_SERVER);
-		Object fn = luan.global().get(HttpLib.FN_NAME);
-		if( !(fn instanceof LuanFunction) )
-			throw new LuanException( luan, LuanElement.JAVA, "function '"+HttpLib.FN_NAME+"' not defined" );
+		luan.load(BasicLib.NAME,BasicLib.LOADER);
+		luan.load(PackageLib.NAME,PackageLib.LOADER);
+		luan.load(MathLib.NAME,MathLib.LOADER);
+		luan.load(StringLib.NAME,StringLib.LOADER);
+		luan.load(TableLib.NAME,TableLib.LOADER);
+		luan.load(HtmlLib.NAME,HtmlLib.LOADER);
 	}
 
 	protected LuanState newLuanState() throws LuanException {
 		LuanState luan = LuanCompiler.newLuanState();
 		loadLibs(luan);
-		loadLuan(luan);
+		PackageLib.require(luan,HTTP_SERVER);
+		Object fn = luan.global().get(HttpLib.FN_NAME);
+		if( !(fn instanceof LuanFunction) )
+			throw new LuanException( luan, LuanElement.JAVA, "function '"+HttpLib.FN_NAME+"' not defined" );
 		return luan;
 	}
 
