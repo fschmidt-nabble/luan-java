@@ -172,7 +172,7 @@ class LuanParser extends BaseParser<Object> {
 		return Sequence(
 			Optional( Stmt(stmts) ),
 			ZeroOrMore(
-				StmtSep(),
+				StmtSep(stmts),
 				Optional( Stmt(stmts) )
 			),
 			push( newBlock(stmts.get(),stackStart.get()) )
@@ -189,13 +189,17 @@ class LuanParser extends BaseParser<Object> {
 		return new Block( stmts.toArray(new Stmt[0]), stackStart, stackEnd );
 	}
 
-	Rule StmtSep() {
+	Rule StmtSep(Var<List<Stmt>> stmts) {
 		return Sequence(
 			FirstOf(
 				';',
 				Sequence(
 					Optional( "--", ZeroOrMore(NoneOf("\r\n")) ),
 					EndOfLine()
+				),
+				Sequence(
+					OutputStmt(),
+					stmts.get().add( (Stmt)pop() )
 				)
 			),
 			Spaces(false)
@@ -211,7 +215,6 @@ class LuanParser extends BaseParser<Object> {
 			LocalStmt(stmts),
 			Sequence(
 				FirstOf(
-					OutputStmt(),
 					ReturnStmt(),
 					FunctionStmt(),
 					LocalFunctionStmt(),
@@ -828,6 +831,7 @@ class LuanParser extends BaseParser<Object> {
 				),
 				Sequence(
 					StringLiteral(inParens),
+					push(new ConstExpr(pop())),
 					addToExpList(builder.get())
 				)
 			),
