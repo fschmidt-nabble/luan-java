@@ -727,29 +727,63 @@ class LuanParser extends BaseParser<Object> {
 	@Cached
 	Rule Var(boolean inParens) {
 		Var<Integer> start = new Var<Integer>();
+		Var<ExpList.Builder> builder = new Var<ExpList.Builder>();
 		return Sequence(
 			start.set(currentIndex()),
-			FirstOf(
-				Sequence(
-					'(', Spaces(true), Expr(true), ')', Spaces(inParens),
-					push(expr(pop())),
-					push(null)  // marker
-				),
-				Sequence(
-					push(null),  // marker
-					Name(inParens)
-				)
-			),
+			VarStart(inParens),
 			ZeroOrMore(
 				makeVarExp(start.get()),
 				FirstOf(
-					SubExpr(inParens),
-					Sequence( '.', Spaces(inParens), NameExpr(inParens) ),
+					VarExt(inParens),
 					Sequence(
-						Args(inParens,start),
-						push(null)  // marker
+						builder.set(new ExpList.Builder()),
+						Args(inParens,start,builder)
+					),
+					Sequence(
+						"->", Spaces(inParens),
+						builder.set(new ExpList.Builder()),
+						addToExpList(builder.get()),
+						VarExpB(inParens),
+						Args(inParens,start,builder)
 					)
 				)
+			)
+		);
+	}
+
+	@Cached
+	Rule VarExpB(boolean inParens) {
+		Var<Integer> start = new Var<Integer>();
+		return Sequence(
+			start.set(currentIndex()),
+			VarStart(inParens),
+			ZeroOrMore(
+				makeVarExp(start.get()),
+				VarExt(inParens)
+			),
+			makeVarExp(start.get())
+		);
+	}
+
+	@Cached
+	Rule VarExt(boolean inParens) {
+		return FirstOf(
+			SubExpr(inParens),
+			Sequence( '.', Spaces(inParens), NameExpr(inParens) )
+		);
+	}
+
+	@Cached
+	Rule VarStart(boolean inParens) {
+		return FirstOf(
+			Sequence(
+				'(', Spaces(true), Expr(true), ')', Spaces(inParens),
+				push(expr(pop())),
+				push(null)  // marker
+			),
+			Sequence(
+				push(null),  // marker
+				Name(inParens)
 			)
 		);
 	}
@@ -782,22 +816,23 @@ class LuanParser extends BaseParser<Object> {
 	}
 
 	// function should be on top of the stack
-	Rule Args(boolean inParens,Var<Integer> start) {
+	Rule Args(boolean inParens,Var<Integer> start,Var<ExpList.Builder> builder) {
 		return Sequence(
 			FirstOf(
 				Sequence(
-					'(', Spaces(true), Expressions(true), ')', Spaces(inParens)
+					'(', Spaces(true), Optional(ExpList(true,builder)), ')', Spaces(inParens)
 				),
 				Sequence(
 					TableExpr(inParens),
-					push( new ExpList.SingleExpList(expr(pop())) )
+					addToExpList(builder.get())
 				),
 				Sequence(
 					StringLiteral(inParens),
-					push( new ExpList.SingleExpList(new ConstExpr(pop())) )
+					addToExpList(builder.get())
 				)
 			),
-			push( new FnCall( se(start.get()), expr(pop(1)), (Expressions)pop() ) )
+			push( new FnCall( se(start.get()), expr(pop()), builder.get().build() ) ),
+			push(null)  // marker
 		);
 	}
 
@@ -813,13 +848,19 @@ class LuanParser extends BaseParser<Object> {
 	Rule ExpList(boolean inParens) {
 		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
 		return Sequence(
+			ExpList(inParens,builder),
+			push( builder.get().build() )
+		);
+	}
+
+	Rule ExpList(boolean inParens,Var<ExpList.Builder> builder) {
+		return Sequence(
 			Expr(inParens),
 			addToExpList(builder.get()),
 			ZeroOrMore(
 				',', Spaces(inParens), Expr(inParens),
 				addToExpList(builder.get())
-			),
-			push( builder.get().build() )
+			)
 		);
 	}
 
