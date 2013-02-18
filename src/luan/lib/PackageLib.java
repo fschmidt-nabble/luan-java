@@ -100,7 +100,8 @@ public final class PackageLib {
 	public static final LuanFunction preloadSearcher = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			String modName = (String)args[0];
-			return new Object[]{luan.preload().get(modName)};
+			Object mod = luan.preload().get(modName);
+			return new Object[]{mod};
 		}
 	};
 
