@@ -13,6 +13,10 @@ public final class Luan {
 			return "boolean";
 		if( obj instanceof Number )
 			return "number";
+		if( obj instanceof LuanTable )
+			return "table";
+		if( obj instanceof LuanFunction )
+			return "function";
 		return "userdata";
 	}
 
