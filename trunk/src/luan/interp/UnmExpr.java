@@ -4,6 +4,7 @@ import luan.Luan;
 import luan.LuanFunction;
 import luan.LuanException;
 import luan.LuanSource;
+import luan.LuanBit;
 
 
 // unary minus
@@ -18,10 +19,11 @@ final class UnmExpr extends UnaryOpExpr {
 		Number n = Luan.toNumber(o);
 		if( n != null )
 			return -n.doubleValue();
-		LuanFunction fn = luan.getHandlerFunction(se,"__unm",o);
+		LuanBit bit = luan.bit(se);
+		LuanFunction fn = bit.getHandlerFunction("__unm",o);
 		if( fn != null ) {
-			return Luan.first(luan.call(fn,se,"__unm",o));
+			return Luan.first(bit.call(fn,"__unm",o));
 		}
-		throw new LuanException(luan,se,"attempt to perform arithmetic on a "+Luan.type(o)+" value");
+		throw bit.exception("attempt to perform arithmetic on a "+Luan.type(o)+" value");
 	}
 }

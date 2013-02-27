@@ -43,7 +43,7 @@ public class CmdLine {
 					String cmd = args[i];
 					try {
 						LuanFunction fn = BasicLib.load(luan,cmd,"(command line)",env);
-						luan.call(fn,null,null);
+						luan.JAVA.call(fn,null);
 					} catch(LuanException e) {
 						System.err.println("command line error: "+e.getMessage());
 						System.exit(-1);
@@ -75,7 +75,7 @@ public class CmdLine {
 			env.put("arg",argsTable);
 			try {
 				LuanFunction fn = BasicLib.load_file(luan,file,env);
-				luan.call(fn,null,null,varArgs);
+				luan.JAVA.call(fn,null,varArgs);
 			} catch(LuanException e) {
 //				System.err.println("error: "+e.getMessage());
 				e.printStackTrace();

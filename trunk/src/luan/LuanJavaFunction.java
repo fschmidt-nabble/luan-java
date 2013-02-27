@@ -74,7 +74,7 @@ public final class LuanJavaFunction extends LuanFunction {
 			if( cause instanceof Error )
 				throw (Error)cause;
 			if( cause instanceof RuntimeException )
-				throw new LuanException(luan,LuanElement.JAVA,cause);
+				throw luan.JAVA.exception(cause);
 			if( cause instanceof LuanException )
 				throw (LuanException)cause;
 			throw new RuntimeException(e);
@@ -94,10 +94,10 @@ public final class LuanJavaFunction extends LuanFunction {
 				String expected = paramType.getSimpleName();
 				if( arg==null ) {
 					if( paramType.isPrimitive() )
-						throw new LuanException(luan,LuanElement.JAVA,"bad argument #"+(i+1-start)+" ("+expected+" expected, got nil)");
+						throw luan.JAVA.exception("bad argument #"+(i+1-start)+" ("+expected+" expected, got nil)");
 				} else {
 					String got = arg.getClass().getSimpleName();
-					throw new LuanException(luan,LuanElement.JAVA,"bad argument #"+(i+1-start)+" ("+expected+" expected, got "+got+")");
+					throw luan.JAVA.exception("bad argument #"+(i+1-start)+" ("+expected+" expected, got "+got+")");
 				}
 			}
 		}

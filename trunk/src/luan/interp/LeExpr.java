@@ -4,6 +4,7 @@ import luan.Luan;
 import luan.LuanFunction;
 import luan.LuanException;
 import luan.LuanSource;
+import luan.LuanBit;
 
 
 final class LeExpr extends BinaryOpExpr {
@@ -25,12 +26,13 @@ final class LeExpr extends BinaryOpExpr {
 			String s2 = (String)o2;
 			return s1.compareTo(s2) <= 0;
 		}
-		LuanFunction fn = luan.getBinHandler(se,"__le",o1,o2);
+		LuanBit bit = luan.bit(se);
+		LuanFunction fn = bit.getBinHandler("__le",o1,o2);
 		if( fn != null )
-			return Luan.toBoolean( Luan.first(luan.call(fn,se,"__le",o1,o2)) );
-		fn = luan.getBinHandler(se,"__lt",o1,o2);
+			return Luan.toBoolean( Luan.first(bit.call(fn,"__le",o1,o2)) );
+		fn = bit.getBinHandler("__lt",o1,o2);
 		if( fn != null )
-			return !Luan.toBoolean( Luan.first(luan.call(fn,se,"__lt",o2,o1)) );
-		throw new LuanException( luan, se, "attempt to compare " + Luan.type(o1) + " with " + Luan.type(o2) );
+			return !Luan.toBoolean( Luan.first(bit.call(fn,"__lt",o2,o1)) );
+		throw bit.exception( "attempt to compare " + Luan.type(o1) + " with " + Luan.type(o2) );
 	}
 }

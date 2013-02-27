@@ -21,10 +21,10 @@ final class GenericForStmt extends CodeImpl implements Stmt {
 	}
 
 	@Override public void eval(LuanStateImpl luan) throws LuanException {
-		LuanFunction iter = luan.checkFunction( se, iterExpr.eval(luan) );
+		LuanFunction iter = luan.bit(se).checkFunction( iterExpr.eval(luan) );
 		try {
 			while(true) {
-				Object[] vals = luan.call(iter,iterExpr.se(),iterExpr.se().text());
+				Object[] vals = luan.bit(iterExpr.se()).call(iter,iterExpr.se().text());
 				if( vals.length==0 || vals[0]==null )
 					break;
 				for( int i=0; i<nVars; i++ ) {

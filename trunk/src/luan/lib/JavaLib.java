@@ -99,7 +99,7 @@ public final class JavaLib {
 					}
 				}
 			}
-			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for: "+obj);
+			throw luan.JAVA.exception("invalid member '"+key+"' for: "+obj);
 		}
 		Class cls = obj.getClass();
 		if( cls.isArray() ) {
@@ -110,7 +110,7 @@ public final class JavaLib {
 			if( i != null ) {
 				return Array.get(obj,i);
 			}
-			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java array: "+obj);
+			throw luan.JAVA.exception("invalid member '"+key+"' for java array: "+obj);
 		}
 		if( key instanceof String ) {
 			String name = (String)key;
@@ -123,7 +123,7 @@ public final class JavaLib {
 				}
 			}
 		}
-		throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java object: "+obj);
+		throw luan.JAVA.exception("invalid member '"+key+"' for java object: "+obj);
 	}
 
 	private static Object member(Object obj,List<Member> members) throws LuanException {
@@ -166,7 +166,7 @@ public final class JavaLib {
 					return;
 				}
 			}
-			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for: "+obj);
+			throw luan.JAVA.exception("invalid member '"+key+"' for: "+obj);
 		}
 		Class cls = obj.getClass();
 		if( cls.isArray() ) {
@@ -175,7 +175,7 @@ public final class JavaLib {
 				Array.set(obj,i,value);
 				return;
 			}
-			throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java array: "+obj);
+			throw luan.JAVA.exception("invalid member '"+key+"' for java array: "+obj);
 		}
 		if( key instanceof String ) {
 			String name = (String)key;
@@ -187,7 +187,7 @@ public final class JavaLib {
 				return;
 			}
 		}
-		throw new LuanException(luan,LuanElement.JAVA,"invalid member '"+key+"' for java object: "+obj);
+		throw luan.JAVA.exception("invalid member '"+key+"' for java object: "+obj);
 	}
 
 	private static void setMember(Object obj,List<Member> members,Object value) {
@@ -293,7 +293,7 @@ public final class JavaLib {
 			try {
 				cls = Thread.currentThread().getContextClassLoader().loadClass(name);
 			} catch(ClassNotFoundException e2) {
-				throw new LuanException(luan,LuanElement.JAVA,e);
+				throw luan.JAVA.exception(e);
 			}
 		}
 		return new Static(cls);
@@ -324,7 +324,7 @@ public final class JavaLib {
 					return fn.rawCall(luan,args);
 				} catch(IllegalArgumentException e) {}
 			}
-			throw new LuanException(luan,LuanElement.JAVA,"no method matched args");
+			throw luan.JAVA.exception("no method matched args");
 		}
 	}
 
@@ -361,7 +361,7 @@ public final class JavaLib {
 			if( !cls.isInstance(v) ) {
 				String got = v.getClass().getSimpleName();
 				String expected = cls.getSimpleName();
-				throw new LuanException(luan,LuanElement.JAVA,"bad argument #1 ("+expected+" expected, got "+got+")");
+				throw luan.JAVA.exception("bad argument #1 ("+expected+" expected, got "+got+")");
 			}
 			return v;
 		}
@@ -391,8 +391,8 @@ public final class JavaLib {
 					Object fnObj = t.get(name);
 					if( fnObj==null && base!=null )
 						return method.invoke(base,args);
-					LuanFunction fn = luan.checkFunction(LuanElement.JAVA,fnObj);
-					return Luan.first(luan.call(fn,LuanElement.JAVA,name,args));
+					LuanFunction fn = luan.JAVA.checkFunction(fnObj);
+					return Luan.first(luan.JAVA.call(fn,name,args));
 				}
 			}
 		);

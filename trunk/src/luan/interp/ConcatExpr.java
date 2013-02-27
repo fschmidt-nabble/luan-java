@@ -15,8 +15,8 @@ final class ConcatExpr extends BinaryOpExpr {
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		Object o1 = op1.eval(luan);
 		Object o2 = op2.eval(luan);
-		String s1 = luan.toString(op1.se(),o1);
-		String s2 = luan.toString(op2.se(),o2);
+		String s1 = luan.bit(op1.se()).toString(o1);
+		String s2 = luan.bit(op2.se()).toString(o2);
 /*
 		if( s1 != null && s2 != null )
 			return s1 + s2;

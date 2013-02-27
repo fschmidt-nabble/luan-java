@@ -5,6 +5,7 @@ import luan.LuanFunction;
 import luan.LuanTable;
 import luan.LuanException;
 import luan.LuanSource;
+import luan.LuanBit;
 
 
 final class EqExpr extends BinaryOpExpr {
@@ -32,7 +33,8 @@ final class EqExpr extends BinaryOpExpr {
 		Object f = mt1.get("__eq");
 		if( f == null || !f.equals(mt2.get("__eq")) )
 			return null;
-		LuanFunction fn = luan.checkFunction(se,f);
-		return Luan.toBoolean( Luan.first(luan.call(fn,se,"__eq",o1,o2)) );
+		LuanBit bit = luan.bit(se);
+		LuanFunction fn = bit.checkFunction(f);
+		return Luan.toBoolean( Luan.first(bit.call(fn,"__eq",o1,o2)) );
 	}
 }

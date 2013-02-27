@@ -15,6 +15,6 @@ final class LtExpr extends BinaryOpExpr {
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		Object o1 = op1.eval(luan);
 		Object o2 = op2.eval(luan);
-		return luan.isLessThan(se,o1,o2);
+		return luan.bit(se).isLessThan(o1,o2);
 	}
 }

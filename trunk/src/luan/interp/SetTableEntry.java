@@ -35,11 +35,11 @@ final class SetTableEntry extends CodeImpl implements Settable {
 		} else {
 			h = luan.getHandler("__newindex",t);
 			if( h==null )
-				throw new LuanException( luan, se, "attempt to index a " + Luan.type(t) + " value" );
+				throw luan.bit(se).exception( "attempt to index a " + Luan.type(t) + " value" );
 		}
 		if( h instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)h;
-			luan.call(fn,se,"__newindex",t,key,value);
+			luan.bit(se).call(fn,"__newindex",t,key,value);
 			return;
 		}
 		newindex(luan,h,key,value);

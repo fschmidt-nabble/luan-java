@@ -46,6 +46,7 @@ public final class BasicLib {
 				add( global, "raw_get", LuanTable.class, Object.class );
 				add( global, "raw_len", LuanState.class, Object.class );
 				add( global, "raw_set", LuanTable.class, Object.class, Object.class );
+				add( global, "repr", LuanState.class, Object.class );
 				add( global, "set_metatable", LuanTable.class, LuanTable.class );
 				add( global, "to_number", Object.class, Integer.class );
 				add( global, "to_string", LuanState.class, Object.class );
@@ -66,7 +67,7 @@ public final class BasicLib {
 		for( int i=0; i<args.length; i++ ) {
 			if( i > 0 )
 				luan.out.print('\t');
-			luan.out.print( luan.toString(LuanElement.JAVA,args[i]) );
+			luan.out.print( luan.JAVA.toString(args[i]) );
 		}
 		luan.out.println();
 	}
@@ -85,13 +86,13 @@ public final class BasicLib {
 			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
 			return load(luan,src,fileName,env);
 		} catch(IOException e) {
-			throw new LuanException(luan,LuanElement.JAVA,e);
+			throw luan.JAVA.exception(e);
 		}
 	}
 
 	public static Object[] do_file(LuanState luan,String fileName,LuanTable env) throws LuanException {
 		LuanFunction fn = load_file(luan,fileName,env);
-		return luan.call(fn,LuanElement.JAVA,null);
+		return luan.JAVA.call(fn,null);
 	}
 
 	private static LuanFunction pairs(final Iterator<Map.Entry<Object,Object>> iter) {
@@ -146,7 +147,7 @@ public final class BasicLib {
 			LuanTable t = (LuanTable)v;
 			return t.length();
 		}
-		throw new LuanException( luan, LuanElement.JAVA, "bad argument #1 to 'raw_len' (table or string expected)" );
+		throw luan.JAVA.exception( "bad argument #1 to 'raw_len' (table or string expected)" );
 	}
 
 	public static Number to_number(Object e,Integer base) {
@@ -154,11 +155,11 @@ public final class BasicLib {
 	}
 
 	public static String to_string(LuanState luan,Object v) throws LuanException {
-		return luan.toString(LuanElement.JAVA,v);
+		return luan.JAVA.toString(v);
 	}
 
 	public static void error(LuanState luan,Object msg) throws LuanException {
-		throw new LuanException(luan,LuanElement.JAVA,msg);
+		throw luan.JAVA.exception(msg);
 	}
 
 	public static Object assert_(LuanState luan,Object v,String msg) throws LuanException {
@@ -166,7 +167,7 @@ public final class BasicLib {
 			return v;
 		if( msg == null )
 			msg = "assertion failed!";
-		throw new LuanException( luan, LuanElement.JAVA, msg );
+		throw luan.JAVA.exception( msg );
 	}
 
 	public static String assert_string(LuanState luan,String v) throws LuanException {
@@ -190,8 +191,12 @@ public final class BasicLib {
 
 	public static Object assert_nil(LuanState luan,Object v) throws LuanException {
 		if( v != null )
-			throw new LuanException(luan,LuanElement.JAVA,"bad argument #1 (nil expected, got "+Luan.type(v)+")");
+			throw luan.JAVA.exception("bad argument #1 (nil expected, got "+Luan.type(v)+")");
 		return v;
+	}
+
+	public static String repr(LuanState luan,Object v) throws LuanException {
+		return luan.JAVA.repr(v);
 	}
 
 }
