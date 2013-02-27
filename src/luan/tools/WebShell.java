@@ -15,8 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import luan.LuanFunction;
 import luan.LuanState;
+import luan.LuanTable;
 import luan.LuanException;
-import luan.interp.LuanCompiler;
 import luan.lib.BasicLib;
 import luan.lib.HtmlLib;
 
@@ -28,11 +28,15 @@ public class WebShell extends HttpServlet {
 		return LuanState.newStandard();
 	}
 
-	protected Object[] eval(LuanState luan,String cmd) throws LuanException {
-		return luan.eval(cmd,"WebShell");
+	protected LuanTable newEnvironment(LuanState luan) throws LuanException {
+		return luan.newEnvironment();
 	}
 
-	protected void service(HttpServletRequest request,HttpServletResponse response)
+	protected Object[] eval(LuanState luan,String cmd,LuanTable env) throws LuanException {
+		return luan.eval(cmd,"WebShell",env);
+	}
+
+	@Override protected void service(HttpServletRequest request,HttpServletResponse response)
 		throws ServletException, IOException
 	{
 		PrintWriter out = response.getWriter();
@@ -58,10 +62,15 @@ public class WebShell extends HttpServlet {
 						luan = newLuanState();
 						session.putValue("luan",luan);
 					}
+					LuanTable env = (LuanTable)session.getValue("env");
+					if( env==null ) {
+						env = newEnvironment(luan);
+						session.putValue("env",env);
+					}
 					luan.out = new PrintStream(history);
-					luan.global().put("request",request);
-					luan.global().put("response",response);
-					Object[] result = eval(luan,cmd);
+					env.put("request",request);
+					env.put("response",response);
+					Object[] result = eval(luan,cmd,env);
 					if( result.length > 0 ) {
 						for( int i=0; i<result.length; i++ ) {
 							if( i > 0 )

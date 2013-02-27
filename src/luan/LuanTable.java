@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 
 
-public final class LuanTable implements DeepCloneable<LuanTable> {
+public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.Entry<Object,Object>> {
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
 	private LuanTable metatable = null;

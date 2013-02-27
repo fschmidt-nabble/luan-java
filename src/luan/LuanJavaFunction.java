@@ -146,7 +146,7 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	private static final RtnConverter RTN_EMPTY = new RtnConverter() {
 		public Object[] convert(Object obj) {
-			return EMPTY_RTN;
+			return EMPTY;
 		}
 	};
 
@@ -331,6 +331,8 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	private static final ArgConverter ARG_TABLE = new ArgConverter() {
 		public Object convert(Object obj) {
+			if( obj == null )
+				return null;
 			if( obj instanceof List ) {
 				@SuppressWarnings("unchecked")
 				List<Object> list = (List<Object>)obj;

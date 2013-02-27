@@ -23,8 +23,6 @@ import luan.lib.HtmlLib;
 
 public class WebServlet extends HttpServlet {
 
-	public static final String HTTP_SERVER = "http_server";
-
 	protected LuanState luanState = null;
 
 	protected void loadLibs(LuanState luan) throws LuanException {
@@ -39,10 +37,7 @@ public class WebServlet extends HttpServlet {
 	protected LuanState newLuanState() throws LuanException {
 		LuanState luan = LuanCompiler.newLuanState();
 		loadLibs(luan);
-		PackageLib.require(luan,HTTP_SERVER);
-		Object fn = luan.global().get(HttpLib.FN_NAME);
-		if( !(fn instanceof LuanFunction) )
-			throw new LuanException( luan, LuanElement.JAVA, "function '"+HttpLib.FN_NAME+"' not defined" );
+		HttpLib.load(luan);
 		return luan;
 	}
 
@@ -54,7 +49,7 @@ public class WebServlet extends HttpServlet {
 		return luanState.deepClone();
 	}
 
-	protected void service(HttpServletRequest request,HttpServletResponse response)
+	@Override protected void service(HttpServletRequest request,HttpServletResponse response)
 		throws ServletException, IOException
 	{
 		try {

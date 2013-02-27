@@ -6,6 +6,7 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
+import luan.LuanLoader;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
@@ -15,10 +16,9 @@ public final class StringLib {
 
 	public static final String NAME = "string";
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+	public static final LuanLoader LOADER = new LuanLoader() {
+		@Override protected void load(LuanState luan) {
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global();
 			try {
 				module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
 				module.put( "char", new LuanJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
@@ -36,7 +36,7 @@ public final class StringLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			luan.loaded().put(NAME,module);
 		}
 	};
 
@@ -134,7 +134,7 @@ public final class StringLib {
 		return new LuanFunction() {
 			public Object[] call(LuanState luan,Object[] args) {
 				if( !m.find() )
-					return LuanFunction.EMPTY_RTN;
+					return LuanFunction.EMPTY;
 				final int n = m.groupCount();
 				if( n == 0 )
 					return new String[]{m.group()};

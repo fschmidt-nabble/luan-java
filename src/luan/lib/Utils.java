@@ -6,10 +6,18 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.IOException;
 import java.net.URL;
+import luan.LuanState;
+import luan.LuanException;
+import luan.LuanElement;
 
 
 public final class Utils {
 	private Utils() {}  // never
+
+	public static void checkNotNull(LuanState luan,Object v,String expected) throws LuanException {
+		if( v == null )
+			throw new LuanException(luan,LuanElement.JAVA,"bad argument #1 ("+expected+" expected, got nil)");
+	}
 
 	public static String readAll(Reader in)
 		throws IOException

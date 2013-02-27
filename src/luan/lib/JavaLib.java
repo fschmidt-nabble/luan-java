@@ -21,6 +21,7 @@ import luan.LuanTable;
 import luan.MetatableGetter;
 import luan.LuanException;
 import luan.LuanFunction;
+import luan.LuanLoader;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 
@@ -29,11 +30,12 @@ public final class JavaLib {
 
 	public static final String NAME = "java";
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+	public static final LuanLoader LOADER = new LuanLoader() {
+		@Override protected void load(LuanState luan) {
 			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global();
+			LuanTable global = new LuanTable();
+			module.put( LuanState._G, global );
 			try {
 				global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
 				module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
@@ -41,7 +43,7 @@ public final class JavaLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			luan.loaded().put(NAME,module);
 		}
 	};
 
@@ -298,7 +300,7 @@ public final class JavaLib {
 	}
 
 	public static void importClass(LuanState luan,String name) throws LuanException {
-		luan.global().put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
+		luan.currentEnvironment().put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
 	}
 
 	static class AmbiguousJavaFunction extends LuanFunction {

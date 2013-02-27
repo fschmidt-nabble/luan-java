@@ -24,14 +24,6 @@ import luan.LuanSource;
 
 class LuanParser extends BaseParser<Object> {
 
-	LuanSource source;
-
-	LuanSource.Element se(int start) {
-		return new LuanSource.Element(source,start,currentIndex());
-	}
-
-	static final String _ENV = "_ENV";
-
 	static final class Frame {
 		final Frame parent;
 		final List<String> symbols = new ArrayList<String>();
@@ -41,14 +33,16 @@ class LuanParser extends BaseParser<Object> {
 		final List<String> upValueSymbols = new ArrayList<String>();
 		final List<UpValue.Getter> upValueGetters = new ArrayList<UpValue.Getter>();
 
-		Frame() {
+		Frame(UpValue.Getter envGetter) {
 			this.parent = null;
 			upValueSymbols.add(_ENV);
-			upValueGetters.add(UpValue.globalGetter);
+			upValueGetters.add(envGetter);
 		}
 
 		Frame(Frame parent) {
 			this.parent = parent;
+			if( upValueIndex(_ENV) != 0 )
+				throw new RuntimeException();
 		}
 
 		int stackIndex(String name) {
@@ -82,10 +76,22 @@ class LuanParser extends BaseParser<Object> {
 		}
 	}
 
+	static final String _ENV = "_ENV";
 	static final UpValue.Getter[] NO_UP_VALUE_GETTERS = new UpValue.Getter[0];
 
+//	UpValue.Getter envGetter = new UpValue.EnvGetter();
+	final LuanSource source;
+	Frame frame;
 	int nEquals;
-	Frame frame = new Frame();
+
+	LuanParser(LuanSource source,UpValue.Getter envGetter) {
+		this.source = source;
+		this.frame = new Frame(envGetter);
+	}
+
+	LuanSource.Element se(int start) {
+		return new LuanSource.Element(source,start,currentIndex());
+	}
 
 	boolean nEquals(int n) {
 		nEquals = n;
@@ -140,8 +146,8 @@ class LuanParser extends BaseParser<Object> {
 		return true;
 	}
 
-	Chunk newChunk(int start) {
-		return new Chunk( se(start), (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
+	FnDef newFnDef(int start) {
+		return new FnDef( se(start), (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
 	}
 
 	Rule Target() {
@@ -153,13 +159,13 @@ class LuanParser extends BaseParser<Object> {
 				Sequence(
 					ExpList(false),
 					push( new ReturnStmt( se(start.get()), (Expressions)pop() ) ),
-					push( newChunk(start.get()) ),
+					push( newFnDef(start.get()) ),
 					EOI
 				),
 				Sequence(
 					action( frame.isVarArg = true ),
 					Block(),
-					push( newChunk(start.get()) ),
+					push( newFnDef(start.get()) ),
 					EOI
 				)
 			)
@@ -648,7 +654,7 @@ class LuanParser extends BaseParser<Object> {
 				)
 			),
 			')', Spaces(inParens), Block(), Keyword("end",inParens),
-			push( newChunk(start.get()) ),
+			push( newFnDef(start.get()) ),
 			action( frame = frame.parent )
 		);
 	}
