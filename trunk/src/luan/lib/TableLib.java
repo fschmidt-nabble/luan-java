@@ -7,6 +7,7 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
+import luan.LuanLoader;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
@@ -17,10 +18,9 @@ public final class TableLib {
 
 	public static final String NAME = "table";
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		public Object[] call(LuanState luan,Object[] args) throws LuanException {
+	public static final LuanLoader LOADER = new LuanLoader() {
+		@Override protected void load(LuanState luan) {
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global();
 			try {
 				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
 				add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );
@@ -32,7 +32,7 @@ public final class TableLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			luan.loaded().put(NAME,module);
 		}
 	};
 

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import luan.LuanState;
+import luan.LuanTable;
 import luan.LuanException;
 import luan.lib.HtmlLib;
 
@@ -33,9 +34,10 @@ public class WebRun extends HttpServlet {
 		try {
 			LuanState luan = newLuanState();
 			luan.out = out;
-			luan.global().put("request",request);
-			luan.global().put("response",response);
-			luan.eval(code,"WebRun");
+			LuanTable env = luan.newEnvironment();
+			env.put("request",request);
+			env.put("response",response);
+			luan.eval(code,"WebRun",env);
 		} catch(LuanException e) {
 			logger.error(null,e);
 			response.reset();

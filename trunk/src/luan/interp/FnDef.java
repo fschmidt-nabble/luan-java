@@ -4,14 +4,14 @@ import luan.LuanException;
 import luan.LuanSource;
 
 
-final class Chunk extends CodeImpl implements Expr {
+final class FnDef extends CodeImpl implements Expr {
 	final Stmt block;
 	final int stackSize;
 	final int numArgs;
 	final boolean isVarArg;
 	final UpValue.Getter[] upValueGetters;
 
-	Chunk(LuanSource.Element se,Stmt block,int stackSize,int numArgs,boolean isVarArg,UpValue.Getter[] upValueGetters) {
+	FnDef(LuanSource.Element se,Stmt block,int stackSize,int numArgs,boolean isVarArg,UpValue.Getter[] upValueGetters) {
 		super(se);
 		this.block = block;
 		this.stackSize = stackSize;
@@ -35,7 +35,7 @@ final class Chunk extends CodeImpl implements Expr {
 		}
 	}
 
-	@Override public Object eval(LuanStateImpl luan) {
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		return new Closure(luan,this);
 	}
 

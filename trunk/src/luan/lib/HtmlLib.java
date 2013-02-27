@@ -3,6 +3,7 @@ package luan.lib;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
+import luan.LuanLoader;
 import luan.LuanJavaFunction;
 
 
@@ -10,16 +11,15 @@ public final class HtmlLib {
 
 	public static final String NAME = "html";
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		public Object[] call(LuanState luan,Object[] args) {
+	public static final LuanLoader LOADER = new LuanLoader() {
+		@Override protected void load(LuanState luan) {
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global();
 			try {
 				add( module, "encode", String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			luan.loaded().put(NAME,module);
 		}
 	};
 

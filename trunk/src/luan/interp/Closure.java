@@ -9,25 +9,20 @@ import luan.DeepCloneable;
 
 
 final class Closure extends LuanFunction implements DeepCloneable<Closure> {
-	private final Chunk chunk;
+	private final FnDef fnDef;
 	private UpValue[] upValues;
-	private final static UpValue[] NO_UP_VALUES = new UpValue[0];
 
-	Closure(LuanStateImpl luan,Chunk chunk) {
-		this.chunk = chunk;
-		UpValue.Getter[] upValueGetters = chunk.upValueGetters;
-		if( upValueGetters.length==0 ) {
-			upValues = NO_UP_VALUES;
-		} else {
-			upValues = new UpValue[upValueGetters.length];
-			for( int i=0; i<upValues.length; i++ ) {
-				upValues[i] = upValueGetters[i].get(luan);
-			}
+	Closure(LuanStateImpl luan,FnDef fnDef) throws LuanException {
+		this.fnDef = fnDef;
+		UpValue.Getter[] upValueGetters = fnDef.upValueGetters;
+		upValues = new UpValue[upValueGetters.length];
+		for( int i=0; i<upValues.length; i++ ) {
+			upValues[i] = upValueGetters[i].get(luan);
 		}
 	}
 
 	private Closure(Closure c) {
-		this.chunk = c.chunk;
+		this.fnDef = c.fnDef;
 	}
 
 	@Override public Closure shallowClone() {
@@ -48,27 +43,27 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 
 	private static Object[] call(Closure closure,LuanStateImpl luan,Object[] args) throws LuanException {
 		while(true) {
-			Chunk chunk = closure.chunk;
+			FnDef fnDef = closure.fnDef;
 			Object[] varArgs = null;
-			if( chunk.isVarArg ) {
-				if( args.length > chunk.numArgs ) {
-					varArgs = new Object[ args.length - chunk.numArgs ];
+			if( fnDef.isVarArg ) {
+				if( args.length > fnDef.numArgs ) {
+					varArgs = new Object[ args.length - fnDef.numArgs ];
 					for( int i=0; i<varArgs.length; i++ ) {
-						varArgs[i] = args[chunk.numArgs+i];
+						varArgs[i] = args[fnDef.numArgs+i];
 					}
 				} else {
-					varArgs = LuanFunction.EMPTY_RTN;
+					varArgs = LuanFunction.EMPTY;
 				}
 			}
-			Object[] stack = luan.newFrame(closure,chunk.stackSize,varArgs);
-			final int n = Math.min(args.length,chunk.numArgs);
+			Object[] stack = luan.newFrame(closure,fnDef.stackSize,varArgs);
+			final int n = Math.min(args.length,fnDef.numArgs);
 			for( int i=0; i<n; i++ ) {
 				stack[i] = args[i];
 			}
 			Object[] returnValues;
 			Closure tailFn;
 			try {
-				chunk.block.eval(luan);
+				fnDef.block.eval(luan);
 			} catch(ReturnException e) {
 			} finally {
 				returnValues = luan.returnValues;

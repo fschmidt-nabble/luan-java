@@ -10,6 +10,7 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
+import luan.LuanLoader;
 import luan.LuanJavaFunction;
 import luan.LuanException;
 import luan.LuanSource;
@@ -21,10 +22,11 @@ public final class BasicLib {
 
 	public static final String NAME = "basic";
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		public Object[] call(LuanState luan,Object[] args) throws LuanException {
-			LuanTable global = luan.global();
-			global.put( "_G", global );
+	public static final LuanLoader LOADER = new LuanLoader() {
+		@Override protected void load(LuanState luan) {
+			LuanTable module = new LuanTable();
+			LuanTable global = new LuanTable();
+			module.put( LuanState._G, global );
 			try {
 				global.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
 				add( global, "assert_boolean", LuanState.class, Boolean.TYPE );
@@ -32,13 +34,13 @@ public final class BasicLib {
 				add( global, "assert_number", LuanState.class, Number.class );
 				add( global, "assert_string", LuanState.class, String.class );
 				add( global, "assert_table", LuanState.class, LuanTable.class );
-				add( global, "do_file", LuanState.class, String.class );
+				add( global, "do_file", LuanState.class, String.class, LuanTable.class );
 				add( global, "error", LuanState.class, Object.class );
 				add( global, "get_metatable", LuanState.class, Object.class );
-				add( global, "ipairs", LuanTable.class );
-				add( global, "load", LuanState.class, String.class, String.class );
-				add( global, "load_file", LuanState.class, String.class );
-				add( global, "pairs", LuanTable.class );
+				add( global, "ipairs", LuanState.class, LuanTable.class );
+				add( global, "load", LuanState.class, String.class, String.class, LuanTable.class );
+				add( global, "load_file", LuanState.class, String.class, LuanTable.class );
+				add( global, "pairs", LuanState.class, LuanTable.class );
 				add( global, "print", LuanState.class, new Object[0].getClass() );
 				add( global, "raw_equal", Object.class, Object.class );
 				add( global, "raw_get", LuanTable.class, Object.class );
@@ -49,31 +51,15 @@ public final class BasicLib {
 				add( global, "to_string", LuanState.class, Object.class );
 				add( global, "type", Object.class );
 				global.put( "_VERSION", Luan.version );
-		
-				add( global, "make_standard", LuanState.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return LuanFunction.EMPTY_RTN;
+			luan.loaded().put(NAME,module);
 		}
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
-	}
-
-	public static void make_standard(LuanState luan) {
-		LuanTable global = luan.global();
-		global.put( "dofile", global.get("do_file") );
-		global.put( "getmetatable", global.get("get_metatable") );
-		global.put( "loadfile", global.get("load_file") );
-		global.put( "rawequal", global.get("raw_equal") );
-		global.put( "rawget", global.get("raw_get") );
-		global.put( "rawlen", global.get("raw_len") );
-		global.put( "rawset", global.get("raw_set") );
-		global.put( "setmetatable", global.get("set_metatable") );
-		global.put( "tonumber", global.get("to_number") );
-		global.put( "tostring", global.get("to_string") );
 	}
 
 	public static void print(LuanState luan,Object... args) throws LuanException {
@@ -89,22 +75,22 @@ public final class BasicLib {
 		return Luan.type(obj);
 	}
 
-	public static LuanFunction load(LuanState luan,String text,String sourceName) throws LuanException {
-		return LuanCompiler.compile(luan,new LuanSource(sourceName,text));
+	public static LuanFunction load(LuanState luan,String text,String sourceName,LuanTable env) throws LuanException {
+		return LuanCompiler.compile(luan,new LuanSource(sourceName,text),env);
 	}
 
 
-	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
+	public static LuanFunction load_file(LuanState luan,String fileName,LuanTable env) throws LuanException {
 		try {
 			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
-			return load(luan,src,fileName);
+			return load(luan,src,fileName,env);
 		} catch(IOException e) {
 			throw new LuanException(luan,LuanElement.JAVA,e);
 		}
 	}
 
-	public static Object[] do_file(LuanState luan,String fileName) throws LuanException {
-		LuanFunction fn = load_file(luan,fileName);
+	public static Object[] do_file(LuanState luan,String fileName,LuanTable env) throws LuanException {
+		LuanFunction fn = load_file(luan,fileName,env);
 		return luan.call(fn,LuanElement.JAVA,null);
 	}
 
@@ -112,18 +98,20 @@ public final class BasicLib {
 		return new LuanFunction() {
 			public Object[] call(LuanState luan,Object[] args) {
 				if( !iter.hasNext() )
-					return LuanFunction.EMPTY_RTN;
+					return LuanFunction.EMPTY;
 				Map.Entry<Object,Object> entry = iter.next();
 				return new Object[]{entry.getKey(),entry.getValue()};
 			}
 		};
 	}
 
-	public static LuanFunction pairs(LuanTable t) {
+	public static LuanFunction pairs(LuanState luan,LuanTable t) throws LuanException {
+		Utils.checkNotNull(luan,t,"table");
 		return pairs( t.iterator() );
 	}
 
-	public static LuanFunction ipairs(LuanTable t) {
+	public static LuanFunction ipairs(LuanState luan,LuanTable t) throws LuanException {
+		Utils.checkNotNull(luan,t,"table");
 		return pairs( t.listIterator() );
 	}
 
@@ -181,23 +169,18 @@ public final class BasicLib {
 		throw new LuanException( luan, LuanElement.JAVA, msg );
 	}
 
-	private static void checkNotNull(LuanState luan,Object v,String expected) throws LuanException {
-		if( v == null )
-			throw new LuanException(luan,LuanElement.JAVA,"bad argument #1 ("+expected+" expected, got nil)");
-	}
-
 	public static String assert_string(LuanState luan,String v) throws LuanException {
-		checkNotNull(luan,v,"string");
+		Utils.checkNotNull(luan,v,"string");
 		return v;
 	}
 
 	public static Number assert_number(LuanState luan,Number v) throws LuanException {
-		checkNotNull(luan,v,"number");
+		Utils.checkNotNull(luan,v,"number");
 		return v;
 	}
 
 	public static LuanTable assert_table(LuanState luan,LuanTable v) throws LuanException {
-		checkNotNull(luan,v,"table");
+		Utils.checkNotNull(luan,v,"table");
 		return v;
 	}
 

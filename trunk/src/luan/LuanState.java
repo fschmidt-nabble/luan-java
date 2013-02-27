@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import luan.interp.LuanCompiler;
 import luan.lib.BasicLib;
 import luan.lib.PackageLib;
@@ -15,10 +17,11 @@ import luan.lib.HtmlLib;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
+	public static final String _G = "_G";
 
-	private LuanTable global;
 	private LuanTable loaded;
 	private LuanTable preload;
+	private final List<String> defaultMods;
 
 	public InputStream in = System.in;
 	public PrintStream out = System.out;
@@ -28,14 +31,15 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
 	protected LuanState() {
-		global = new LuanTable();
 		loaded = new LuanTable();
 		preload = new LuanTable();
+		defaultMods = new ArrayList<String>();
 		mtGetters = new ArrayList<MetatableGetter>();
 	}
 
 	protected LuanState(LuanState luan) {
 		mtGetters = new ArrayList<MetatableGetter>(luan.mtGetters);
+		defaultMods = new ArrayList<String>(luan.defaultMods);
 	}
 
 	public final LuanState deepClone() {
@@ -43,14 +47,11 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	}
 
 	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
-		clone.global = cloner.deepClone(global);
 		clone.loaded = cloner.deepClone(loaded);
 		clone.preload = cloner.deepClone(preload);
 	}
 
-	public final LuanTable global() {
-		return global;
-	}
+	public abstract LuanTable currentEnvironment();
 
 	public final LuanTable loaded() {
 		return loaded;
@@ -62,7 +63,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	public final Object get(String name) {
 		String[] a = name.split("\\.");
-		LuanTable t = global;
+		LuanTable t = loaded;
 		for( int i=0; i<a.length-1; i++ ) {
 			Object obj = t.get(a[i]);
 			if( !(obj instanceof LuanTable) )
@@ -74,7 +75,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	public final Object set(String name,Object value) {
 		String[] a = name.split("\\.");
-		LuanTable t = global;
+		LuanTable t = loaded;
 		for( int i=0; i<a.length-1; i++ ) {
 			Object obj = t.get(a[i]);
 			if( !(obj instanceof LuanTable) )
@@ -85,12 +86,24 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	}
 
 	public final void load(String modName,LuanFunction loader) throws LuanException {
-		Object mod = Luan.first(call(loader,LuanElement.JAVA,"loader",modName));
-		if( mod == null )
-			mod = true;
-		loaded.put(modName,mod);
-		if( mod instanceof LuanTable )
-			global.put(modName,mod);
+		preload.put(modName,loader);
+		defaultMods.add(modName);
+		PackageLib.require(this,modName);
+	}
+
+	public final LuanTable newEnvironment() throws LuanException {
+		LuanTable env = new LuanTable();
+		for( String modName : defaultMods ) {
+			PackageLib.require(this,modName,env);
+			LuanTable mod = (LuanTable)loaded.get(modName);
+			LuanTable global = (LuanTable)mod.get(_G);
+			if( global != null ) {
+				for( Map.Entry<Object,Object> entry : global ) {
+					env.put( entry.getKey(), entry.getValue() );
+				}
+			}
+		}
+		return env;
 	}
 
 	public static LuanState newStandard() {
@@ -109,8 +122,8 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		}
 	}
 
-	public final Object[] eval(String cmd,String sourceName) throws LuanException {
-		LuanFunction fn = BasicLib.load(this,cmd,sourceName);
+	public final Object[] eval(String cmd,String sourceName,LuanTable env) throws LuanException {
+		LuanFunction fn = BasicLib.load(this,cmd,sourceName,env);
 		return call(fn,null,null);
 	}
 

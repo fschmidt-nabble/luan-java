@@ -2,6 +2,8 @@ package luan.interp;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -53,10 +55,11 @@ final class LuanStateImpl extends LuanState {
 	}
 
 	private Frame frame = null;
-	Object[] returnValues = LuanFunction.EMPTY_RTN;
+	Object[] returnValues = LuanFunction.EMPTY;
 	Closure tailFn;
+	Map<UpValue.EnvGetter,UpValue> envs = new HashMap<UpValue.EnvGetter,UpValue>();
 
-	public LuanStateImpl() {}
+	LuanStateImpl() {}
 
 	private LuanStateImpl(LuanStateImpl luan) {
 		super(luan);
@@ -68,6 +71,15 @@ final class LuanStateImpl extends LuanState {
 		return new LuanStateImpl(this);
 	}
 
+	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
+		super.deepenClone(clone,cloner);
+		LuanStateImpl cloneImpl = (LuanStateImpl)clone;
+		cloneImpl.envs = new HashMap<UpValue.EnvGetter,UpValue>();
+		for( Map.Entry<UpValue.EnvGetter,UpValue> entry : envs.entrySet() ) {
+			cloneImpl.envs.put( entry.getKey(), cloner.deepClone(entry.getValue()) );
+		}
+	}
+
 	// returns stack
 	Object[] newFrame(Closure closure, int stackSize, Object[] varArgs) {
 		frame = new Frame(frame,closure,stackSize,varArgs);
@@ -75,7 +87,7 @@ final class LuanStateImpl extends LuanState {
 	}
 
 	void popFrame() {
-		returnValues = LuanFunction.EMPTY_RTN;
+		returnValues = LuanFunction.EMPTY;
 		tailFn = null;
 		frame = frame.previousFrame;
 	}
@@ -102,6 +114,22 @@ final class LuanStateImpl extends LuanState {
 
 	UpValue getUpValue(int index) {
 		return frame.getUpValue(index);
+	}
+
+	UpValue getUpValue(UpValue.EnvGetter getter) throws LuanException {
+		UpValue uv = envs.get(getter);
+		if( uv == null ) {
+			LuanTable env = newEnvironment();
+			uv = new UpValue(env);
+			envs.put(getter,uv);
+		}
+		return uv;
+	}
+
+	@Override public LuanTable currentEnvironment() {
+		if( frame==null )
+			return null;
+		return (LuanTable)frame.closure.upValues()[0].get();
 	}
 
 

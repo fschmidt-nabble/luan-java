@@ -2,6 +2,7 @@ package luan.interp;
 
 import luan.DeepCloner;
 import luan.DeepCloneable;
+import luan.LuanException;
 
 
 final class UpValue implements DeepCloneable<UpValue> {
@@ -55,7 +56,7 @@ final class UpValue implements DeepCloneable<UpValue> {
 	}
 
 	static interface Getter {
-		public UpValue get(LuanStateImpl luan);
+		public UpValue get(LuanStateImpl luan) throws LuanException;
 	}
 
 	static final class StackGetter implements Getter {
@@ -82,10 +83,23 @@ final class UpValue implements DeepCloneable<UpValue> {
 		}
 	}
 
-	static final Getter globalGetter = new Getter() {
-		public UpValue get(LuanStateImpl luan) {
-			return new UpValue(luan.global());
+	static final class EnvGetter implements Getter {
+
+		public UpValue get(LuanStateImpl luan) throws LuanException {
+			return luan.getUpValue(this);
 		}
-	};
+	}
+
+	static final class ValueGetter implements Getter {
+		private final UpValue upValue;
+
+		ValueGetter(Object value) {
+			this.upValue = new UpValue(value);
+		}
+
+		public UpValue get(LuanStateImpl luan) {
+			return upValue;
+		}
+	}
 
 }

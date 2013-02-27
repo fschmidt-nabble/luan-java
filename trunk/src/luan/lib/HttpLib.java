@@ -18,17 +18,23 @@ import luan.LuanTable;
 public final class HttpLib {
 
 	public static final String NAME = "http";
-	public static final String FN_NAME = "serve_http";
+	public static final String FN_NAME = "http.server";
+
+	public static void load(LuanState luan) throws LuanException {
+		PackageLib.require(luan,NAME);
+		Object fn = luan.get(HttpLib.FN_NAME);
+		if( !(fn instanceof LuanFunction) )
+			throw new LuanException( luan, LuanElement.JAVA, "function '"+HttpLib.FN_NAME+"' not defined" );
+	}
 
 	public static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response)
 		throws LuanException, IOException
 	{
-		LuanFunction fn = (LuanFunction)luan.global().get(FN_NAME);
+		LuanFunction fn = (LuanFunction)luan.get(FN_NAME);
 		ServletOutputStream sout = response.getOutputStream();
 		luan.out = new PrintStream(sout);
 
-		LuanTable module = new LuanTable();
-		luan.global().put(NAME,module);
+		LuanTable module = (LuanTable)luan.loaded().get(NAME);
 
 		LuanTable parameters = new LuanTable();
 		LuanTable parameter_lists = new LuanTable();
