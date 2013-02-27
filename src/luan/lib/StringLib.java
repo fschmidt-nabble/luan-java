@@ -166,7 +166,7 @@ public final class StringLib {
 			int i = 0;
 			StringBuffer sb = new StringBuffer();
 			while( i<max && m.find() ) {
-				String match = m.groupCount()==0 ? m.group() : m.group(0);
+				String match = m.groupCount()==0 ? m.group() : m.group(1);
 				Object val = t.get(match);
 				if( Luan.toBoolean(val) ) {
 					String replacement = Luan.asString(val);
