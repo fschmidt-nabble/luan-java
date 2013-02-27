@@ -52,7 +52,7 @@ public final class TableLib {
 				buf.append(sep);
 			String s = Luan.asString(val);
 			if( s==null )
-				throw new LuanException( luan, LuanElement.JAVA, "invalid value ("+Luan.type(val)+") at index "+k+" in table for 'concat'" );
+				throw luan.JAVA.exception( "invalid value ("+Luan.type(val)+") at index "+k+" in table for 'concat'" );
 			buf.append(val);
 		}
 		return buf.toString();
@@ -62,7 +62,7 @@ public final class TableLib {
 		try {
 			list.insert(pos,value);
 		} catch(IndexOutOfBoundsException e) {
-			throw new LuanException( luan, LuanElement.JAVA, e);
+			throw luan.JAVA.exception(e);
 		}
 	}
 
@@ -70,7 +70,7 @@ public final class TableLib {
 		try {
 			return list.remove(pos);
 		} catch(IndexOutOfBoundsException e) {
-			throw new LuanException( luan, LuanElement.JAVA, e);
+			throw luan.JAVA.exception(e);
 		}
 	}
 
@@ -84,7 +84,7 @@ public final class TableLib {
 			lt = new LessThan() {
 				public boolean isLessThan(Object o1,Object o2) {
 					try {
-						return luan.isLessThan(LuanElement.JAVA,o1,o2);
+						return luan.JAVA.isLessThan(o1,o2);
 					} catch(LuanException e) {
 						throw new LuanRuntimeException(e);
 					}
@@ -94,7 +94,7 @@ public final class TableLib {
 			lt = new LessThan() {
 				public boolean isLessThan(Object o1,Object o2) {
 					try {
-						return Luan.toBoolean(Luan.first(luan.call(comp,LuanElement.JAVA,"comp-arg",o1,o2)));
+						return Luan.toBoolean(Luan.first(luan.JAVA.call(comp,"comp-arg",o1,o2)));
 					} catch(LuanException e) {
 						throw new LuanRuntimeException(e);
 					}

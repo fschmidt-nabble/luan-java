@@ -4,9 +4,9 @@ package luan;
 public class LuanException extends Exception {
 	private final String stackTrace;
 
-	public LuanException(LuanState luan,LuanElement el,Object msg) {
+	LuanException(LuanBit bit,Object msg) {
 		super(message(msg),cause(msg));
-		stackTrace = stackTrace(luan,el,msg);
+		stackTrace = stackTrace(bit.luan,bit.el,msg);
 	}
 
 	@Override public String getMessage() {

@@ -132,13 +132,4 @@ final class LuanStateImpl extends LuanState {
 		return (LuanTable)frame.closure.upValues()[0].get();
 	}
 
-
-	final Object arithmetic(LuanElement el,String op,Object o1,Object o2) throws LuanException {
-		LuanFunction fn = getBinHandler(el,op,o1,o2);
-		if( fn != null )
-			return Luan.first(call(fn,el,op,o1,o2));
-		String type = Luan.toNumber(o1)==null ? Luan.type(o1) : Luan.type(o2);
-		throw new LuanException(this,el,"attempt to perform arithmetic on a "+type+" value");
-	}
-
 }

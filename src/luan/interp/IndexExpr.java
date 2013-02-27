@@ -30,11 +30,11 @@ final class IndexExpr extends BinaryOpExpr {
 		} else {
 			h = luan.getHandler("__index",t);
 			if( h==null )
-				throw new LuanException( luan, op1.se(), "attempt to index '"+op1.se().text()+"' (a " + Luan.type(t) + " value)" );
+				throw luan.bit(op1.se()).exception( "attempt to index '"+op1.se().text()+"' (a " + Luan.type(t) + " value)" );
 		}
 		if( h instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)h;
-			return Luan.first(luan.call(fn,se,"__index",t,key));
+			return Luan.first(luan.bit(se).call(fn,"__index",t,key));
 		}
 		return index(luan,h,key);
 	}

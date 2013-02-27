@@ -22,7 +22,7 @@ public final class LuanCompiler {
 		ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(src.text);
 //		ParsingResult<?> result = new TracingParseRunner(parser.Target()).run(src);
 		if( result.hasErrors() )
-			throw new LuanException( luan, LuanElement.COMPILER, ErrorUtils.printParseErrors(result) );
+			throw luan.COMPILER.exception( ErrorUtils.printParseErrors(result) );
 		FnDef fnDef = (FnDef)result.resultValue;
 		return new Closure((LuanStateImpl)luan,fnDef);
 	}

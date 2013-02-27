@@ -3,6 +3,7 @@ package luan.interp;
 import luan.Luan;
 import luan.LuanException;
 import luan.LuanSource;
+import luan.LuanBit;
 
 
 final class NumericForStmt extends CodeImpl implements Stmt {
@@ -22,9 +23,10 @@ final class NumericForStmt extends CodeImpl implements Stmt {
 	}
 
 	@Override public void eval(LuanStateImpl luan) throws LuanException {
-		double v = luan.checkNumber( se, fromExpr.eval(luan) ).doubleValue();
-		double limit = luan.checkNumber( se, toExpr.eval(luan) ).doubleValue();
-		double step = luan.checkNumber( se, stepExpr.eval(luan) ).doubleValue();
+		LuanBit bit = luan.bit(se);
+		double v = bit.checkNumber( fromExpr.eval(luan) ).doubleValue();
+		double limit = bit.checkNumber( toExpr.eval(luan) ).doubleValue();
+		double step = bit.checkNumber( stepExpr.eval(luan) ).doubleValue();
 		try {
 			while( step > 0.0 && v <= limit || step < 0.0 && v >= limit ) {
 				luan.stackSet( iVar, v );

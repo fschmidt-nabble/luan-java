@@ -25,11 +25,11 @@ final class FnCall extends CodeImpl implements Expressions {
 	private Object[] call(LuanStateImpl luan,Object o) throws LuanException {
 		if( o instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)o;
-			return luan.call( fn, se, fnName, args.eval(luan) );
+			return luan.bit(se).call( fn, fnName, args.eval(luan) );
 		}
 		Object h = luan.getHandler("__call",o);
 		if( h != null )
 			return call(luan,h);
-		throw new LuanException( luan, fnExpr.se(), "attempt to call '"+fnExpr.se().text()+"' (a " + Luan.type(o) + " value)" );
+		throw luan.bit(fnExpr.se()).exception( "attempt to call '"+fnExpr.se().text()+"' (a " + Luan.type(o) + " value)" );
 	}
 }

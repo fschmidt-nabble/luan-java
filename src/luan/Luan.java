@@ -94,5 +94,30 @@ public final class Luan {
 		return obj.toString();
 	}
 
+	public static String stringEncode(String s) {
+		s = s.replace("\\","\\\\");
+		s = s.replace("\u0007","\\a");
+		s = s.replace("\b","\\b");
+		s = s.replace("\f","\\f");
+		s = s.replace("\n","\\n");
+		s = s.replace("\r","\\r");
+		s = s.replace("\t","\\t");
+		s = s.replace("\u000b","\\v");
+		s = s.replace("\"","\\\"");
+		return s;
+	}
+
+	public static String repr(Object obj) {
+		if( obj == null )
+			return "nil";
+		if( obj instanceof Number )
+			return Luan.toString((Number)obj);
+		if( obj instanceof String )
+			return "\"" + stringEncode((String)obj) + "\"";
+		if( obj instanceof LuanRepr )
+			return ((LuanRepr)obj).repr();
+		return null;
+	}
+
 	private Luan() {}  // never
 }

@@ -75,7 +75,7 @@ public class WebShell extends HttpServlet {
 						for( int i=0; i<result.length; i++ ) {
 							if( i > 0 )
 								writer.write("  ");
-							writer.write(HtmlLib.encode(luan.toString(null,result[i])));
+							writer.write(HtmlLib.encode(luan.JAVA.toString(result[i])));
 						}
 						writer.write("\r\n");
 					}

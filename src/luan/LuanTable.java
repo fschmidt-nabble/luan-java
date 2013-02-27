@@ -11,9 +11,10 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.regex.Pattern;
 
 
-public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.Entry<Object,Object>> {
+public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.Entry<Object,Object>>, LuanRepr {
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
 	private LuanTable metatable = null;
@@ -105,13 +106,13 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 		return "table: " + Integer.toHexString(hashCode());
 	}
 
-	public String show() {
-		return show( Collections.newSetFromMap(new IdentityHashMap<LuanTable,Boolean>()) );
+	public String repr() {
+		return repr( Collections.newSetFromMap(new IdentityHashMap<LuanTable,Boolean>()) );
 	}
 
-	private String show(Set<LuanTable> set) {
+	private String repr(Set<LuanTable> set) {
 		if( !set.add(this) ) {
-			return "...";
+			return "\"<circular reference>\"";
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append('{');
@@ -130,7 +131,7 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 					}
 					if( gotNull )
 						sb.append(i+1).append('=');
-					sb.append(show(set,obj));
+					sb.append(repr(set,obj));
 				}
 			}
 		}
@@ -141,19 +142,33 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 				} else {
 					sb.append(", ");
 				}
-				sb.append(show(set,entry.getKey())).append('=').append(show(set,entry.getValue()));
+				sb.append(reprKey(set,entry.getKey())).append('=').append(repr(set,entry.getValue()));
 			}
 		}
 		sb.append('}');
 		return sb.toString();
 	}
 
-	private static String show(Set<LuanTable> set,Object obj) {
+	private static final Pattern namePtn = Pattern.compile("[a-zA-Z_][a-zA-Z_0-9]*");
+
+	private static String reprKey(Set<LuanTable> set,Object obj) {
+		if( obj instanceof String ) {
+			String s = (String)obj;
+			if( namePtn.matcher(s).matches() )
+				return s;
+		}
+		return "[" + repr(set,obj) + "]";
+	}
+
+	private static String repr(Set<LuanTable> set,Object obj) {
 		if( obj instanceof LuanTable ) {
 			LuanTable t = (LuanTable)obj;
-			return t.show(set);
+			return t.repr(set);
 		} else {
-			return Luan.toString(obj);
+			String s = Luan.repr(obj);
+			if( s == null )
+				s = "\"<couldn't repr: " + Luan.stringEncode(Luan.toString(obj)) + ">\"";
+			return s;
 		}
 	}
 
