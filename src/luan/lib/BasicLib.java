@@ -20,7 +20,7 @@ import luan.interp.LuanCompiler;
 
 public final class BasicLib {
 
-	public static final String NAME = "basic";
+	public static final String NAME = "Basic";
 
 	public static final LuanLoader LOADER = new LuanLoader() {
 		@Override protected void load(LuanState luan) {

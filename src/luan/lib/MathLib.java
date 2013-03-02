@@ -9,7 +9,7 @@ import luan.LuanJavaFunction;
 
 public final class MathLib {
 
-	public static final String NAME = "math";
+	public static final String NAME = "Math";
 
 	public static final LuanLoader LOADER = new LuanLoader() {
 		@Override protected void load(LuanState luan) {

@@ -14,7 +14,7 @@ import luan.LuanException;
 
 public final class StringLib {
 
-	public static final String NAME = "string";
+	public static final String NAME = "String";
 
 	public static final LuanLoader LOADER = new LuanLoader() {
 		@Override protected void load(LuanState luan) {

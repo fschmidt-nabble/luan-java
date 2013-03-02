@@ -17,7 +17,7 @@ import luan.LuanException;
 
 public final class PackageLib {
 
-	public static final String NAME = "package";
+	public static final String NAME = "Package";
 
 	public static final LuanLoader LOADER = new LuanLoader() {
 		@Override protected void load(LuanState luan) {
@@ -56,7 +56,7 @@ public final class PackageLib {
 	public static void require(LuanState luan,String modName,LuanTable env) throws LuanException {
 		LuanTable mod = (LuanTable)luan.loaded().get(modName);
 		if( mod == null ) {
-			LuanTable searchers = (LuanTable)luan.get("package.searchers");
+			LuanTable searchers = (LuanTable)luan.get("Package.searchers");
 			if( searchers == null )
 				searchers = new LuanTable(Collections.<Object>singletonList(preloadSearcher));
 			for( Object s : searchers.asList() ) {
@@ -103,7 +103,7 @@ public final class PackageLib {
 	public static final LuanFunction fileSearcher = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			String modName = (String)args[0];
-			String path = (String)luan.get("package.path");
+			String path = (String)luan.get("Package.path");
 			if( path==null )
 				return LuanFunction.EMPTY;
 			String file = search_path(modName,path);
@@ -143,7 +143,7 @@ public final class PackageLib {
 	public static final LuanFunction javaFileSearcher = new LuanFunction() {
 		public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			String modName = (String)args[0];
-			String path = (String)luan.get("package.jpath");
+			String path = (String)luan.get("Package.jpath");
 			if( path==null )
 				return LuanFunction.EMPTY;
 			for( String s : path.split(";") ) {

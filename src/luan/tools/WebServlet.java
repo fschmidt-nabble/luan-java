@@ -25,39 +25,38 @@ public class WebServlet extends HttpServlet {
 
 	protected LuanState luanState = null;
 
-	protected void loadLibs(LuanState luan) throws LuanException {
+	protected LuanState newLuanState() throws LuanException {
+		LuanState luan = LuanCompiler.newLuanState();
 		luan.load(BasicLib.NAME,BasicLib.LOADER);
 		luan.load(PackageLib.NAME,PackageLib.LOADER);
 		luan.load(MathLib.NAME,MathLib.LOADER);
 		luan.load(StringLib.NAME,StringLib.LOADER);
 		luan.load(TableLib.NAME,TableLib.LOADER);
 		luan.load(HtmlLib.NAME,HtmlLib.LOADER);
-	}
-
-	protected LuanState newLuanState() throws LuanException {
-		LuanState luan = LuanCompiler.newLuanState();
-		loadLibs(luan);
-		HttpLib.load(luan);
 		return luan;
-	}
-
-	protected  LuanState getLuanState(HttpServletRequest request) throws LuanException {
-		synchronized(this) {
-			if( luanState == null )
-				luanState = newLuanState();
-		}
-		return luanState.deepClone();
 	}
 
 	@Override protected void service(HttpServletRequest request,HttpServletResponse response)
 		throws ServletException, IOException
 	{
 		try {
-			LuanState luan = getLuanState(request);
-			HttpLib.service(luan,request,response);
+			synchronized(this) {
+				if( luanState == null ) {
+					luanState = newLuanState();
+					HttpLib.load(luanState);
+				}
+			}
+			LuanState luan = luanState.deepClone();
+			service(request,response,luan);
 		} catch(LuanException e) {
 			throw new LuanRuntimeException(e);
 		}
+	}
+
+	protected void service(HttpServletRequest request,HttpServletResponse response,LuanState luan)
+		throws ServletException, IOException, LuanException
+	{
+		HttpLib.service(luan,request,response);
 	}
 
 }

@@ -9,7 +9,7 @@ import luan.LuanJavaFunction;
 
 public final class HtmlLib {
 
-	public static final String NAME = "html";
+	public static final String NAME = "Html";
 
 	public static final LuanLoader LOADER = new LuanLoader() {
 		@Override protected void load(LuanState luan) {
