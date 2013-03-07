@@ -61,6 +61,7 @@ public final class HttpLib {
 		LuanTable resp = new LuanTable();
 		module.put("response",resp);
 
+		req.put( "get_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("getAttribute",String.class),request) );
 		req.put( "get_parameter", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameter",String.class),request) );
 		req.put( "get_parameter_values", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameterValues",String.class),request) );
 		req.put( "get_header", new LuanJavaFunction(HttpServletRequest.class.getMethod("getHeader",String.class),request) );
@@ -73,6 +74,7 @@ public final class HttpLib {
 
 		add( resp, "send_redirect", String.class );
 		add( resp, "send_error", Integer.TYPE, String.class );
+		resp.put( "contains_header", new LuanJavaFunction(HttpServletResponse.class.getMethod("containsHeader",String.class),response) );
 		resp.put( "set_header", new LuanJavaFunction(HttpServletResponse.class.getMethod("setHeader",String.class,String.class),response) );
 		add( resp, "set_cookie", String.class, String.class, Boolean.TYPE, String.class );
 		add( resp, "remove_cookie", String.class, String.class );
