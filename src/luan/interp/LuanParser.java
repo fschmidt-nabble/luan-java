@@ -251,6 +251,7 @@ class LuanParser extends BaseParser<Object> {
 					Sequence(
 						OneOrMore(
 							TestNot("<%"),
+							TestNot("%>"),
 							ANY
 						),
 						addToExpList(builder.get(),new ConstExpr(match()))
