@@ -64,7 +64,7 @@ public final class PackageLib {
 				Object[] a = luan.JAVA.call(searcher,"<searcher>",modName);
 				if( a.length >= 1 && a[0] instanceof LuanFunction ) {
 					LuanFunction loader = (LuanFunction)a[0];
-					luan.JAVA.call(loader,"<loader>");
+					luan.JAVA.call(loader,"<require \""+modName+"\">");
 					mod = (LuanTable)luan.loaded().get(modName);
 					if( mod==null )
 						throw luan.JAVA.exception( "module '"+modName+"' didn't define its module" );

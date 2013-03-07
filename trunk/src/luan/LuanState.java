@@ -20,7 +20,6 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	public static final String _G = "_G";
 
 	public final LuanBit JAVA = bit(LuanElement.JAVA);
-	public final LuanBit COMPILER = bit(LuanElement.COMPILER);
 
 	private LuanTable loaded;
 	private LuanTable preload;
