@@ -10,6 +10,20 @@ public final class LuanSource {
 		this.text = text;
 	}
 
+	public static final class CompilerElement extends LuanElement {
+		public final LuanSource source;
+
+		public CompilerElement(LuanSource source) {
+			if( source==null )
+				throw new NullPointerException("source is null");
+			this.source = source;
+		}
+
+		@Override String location() {
+			return "Compiling " + source.name;
+		}
+	}
+
 	public static final class Element extends LuanElement {
 		public final LuanSource source;
 		public final int start;

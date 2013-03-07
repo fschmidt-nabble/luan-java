@@ -21,8 +21,11 @@ public final class LuanCompiler {
 		LuanParser parser = Parboiled.createParser(LuanParser.class,src,envGetter);
 		ParsingResult<?> result = new ReportingParseRunner(parser.Target()).run(src.text);
 //		ParsingResult<?> result = new TracingParseRunner(parser.Target()).run(src);
-		if( result.hasErrors() )
-			throw luan.COMPILER.exception( ErrorUtils.printParseErrors(result) );
+		if( result.hasErrors() ) {
+//			throw luan.COMPILER.exception( ErrorUtils.printParseErrors(result) );
+			LuanElement le = new LuanSource.CompilerElement(src);
+			throw luan.bit(le).exception( ErrorUtils.printParseErrors(result) );
+		}
 		FnDef fnDef = (FnDef)result.resultValue;
 		return new Closure((LuanStateImpl)luan,fnDef);
 	}
