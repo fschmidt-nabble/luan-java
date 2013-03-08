@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.Arrays;
 
@@ -84,13 +85,29 @@ public final class LuanJavaFunction extends LuanFunction {
 		return rtnConverter.convert(rtn);
 	}
 
+	private static final Map<Class,Class> primitiveMap = new HashMap<Class,Class>();
+	static {
+		primitiveMap.put(Boolean.TYPE,Boolean.class);
+		primitiveMap.put(Character.TYPE,Character.class);
+		primitiveMap.put(Byte.TYPE,Byte.class);
+		primitiveMap.put(Short.TYPE,Short.class);
+		primitiveMap.put(Integer.TYPE,Integer.class);
+		primitiveMap.put(Long.TYPE,Long.class);
+		primitiveMap.put(Float.TYPE,Float.class);
+		primitiveMap.put(Double.TYPE,Double.class);
+		primitiveMap.put(Void.TYPE,Void.class);
+	}
+
 	private void checkArgs(LuanState luan,Object[] args) throws LuanException {
 		Class<?>[] a = getParameterTypes();
 		int start = takesLuaState ? 1 : 0;
 		for( int i=start; i<a.length; i++ ) {
 			Class<?> paramType = a[i];
+			Class<?> type = paramType;
+			if( type.isPrimitive() )
+				type = primitiveMap.get(type);
 			Object arg = args[i];
-			if( !paramType.isInstance(arg) ) {
+			if( !type.isInstance(arg) ) {
 				String expected = paramType.getSimpleName();
 				if( arg==null ) {
 					if( paramType.isPrimitive() )
@@ -208,6 +225,18 @@ public final class LuanJavaFunction extends LuanFunction {
 	private static final ArgConverter ARG_SAME = new ArgConverter() {
 		public Object convert(Object obj) {
 			return obj;
+		}
+	};
+
+	private static final ArgConverter ARG_BOOLEAN = new ArgConverter() {
+		public Object convert(Object obj) {
+			return Luan.toBoolean(obj);
+		}
+	};
+
+	private static final ArgConverter ARG_BOOLEAN_OBJ = new ArgConverter() {
+		public Object convert(Object obj) {
+			return obj==null ? null : Luan.toBoolean(obj);
 		}
 	};
 
@@ -433,6 +462,10 @@ public final class LuanJavaFunction extends LuanFunction {
 	}
 
 	private static ArgConverter getArgConverter(Class<?> cls) {
+		if( cls == Boolean.TYPE )
+			return ARG_BOOLEAN;
+		if( cls.equals(Boolean.class) )
+			return ARG_BOOLEAN_OBJ;
 		if( cls == Double.TYPE || cls.equals(Double.class) )
 			return ARG_DOUBLE;
 		if( cls == Float.TYPE || cls.equals(Float.class) )
