@@ -62,6 +62,7 @@ public final class HttpLib {
 		module.put("response",resp);
 
 		req.put( "get_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("getAttribute",String.class),request) );
+		req.put( "set_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("setAttribute",String.class,Object.class),request) );
 		req.put( "get_parameter", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameter",String.class),request) );
 		req.put( "get_parameter_values", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameterValues",String.class),request) );
 		req.put( "get_header", new LuanJavaFunction(HttpServletRequest.class.getMethod("getHeader",String.class),request) );
