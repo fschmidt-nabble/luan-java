@@ -29,7 +29,7 @@ public final class PackageLib {
 			module.put("path","?.lua");
 			try {
 				add( global, "require", LuanState.class, String.class );
-				add( global, "module", LuanState.class, String.class );
+				add( global, "module", LuanState.class, String.class, String.class );
 				add( module, "search_path", String.class, String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -43,8 +43,14 @@ public final class PackageLib {
 		t.put( method, new LuanJavaFunction(PackageLib.class.getMethod(method,parameterTypes),null) );
 	}
 
-	public static void module(LuanState luan,String modName) throws LuanException {
-		LuanTable module = new LuanTable();
+	public static void module(LuanState luan,String modName,String superMod) throws LuanException {
+		LuanTable module;
+		if( superMod==null ) {
+			module = new LuanTable();
+		} else {
+			require(luan,superMod);
+			module = (LuanTable)luan.loaded().get(superMod);
+		}
 		luan.currentEnvironment().put(modName,module);
 		luan.loaded().put(modName,module);
 	}
