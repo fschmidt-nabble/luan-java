@@ -264,9 +264,7 @@ public final class LuanJavaFunction extends LuanFunction {
 				return obj;
 			if( obj instanceof Number ) {
 				Number n = (Number)obj;
-				float r = n.floatValue();
-				if( r==n.doubleValue() )
-					return r;
+				return n.floatValue();
 			}
 			if( obj instanceof String ) {
 				String s = (String)obj;
