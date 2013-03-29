@@ -1165,7 +1165,9 @@ class LuanParser extends BaseParser<Object> {
 				AnyOf(" \t"),
 				Comment(),
 				Sequence( '\\', EndOfLine() ),
-				Sequence( AnyOf("\r\n"), inParens )
+				Sequence( inParens, AnyOf("\r\n"),
+					Optional( "--", ZeroOrMore(NoneOf("\r\n")) )
+				)
 			)
 		);
 	}
