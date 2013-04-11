@@ -193,7 +193,22 @@ public final class JavaLib {
 	private static void setMember(Object obj,List<Member> members,Object value) {
 		Field field = (Field)members.get(0);
 		try {
-			field.set(obj,value);
+			try {
+				field.set(obj,value);
+			} catch(IllegalArgumentException e) {
+				Class cls = field.getType();
+				if( value instanceof Number ) {
+					Number n = (Number)value;
+					if( cls.equals(Integer.TYPE) || cls.equals(Integer.class) ) {
+						int r = n.intValue();
+						if( r==n.doubleValue() ) {
+							field.setInt(obj,r);
+							return;
+						}
+					}
+				}
+				throw e;
+			}
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
