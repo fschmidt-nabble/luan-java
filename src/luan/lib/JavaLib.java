@@ -214,6 +214,7 @@ public final class JavaLib {
 		}
 	}
 
+	public static boolean privateAccess = false;
 	private static Map<Class,Map<String,List<Member>>> memberMap = new HashMap<Class,Map<String,List<Member>>>();
 
 	private static synchronized List<Member> getMembers(Class cls,String name) {
@@ -236,8 +237,6 @@ public final class JavaLib {
 				}
 				List<Member> list = new ArrayList<Member>();
 				clsMap.put(s,list);
-				list = new ArrayList<Member>();
-				clsMap.put(s,list);
 				list.add(field);
 			}
 			for( Method method : cls.getMethods() ) {
@@ -248,6 +247,29 @@ public final class JavaLib {
 					clsMap.put(s,list);
 				}
 				list.add(method);
+			}
+			if( privateAccess ) {
+				for( Method method : cls.getDeclaredMethods() ) {
+					String s = method.getName();
+					List<Member> list = clsMap.get(s);
+					if( list == null ) {
+						list = new ArrayList<Member>();
+						clsMap.put(s,list);
+					} else if( !(list.get(0) instanceof Method) )
+						continue;
+					if( !list.contains(method) ) {
+						list.add(method);
+					}
+				}
+				for( Field field : cls.getDeclaredFields() ) {
+					String s = field.getName();
+					List<Member> list = clsMap.get(s);
+					if( list == null ) {
+						list = new ArrayList<Member>();
+						clsMap.put(s,list);
+						list.add(field);
+					}
+				}
 			}
 			for( List<Member> members : clsMap.values() ) {
 				for( Member m : members ) {
