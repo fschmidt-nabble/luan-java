@@ -6,25 +6,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
-import org.parboiled.BaseParser;
-import org.parboiled.Parboiled;
-import org.parboiled.Rule;
-import org.parboiled.parserunners.ReportingParseRunner;
-import org.parboiled.support.ParsingResult;
-import org.parboiled.support.Var;
-import org.parboiled.support.StringVar;
-import org.parboiled.support.StringBuilderVar;
-import org.parboiled.support.ValueStack;
-import org.parboiled.errors.ErrorUtils;
-import org.parboiled.annotations.Cached;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanSource;
+import luan.parser.Parser;
+import luan.parser.ParseException;
 
 
-class LuanParser extends BaseParser<Object> {
+final class LuanParser {
 
-	static final class Frame {
+	static FnDef parse(LuanSource source,UpValue.Getter envGetter) throws ParseException {
+		return new LuanParser(source,envGetter).RequiredTarget();
+	}
+
+	private static final class Frame {
 		final Frame parent;
 		final List<String> symbols = new ArrayList<String>();
 		int stackSize = 0;
@@ -76,116 +71,106 @@ class LuanParser extends BaseParser<Object> {
 		}
 	}
 
-	static final String _ENV = "_ENV";
-	static final UpValue.Getter[] NO_UP_VALUE_GETTERS = new UpValue.Getter[0];
+	private static final String _ENV = "_ENV";
+	private static final UpValue.Getter[] NO_UP_VALUE_GETTERS = new UpValue.Getter[0];
 
-//	UpValue.Getter envGetter = new UpValue.EnvGetter();
-	final LuanSource source;
-	Frame frame;
-	int nEquals;
+	private final LuanSource source;
+	private Frame frame;
+	private final Parser parser;
 
-	LuanParser(LuanSource source,UpValue.Getter envGetter) {
+	private LuanParser(LuanSource source,UpValue.Getter envGetter) {
 		this.source = source;
 		this.frame = new Frame(envGetter);
+		this.parser = new Parser(source.text);
 	}
 
-	LuanSource.Element se(int start) {
-		return new LuanSource.Element(source,start,currentIndex());
+	private LuanSource.Element se(int start) {
+		return new LuanSource.Element(source,start,parser.currentIndex());
 	}
 
-	boolean nEquals(int n) {
-		nEquals = n;
-		return true;
-	}
-
-	List<String> symbols() {
+	private List<String> symbols() {
 		return frame.symbols;
 	}
 
-	int symbolsSize() {
+	private int symbolsSize() {
 		return frame.symbols.size();
 	}
 
-	boolean addSymbol(String name) {
+	private void addSymbol(String name) {
 		frame.symbols.add(name);
 		if( frame.stackSize < symbolsSize() )
 			frame.stackSize = symbolsSize();
-		return true;
 	}
 
-	boolean addSymbols(List<String> names) {
+	private void addSymbols(List<String> names) {
 		frame.symbols.addAll(names);
 		if( frame.stackSize < symbolsSize() )
 			frame.stackSize = symbolsSize();
-		return true;
 	}
 
-	int stackIndex(String name) {
+	private int stackIndex(String name) {
 		return frame.stackIndex(name);
 	}
 
-	boolean popSymbols(int n) {
+	private void popSymbols(int n) {
 		List<String> symbols = frame.symbols;
 		while( n-- > 0 ) {
 			symbols.remove(symbols.size()-1);
 		}
-		return true;
 	}
 
-	int upValueIndex(String name) {
+	private int upValueIndex(String name) {
 		return frame.upValueIndex(name);
 	}
 
-	boolean incLoops() {
+	private void incLoops() {
 		frame.loops++;
-		return true;
 	}
 
-	boolean decLoops() {
+	private void decLoops() {
 		frame.loops--;
-		return true;
 	}
 
-	FnDef newFnDef(int start) {
-		return new FnDef( se(start), (Stmt)pop(), frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
+	private <T> T required(T t) throws ParseException {
+		if( t==null )
+			throw parser.exception();
+		return t;
 	}
 
-	Rule Target() {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			Spaces(false),
-			start.set(currentIndex()),
-			FirstOf(
-				Sequence(
-					ExpList(false),
-					push( new ReturnStmt( se(start.get()), (Expressions)pop() ) ),
-					push( newFnDef(start.get()) ),
-					EOI
-				),
-				Sequence(
-					action( frame.isVarArg = true ),
-					Block(),
-					push( newFnDef(start.get()) ),
-					EOI
-				)
-			)
-		);
+	private <T> T required(T t,String msg) throws ParseException {
+		if( t==null )
+			throw parser.exception(msg);
+		return t;
 	}
 
-	Rule Block() {
-		Var<List<Stmt>> stmts = new Var<List<Stmt>>(new ArrayList<Stmt>());
-		Var<Integer> stackStart = new Var<Integer>(symbolsSize());
-		return Sequence(
-			Optional( Stmt(stmts) ),
-			ZeroOrMore(
-				StmtSep(stmts),
-				Optional( Stmt(stmts) )
-			),
-			push( newBlock(stmts.get(),stackStart.get()) )
-		);
+	private FnDef newFnDef(int start,Stmt stmt) {
+		return new FnDef( se(start), stmt, frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
 	}
 
-	Stmt newBlock(List<Stmt> stmts,int stackStart) {
+	private FnDef RequiredTarget() throws ParseException {
+		Spaces();
+		int start = parser.begin();
+		Expressions exprs = ExpList();
+		if( exprs != null && parser.endOfInput() ) {
+			Stmt stmt = new ReturnStmt( se(start), exprs );
+			return parser.success(newFnDef(start,stmt));
+		}
+		parser.rollback();
+		frame.isVarArg = true;
+		Stmt stmt = RequiredBlock();
+		if( parser.endOfInput() )
+			return parser.success(newFnDef(start,stmt));
+		throw parser.exception();
+	}
+
+	private Stmt RequiredBlock() throws ParseException {
+		List<Stmt> stmts = new ArrayList<Stmt>();
+		int stackStart = symbolsSize();
+		Stmt(stmts);
+		while( StmtSep(stmts) ) {
+			Spaces();
+			Stmt(stmts);
+		}
 		int stackEnd = symbolsSize();
 		popSymbols( stackEnd - stackStart );
 		if( stmts.isEmpty() )
@@ -195,610 +180,658 @@ class LuanParser extends BaseParser<Object> {
 		return new Block( stmts.toArray(new Stmt[0]), stackStart, stackEnd );
 	}
 
-	Rule StmtSep(Var<List<Stmt>> stmts) {
-		return Sequence(
-			FirstOf(
-				';',
-				Sequence(
-					Optional( "--", ZeroOrMore(NoneOf("\r\n")) ),
-					EndOfLine()
-				),
-				Sequence(
-					OutputStmt(),
-					stmts.get().add( (Stmt)pop() )
-				)
-			),
-			Spaces(false)
-		);
+	private boolean StmtSep(List<Stmt> stmts) throws ParseException {
+		parser.begin();
+		if( parser.match( ';' ) )
+			return parser.success();
+		if( parser.match( "--" ) ) {
+			while( parser.noneOf("\r\n") );
+			EndOfLine();
+			return parser.success();
+		}
+		if( EndOfLine() )
+			return parser.success();
+		parser.rollback();
+		Stmt stmt = OutputStmt();
+		if( stmt != null ) {
+			stmts.add(stmt);
+			return parser.success();
+		}
+		return parser.failure();
 	}
 
-	Rule EndOfLine() {
-		return FirstOf("\r\n", '\r', '\n');
+	private boolean EndOfLine() {
+		return parser.match( "\r\n" ) || parser.match( '\r' ) || parser.match( '\n' );
 	}
 
-	Rule Stmt(Var<List<Stmt>> stmts) {
-		return FirstOf(
-			LocalStmt(stmts),
-			Sequence(
-				FirstOf(
-					ReturnStmt(),
-					FunctionStmt(),
-					LocalFunctionStmt(),
-					BreakStmt(),
-					GenericForStmt(),
-					NumericForStmt(),
-					TryStmt(),
-					DoStmt(),
-					WhileStmt(),
-					RepeatStmt(),
-					IfStmt(),
-					SetStmt(),
-					ExpressionsStmt()
-				),
-				stmts.get().add( (Stmt)pop() )
-			)
-		);
+	private void Stmt(List<Stmt> stmts) throws ParseException {
+		if( LocalStmt(stmts) )
+			return;
+		Stmt stmt;
+		if( (stmt=ReturnStmt()) != null
+			|| (stmt=FunctionStmt()) != null
+			|| (stmt=LocalFunctionStmt()) != null
+			|| (stmt=BreakStmt()) != null
+			|| (stmt=GenericForStmt()) != null
+			|| (stmt=NumericForStmt()) != null
+			|| (stmt=TryStmt()) != null
+			|| (stmt=DoStmt()) != null
+			|| (stmt=WhileStmt()) != null
+			|| (stmt=FunctionStmt()) != null
+			|| (stmt=RepeatStmt()) != null
+			|| (stmt=IfStmt()) != null
+			|| (stmt=SetStmt()) != null
+			|| (stmt=ExpressionsStmt()) != null
+		) {
+			stmts.add(stmt);
+		}
 	}
 
-	Rule OutputStmt() {
-		Var<Integer> start = new Var<Integer>();
-		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
-		return Sequence(
-			start.set(currentIndex()),
-			"%>", Optional( EndOfLine() ),
-			ZeroOrMore(
-				FirstOf(
-					Sequence(
-						OneOrMore(
-							TestNot("<%"),
-							TestNot("%>"),
-							ANY
-						),
-						addToExpList(builder.get(),new ConstExpr(match()))
-					),
-					Sequence(
-						"<%=", Spaces(false),
-						Expr(false),
-						addToExpList(builder.get()),
-						"%>"
-					)
-				)
-			),
-			"<%", Spaces(false),
-			push( new OutputStmt( se(start.get()), builder.get().build() ) )
-		);
+	private Stmt OutputStmt() throws ParseException {
+		int start = parser.begin();
+		if( !parser.match( "%>" ) )
+			return parser.failure(null);
+		EndOfLine();
+		ExpList.Builder builder = new ExpList.Builder();
+		while(true) {
+			if( parser.match( "<%=" ) ) {
+				Spaces();
+				builder.add( RequiredExpr() );
+				RequiredMatch( "%>" );
+			} else if( parser.match( "<%" ) ) {
+				Spaces();
+				return parser.success(new OutputStmt( se(start), builder.build() ));
+			} else {
+				int i = parser.currentIndex();
+				do {
+					if( parser.match( "%>" ) )
+						throw parser.exception("'%>' unexpected");
+					if( !parser.anyChar() )
+						throw parser.exception("Unclosed output statement");
+				} while( !parser.test( "<%" ) );
+				String match = parser.textFrom(i);
+				builder.add( new ConstExpr(match) );
+			}
+		}
 	}
 
-	Rule ReturnStmt() {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			Keyword("return",false), Expressions(false),
-			push( new ReturnStmt( se(start.get()), (Expressions)pop() ) )
-		);
+	private Stmt ReturnStmt() throws ParseException {
+		int start = parser.begin();
+		if( !Keyword("return") )
+			return parser.failure(null);
+		Expressions exprs = ExpList();
+		if( exprs==null )
+			exprs = ExpList.emptyExpList;
+		return parser.success( new ReturnStmt(se(start),exprs) );
 	}
 
-	Rule FunctionStmt() {
-		return Sequence(
-			Keyword("function",false), FnName(), Function(false),
-			push( new SetStmt( (Settable)pop(1), expr(pop()) ) )
-		);
+	private Stmt FunctionStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("function") )
+			return parser.failure(null);
+
+		int start = parser.currentIndex();
+		Var var = nameVar(start,RequiredName());
+		while( parser.match( '.' ) ) {
+			Spaces();
+			var = indexVar( start, var.expr(), NameExpr(false) );
+		}
+		Settable fnName = var.settable();
+
+		FnDef fnDef = RequiredFunction(false);
+		return parser.success( new SetStmt(fnName,fnDef) );
 	}
 
-	Rule FnName() {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			push(null),  // marker
-			Name(false),
-			ZeroOrMore(
-				'.', Spaces(false),
-				makeVarExp(start.get()),
-				NameExpr(false)
-			),
-			makeSettableVar(start.get())
-		);
+	private Stmt LocalFunctionStmt() throws ParseException {
+		parser.begin();
+		if( !(Keyword("local") && Keyword("function")) )
+			return parser.failure(null);
+		String name = RequiredName();
+		addSymbol( name );
+		FnDef fnDef = RequiredFunction(false);
+		return parser.success( new SetStmt( new SetLocalVar(symbolsSize()-1), fnDef ) );
 	}
 
-	Rule LocalFunctionStmt() {
-		return Sequence(
-			Keyword("local",false), Keyword("function",false),
-			Name(false),
-			addSymbol( (String)pop() ),
-			Function(false),
-			push( new SetStmt( new SetLocalVar(symbolsSize()-1), expr(pop()) ) )
-		);
+	private Stmt BreakStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("break") )
+			return parser.failure(null);
+		if( frame.loops <= 0 )
+			throw parser.exception("'break' outside of loop");
+		return parser.success( new BreakStmt() );
 	}
 
-	Rule BreakStmt() {
-		return Sequence(
-			Keyword("break",false),
-			frame.loops > 0,
-			push( new BreakStmt() )
-		);
-	}
-
-	Rule GenericForStmt() {
-		Var<Integer> start = new Var<Integer>();
-		Var<Integer> stackStart = new Var<Integer>(symbolsSize());
-		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
-		return Sequence(
-			start.set(currentIndex()),
-			Keyword("for",false), NameList(false,names), Keyword("in",false), Expr(false), Keyword("do",false),
-			addSymbols(names.get()),
-			LoopBlock(), Keyword("end",false),
-			push( new GenericForStmt( se(start.get()), stackStart.get(), symbolsSize() - stackStart.get(), expr(pop(1)), (Stmt)pop() ) ),
-			popSymbols( symbolsSize() - stackStart.get() )
-		);
-	}
-
-	Rule NumericForStmt() {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			Keyword("for",false), Name(false), '=', Spaces(false), Expr(false), Keyword("to",false), Expr(false),
-			push( new ConstExpr(1) ),  // default step
-			Optional(
-				Keyword("step",false),
-				drop(),
-				Expr(false)
-			),
-			addSymbol( (String)pop(3) ),  // add "for" var to symbols
-			Keyword("do",false), LoopBlock(), Keyword("end",false),
-			push( new NumericForStmt( se(start.get()), symbolsSize()-1, expr(pop(3)), expr(pop(2)), expr(pop(1)), (Stmt)pop() ) ),
-			popSymbols(1)
-		);
-	}
-
-	Rule TryStmt() {
-		return Sequence(
-			Keyword("try",false), Block(),
-			Keyword("catch",false), Name(false), addSymbol( (String)pop() ),
-			Keyword("do",false), Block(), Keyword("end",false),
-			push( new TryStmt( (Stmt)pop(1), symbolsSize()-1, (Stmt)pop() ) ),
-			popSymbols(1)
-		);
-	}
-
-	Rule DoStmt() {
-		return Sequence(
-			Keyword("do",false), Block(), Keyword("end",false)
-		);
-	}
-
-	Rule LocalStmt(Var<List<Stmt>> stmts) {
-		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
-		return Sequence(
-			Keyword("local",false), NameList(false,names),
-			Optional(
-				'=', Spaces(false), ExpList(false),
-				stmts.get().add( newSetLocalStmt(names.get().size()) )
-			),
-			addSymbols(names.get())
-		);
-	}
-
-	Rule NameList(boolean inParens,Var<List<String>> names) {
-		return Sequence(
-			Name(inParens),
-			names.get().add( (String)pop() ),
-			ZeroOrMore(
-				',', Spaces(inParens), Name(inParens),
-				names.get().add( (String)pop() )
-			)
-		);
-	}
-
-	SetStmt newSetLocalStmt(int nVars) {
-		Expressions values = (Expressions)pop();
-		SetLocalVar[] vars = new SetLocalVar[nVars];
+	private Stmt GenericForStmt() throws ParseException {
+		int start = parser.begin();
 		int stackStart = symbolsSize();
-		for( int i=0; i<vars.length; i++ ) {
-			vars[i] = new SetLocalVar(stackStart+i);
+		if( !Keyword("for") )
+			return parser.failure(null);
+		List<String> names = RequiredNameList(false);
+		if( !Keyword("in") )
+			return parser.failure(null);
+		Expr expr = RequiredExpr();
+		RequiredKeyword("do");
+		addSymbols(names);
+		Stmt loop = RequiredLoopBlock();
+		RequiredKeyword("end");
+		Stmt stmt = new GenericForStmt( se(start), stackStart, symbolsSize() - stackStart, expr, loop );
+		popSymbols( symbolsSize() - stackStart );
+		return parser.success(stmt);
+	}
+
+	private Stmt NumericForStmt() throws ParseException {
+		int start = parser.begin();
+		if( !Keyword("for") )
+			return parser.failure(null);
+		String name = RequiredName();
+		RequiredMatch( "=" );
+		Spaces();
+		Expr from = RequiredExpr();
+		RequiredKeyword("to");
+		Expr to = RequiredExpr();
+		Expr step = Keyword("step") ? RequiredExpr() : new ConstExpr(1);
+		addSymbol(name);  // add "for" var to symbols
+		RequiredKeyword("do");
+		Stmt loop = RequiredLoopBlock();
+		RequiredKeyword("end");
+		Stmt stmt = new NumericForStmt( se(start), symbolsSize()-1, from, to, step, loop );
+		popSymbols(1);
+		return parser.success(stmt);
+	}
+
+	private Stmt TryStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("try") )
+			return parser.failure(null);
+		Stmt tryBlock = RequiredBlock();
+		RequiredKeyword("catch");
+		String name = RequiredName();
+		addSymbol(name);
+		RequiredKeyword("do");
+		Stmt catchBlock = RequiredBlock();
+		RequiredKeyword("end");
+		Stmt stmt = new TryStmt( tryBlock, symbolsSize()-1, catchBlock );
+		popSymbols(1);
+		return parser.success(stmt);
+	}
+
+	private Stmt DoStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("do") )
+			return parser.failure(null);
+		Stmt stmt = RequiredBlock();
+		RequiredKeyword("end");
+		return parser.success(stmt);
+	}
+
+	private boolean LocalStmt(List<Stmt> stmts) throws ParseException {
+		parser.begin();
+		if( !Keyword("local") )
+			return parser.failure();
+		List<String> names = NameList(false);
+		if( names==null )
+			return parser.failure();
+		if( parser.match( '=' ) ) {
+			Spaces();
+			Expressions values = ExpList();
+			if( values==null )
+				throw parser.exception("Expressions expected");
+			SetLocalVar[] vars = new SetLocalVar[names.size()];
+			int stackStart = symbolsSize();
+			for( int i=0; i<vars.length; i++ ) {
+				vars[i] = new SetLocalVar(stackStart+i);
+			}
+			stmts.add( new SetStmt( vars, values ) );
 		}
-		return new SetStmt( vars, values );
+		addSymbols(names);
+		return parser.success();
 	}
 
-	Rule WhileStmt() {
-		return Sequence(
-			Keyword("while",false), Expr(false), Keyword("do",false), LoopBlock(), Keyword("end",false),
-			push( new WhileStmt( expr(pop(1)), (Stmt)pop() ) )
-		);
+	private List<String> RequiredNameList(boolean inParens) throws ParseException {
+		parser.begin();
+		List<String> names = NameList(inParens);
+		if( names==null )
+			parser.exception("Name expected");
+		return parser.success(names);
 	}
 
-	Rule RepeatStmt() {
-		return Sequence(
-			Keyword("repeat",false), LoopBlock(), Keyword("until",false), Expr(false),
-			push( new RepeatStmt( (Stmt)pop(1), expr(pop()) ) )
-		);
-	}
-
-	Rule LoopBlock() {
-		return Sequence( incLoops(), Block(), decLoops() );
-	}
-
-	Rule IfStmt() {
-		Var<Integer> n = new Var<Integer>(1);
-		return Sequence(
-			Keyword("if",false), Expr(false), Keyword("then",false), Block(),
-			push(Stmt.EMPTY),
-			ZeroOrMore(
-				Keyword("elseif",false), drop(), Expr(false), Keyword("then",false), Block(),
-				push(Stmt.EMPTY),
-				n.set(n.get()+1)
-			),
-			Optional(
-				Keyword("else",false), drop(), Block()
-			),
-			Keyword("end",false),
-			buildIfStmt(n.get())
-		);
-	}
-
-	boolean buildIfStmt(int n) {
-		while( n-- > 0 ) {
-			Stmt elseStmt = (Stmt)pop();
-			Stmt thenStmt = (Stmt)pop();
-			Expr cnd = expr(pop());
-			push( new IfStmt(cnd,thenStmt,elseStmt) );
+	private List<String> NameList(boolean inParens) throws ParseException {
+		String name = Name(inParens);
+		if( name==null )
+			return null;
+		List<String> names = new ArrayList<String>();
+		names.add(name);
+		while( parser.match( ',' ) ) {
+			Spaces(inParens);
+			names.add( RequiredName() );
 		}
+		return names;
+	}
+
+	private Stmt WhileStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("while") )
+			return parser.failure(null);
+		Expr cnd = RequiredExpr();
+		RequiredKeyword("do");
+		Stmt loop = RequiredLoopBlock();
+		RequiredKeyword("end");
+		return parser.success( new WhileStmt(cnd,loop) );
+	}
+
+	private Stmt RepeatStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("repeat") )
+			return parser.failure(null);
+		Stmt loop = RequiredLoopBlock();
+		RequiredKeyword("until");
+		Expr cnd = RequiredExpr();
+		return parser.success( new RepeatStmt(loop,cnd) );
+	}
+
+	private Stmt RequiredLoopBlock() throws ParseException {
+		incLoops();
+		Stmt stmt = RequiredBlock();
+		decLoops();
+		return stmt;
+	}
+
+	private Stmt IfStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("if") )
+			return parser.failure(null);
+		return parser.success( IfStmt2() );
+	}
+
+	private Stmt IfStmt2() throws ParseException {
+		Expr cnd = RequiredExpr();
+		RequiredKeyword("then");
+		Stmt thenBlock = RequiredBlock();
+		Stmt elseBlock;
+		if( Keyword("elseif") ) {
+			elseBlock = IfStmt2();
+		} else {
+			elseBlock = Keyword("else") ? RequiredBlock() : Stmt.EMPTY;
+			RequiredKeyword("end");
+		}
+		return new IfStmt(cnd,thenBlock,elseBlock);
+	}
+
+	private Stmt SetStmt() throws ParseException {
+		parser.begin();
+		List<Settable> vars = new ArrayList<Settable>();
+		Settable s = SettableVar();
+		if( s == null )
+			return parser.failure(null);
+		vars.add(s);
+		while( parser.match( ',' ) ) {
+			Spaces();
+			s = SettableVar();
+			if( s == null )
+				return parser.failure(null);
+			vars.add(s);
+		}
+		if( !parser.match( '=' ) )
+			return parser.failure(null);
+		Spaces();
+		Expressions values = ExpList();
+		if( values==null )
+			throw parser.exception("Expressions expected");
+		return parser.success( new SetStmt( vars.toArray(new Settable[0]), values ) );
+	}
+
+	private Stmt ExpressionsStmt() throws ParseException {
+		parser.begin();
+		Expressions exprs = ExpList();
+		if( exprs==null )
+			return parser.failure(null);
+		return parser.success( new ExpressionsStmt(exprs) );
+	}
+
+	private Settable SettableVar() throws ParseException {
+		int start = parser.begin();
+		Var var = VarZ(false);
+		if( var==null )
+			return null;
+		return var.settable();
+	}
+
+	private Expr RequiredExpr() throws ParseException {
+		return RequiredExpr(false);
+	}
+
+	private Expr Expr() throws ParseException {
+		return Expr(false);
+	}
+
+	private Expr RequiredExpr(boolean inParens) throws ParseException {
+		parser.begin();
+		return parser.success(required(Expr(inParens),"Bad expression"));
+	}
+
+	private Expr Expr(boolean inParens) throws ParseException {
+		parser.begin();
+		Expressions exps = VarArgs(inParens);
+		if( exps != null )
+			return parser.success( new ExpressionsExpr(exps) );
+		Expr exp = OrExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		return parser.success(exp);
+	}
+
+	private Expr OrExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Expr exp = AndExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		while( Keyword("or",inParens) ) {
+			exp = new OrExpr( se(start), exp, required(AndExpr(inParens)) );
+		}
+		return parser.success(exp);
+	}
+
+	private Expr AndExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Expr exp = RelExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		while( Keyword("and",inParens) ) {
+			exp = new AndExpr( se(start), exp, required(RelExpr(inParens)) );
+		}
+		return parser.success(exp);
+	}
+
+	private Expr RelExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Expr exp = ConcatExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		while(true) {
+			if( parser.match("==") ) {
+				Spaces(inParens);
+				exp = new EqExpr( se(start), exp, required(ConcatExpr(inParens)) );
+			} else if( parser.match("~=") ) {
+				Spaces(inParens);
+				exp = new NotExpr( se(start), new EqExpr( se(start), exp, required(ConcatExpr(inParens)) ) );
+			} else if( parser.match("<=") ) {
+				Spaces(inParens);
+				exp = new LeExpr( se(start), exp, required(ConcatExpr(inParens)) );
+			} else if( parser.match(">=") ) {
+				Spaces(inParens);
+				exp = new LeExpr( se(start), required(ConcatExpr(inParens)), exp );
+			} else if( parser.match("<") ) {
+				Spaces(inParens);
+				exp = new LtExpr( se(start), exp, required(ConcatExpr(inParens)) );
+			} else if( parser.match(">") ) {
+				Spaces(inParens);
+				exp = new LtExpr( se(start), required(ConcatExpr(inParens)), exp );
+			} else
+				break;
+		}
+		return parser.success(exp);
+	}
+
+	private Expr ConcatExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Expr exp = SumExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		if( parser.match("..") ) {
+			Spaces(inParens);
+			exp = new ConcatExpr( se(start), exp, required(ConcatExpr(inParens)) );
+		}
+		return parser.success(exp);
+	}
+
+	private Expr SumExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Expr exp = TermExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		while(true) {
+			if( parser.match('+') ) {
+				Spaces(inParens);
+				exp = new AddExpr( se(start), exp, required(TermExpr(inParens)) );
+			} else if( Minus() ) {
+				Spaces(inParens);
+				exp = new SubExpr( se(start), exp, required(TermExpr(inParens)) );
+			} else
+				break;
+		}
+		return parser.success(exp);
+	}
+
+	private boolean Minus() {
+		parser.begin();
+		return parser.match('-') && !parser.match('-') ? parser.success() : parser.failure();
+	}
+
+	private Expr TermExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Expr exp = UnaryExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		while(true) {
+			if( parser.match('*') ) {
+				Spaces(inParens);
+				exp = new MulExpr( se(start), exp, required(UnaryExpr(inParens)) );
+			} else if( parser.match('/') ) {
+				Spaces(inParens);
+				exp = new DivExpr( se(start), exp, required(UnaryExpr(inParens)) );
+			} else if( parser.match('%') ) {
+				Spaces(inParens);
+				exp = new ModExpr( se(start), exp, required(UnaryExpr(inParens)) );
+			} else
+				break;
+		}
+		return parser.success(exp);
+	}
+
+	private Expr UnaryExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		if( parser.match('#') ) {
+			Spaces(inParens);
+			return parser.success( new LenExpr( se(start), required(UnaryExpr(inParens)) ) );
+		}
+		if( Minus() ) {
+			Spaces(inParens);
+			return parser.success( new UnmExpr( se(start), required(UnaryExpr(inParens)) ) );
+		}
+		if( Keyword("not",inParens) ) {
+			Spaces(inParens);
+			return parser.success( new NotExpr( se(start), required(UnaryExpr(inParens)) ) );
+		}
+		Expr exp = PowExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		return parser.success(exp);
+	}
+
+	private Expr PowExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Expr exp = SingleExpr(inParens);
+		if( exp==null )
+			return parser.failure(null);
+		if( parser.match('^') ) {
+			Spaces(inParens);
+			exp = new ConcatExpr( se(start), exp, required(PowExpr(inParens)) );
+		}
+		return parser.success(exp);
+	}
+
+	private Expr SingleExpr(boolean inParens) throws ParseException {
+		parser.begin();
+		Expr exp;
+		exp = FunctionExpr(inParens);
+		if( exp != null )
+			return parser.success(exp);
+		exp = TableExpr(inParens);
+		if( exp != null )
+			return parser.success(exp);
+		exp = VarExp(inParens);
+		if( exp != null )
+			return parser.success(exp);
+		exp = Literal(inParens);
+		if( exp != null )
+			return parser.success(exp);
+		return parser.failure(null);
+	}
+
+	private Expr FunctionExpr(boolean inParens) throws ParseException {
+		if( !Keyword("function",inParens) )
+			return null;
+		return RequiredFunction(inParens);
+	}
+
+	private FnDef RequiredFunction(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		RequiredMatch('(');
+		Spaces(true);
+		frame = new Frame(frame);
+		List<String> names = NameList(false);
+		if( names != null ) {
+			addSymbols(names);
+			if( parser.match(',') ) {
+				Spaces(true);
+				if( !parser.match("...") )
+					throw parser.exception();
+				frame.isVarArg = true;
+			}
+		} else if( parser.match("...") ) {
+			Spaces(true);
+			frame.isVarArg = true;
+		}
+		RequiredMatch(')');
+		Spaces(inParens);
+		Stmt block = RequiredBlock();
+		RequiredKeyword("end",inParens);
+		FnDef fnDef = newFnDef(start,block);
+		frame = frame.parent;
+		return parser.success(fnDef);
+	}
+
+	private VarArgs VarArgs(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		if( !frame.isVarArg || !parser.match("...") )
+			return parser.failure(null);
+		Spaces(inParens);
+		return parser.success( new VarArgs(se(start)) );
+	}
+
+	private Expr TableExpr(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		if( !parser.match('{') )
+			return parser.failure(null);
+		Spaces(true);
+		List<TableExpr.Field> fields = new ArrayList<TableExpr.Field>();
+		ExpList.Builder builder = new ExpList.Builder();
+		while( Field(fields,builder) && FieldSep() );
+		RequiredMatch('}');
+		return parser.success( new TableExpr( se(start), fields.toArray(new TableExpr.Field[0]), builder.build() ) );
+	}
+
+	private boolean FieldSep() throws ParseException {
+		if( !parser.anyOf(",;") )
+			return false;
+		Spaces(true);
 		return true;
 	}
 
-	Rule SetStmt() {
-		return Sequence(
-			VarList(),
-			'=', Spaces(false),
-			ExpList(false),
-			push( newSetStmt() )
-		);
-	}
-
-	Rule ExpressionsStmt() {
-		return Sequence(
-			ExpList(false),
-			push( new ExpressionsStmt((Expressions)pop()) )
-		);
-	}
-
-	SetStmt newSetStmt() {
-		Expressions values = (Expressions)pop();
-		@SuppressWarnings("unchecked")
-		List<Settable> vars = (List<Settable>)pop();
-		return new SetStmt( vars.toArray(new Settable[0]), values );
-	}
-
-	Rule VarList() {
-		Var<List<Settable>> vars = new Var<List<Settable>>(new ArrayList<Settable>());
-		return Sequence(
-			SettableVar(),
-			vars.get().add( (Settable)pop() ),
-			ZeroOrMore(
-				',', Spaces(false), SettableVar(),
-				vars.get().add( (Settable)pop() )
-			),
-			push(vars.get())
-		);
-	}
-
-	Rule SettableVar() {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			Var(false),
-			makeSettableVar(start.get())
-		);
-	}
-
-	boolean makeSettableVar(int start) {
-		Object obj2 = pop();
-		if( obj2==null )
-			return false;
-		Object obj1 = pop();
-		if( obj1!=null ) {
-			Expr key = expr(obj2);
-			Expr table = expr(obj1);
-			return push( new SetTableEntry(se(start),table,key) );
+	private boolean Field(List<TableExpr.Field> fields,ExpList.Builder builder) throws ParseException {
+		parser.begin();
+		Expr exp = SubExpr(true);
+		if( exp==null )
+			exp = NameExpr(true);
+		if( exp!=null && parser.match('=') ) {
+			fields.add( new TableExpr.Field( exp, required(Expr(true)) ) );
+			return parser.success();
 		}
-		String name = (String)obj2;
-		int index = stackIndex(name);
-		if( index != -1 )
-			return push( new SetLocalVar(index) );
-		index = upValueIndex(name);
-		if( index != -1 )
-			return push( new SetUpVar(index) );
-		return push( new SetTableEntry( se(start), env(), new ConstExpr(name) ) );
+		parser.rollback();
+		exp = Expr(true);
+		if( exp != null ) {
+			builder.add(exp);
+			return parser.success();
+		}
+		return parser.failure();
 	}
 
-	@Cached
-	Rule Expr(boolean inParens) {
-		return FirstOf(
-			VarArgs(inParens),
-			OrExpr(inParens)
-		);
+	private Expr VarExp(boolean inParens) throws ParseException {
+		Var var = VarZ(inParens);
+		return var==null ? null : var.expr();
 	}
 
-	@Cached
-	Rule OrExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			AndExpr(inParens),
-			ZeroOrMore( Keyword("or",inParens), AndExpr(inParens), push( new OrExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
-		);
+	private Var VarZ(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Var var = VarStart(inParens);
+		if( var==null )
+			return parser.failure(null);
+		Var var2;
+		while( (var2=Var2(inParens,start,var.expr())) != null ) {
+			var = var2;
+		}
+		return parser.success(var);
 	}
 
-	@Cached
-	Rule AndExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			RelExpr(inParens),
-			ZeroOrMore( Keyword("and",inParens), RelExpr(inParens), push( new AndExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
-		);
+	private Var Var2(boolean inParens,int start,Expr exp1) throws ParseException {
+		Var var = VarExt(inParens,start,exp1);
+		if( var != null )
+			return var;
+		if( parser.match("->") ) {
+			Spaces(inParens);
+			ExpList.Builder builder = new ExpList.Builder();
+			builder.add(exp1);
+			Expr exp2 = RequiredVarExpB(inParens);
+			FnCall fnCall = required(Args( inParens, start, exp2, builder ));
+			return exprVar( new ExpressionsExpr(fnCall) );
+		}
+		FnCall fnCall = Args( inParens, start, exp1, new ExpList.Builder() );
+		if( fnCall != null )
+			return exprVar( new ExpressionsExpr(fnCall) );
+		return null;
 	}
 
-	@Cached
-	Rule RelExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			ConcatExpr(inParens),
-			ZeroOrMore(
-				FirstOf(
-					Sequence( "==", Spaces(inParens), ConcatExpr(inParens), push( new EqExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( "~=", Spaces(inParens), ConcatExpr(inParens), push( new NotExpr(se(start.get()),new EqExpr(se(start.get()),expr(pop(1)),expr(pop()))) ) ),
-					Sequence( "<=", Spaces(inParens), ConcatExpr(inParens), push( new LeExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( ">=", Spaces(inParens), ConcatExpr(inParens), push( new LeExpr(se(start.get()),expr(pop()),expr(pop())) ) ),
-					Sequence( "<", Spaces(inParens), ConcatExpr(inParens), push( new LtExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( ">", Spaces(inParens), ConcatExpr(inParens), push( new LtExpr(se(start.get()),expr(pop()),expr(pop())) ) )
-				)
-			)
-		);
+	private Expr RequiredVarExpB(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		Var var = required(VarStart(inParens));
+		Var var2;
+		while( (var2=VarExt(inParens,start,var.expr())) != null ) {
+			var = var2;
+		}
+		return parser.success(var.expr());
 	}
 
-	@Cached
-	Rule ConcatExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			SumExpr(inParens),
-			Optional( "..", Spaces(inParens), ConcatExpr(inParens), push( new ConcatExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
-		);
+	private Var VarExt(boolean inParens,int start,Expr exp1) throws ParseException {
+		parser.begin();
+		Expr exp2 = SubExpr(inParens);
+		exp2 = SubExpr(inParens);
+		if( exp2 != null )
+			return parser.success(indexVar(start,exp1,exp2));
+		if( parser.match('.') ) {
+			Spaces(inParens);
+			exp2 = NameExpr(inParens);
+			if( exp2!=null )
+				return parser.success(indexVar(start,exp1,exp2));
+		}
+		return parser.failure(null);
 	}
 
-	@Cached
-	Rule SumExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			TermExpr(inParens),
-			ZeroOrMore(
-				FirstOf(
-					Sequence( '+', Spaces(inParens), TermExpr(inParens), push( new AddExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( '-', TestNot('-'), Spaces(inParens), TermExpr(inParens), push( new SubExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
-				)
-			)
-		);
+	private Var VarStart(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		if( parser.match('(') ) {
+			Spaces(true);
+			Expr exp = Expr(true);
+			RequiredMatch(')');
+			Spaces(inParens);
+			return parser.success(exprVar(exp));
+		}
+		String name = Name(inParens);
+		if( name != null )
+			return parser.success(nameVar(start,name));
+		return parser.failure(null);
 	}
 
-	@Cached
-	Rule TermExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			UnaryExpr(inParens),
-			ZeroOrMore(
-				FirstOf(
-					Sequence( '*', Spaces(inParens), UnaryExpr(inParens), push( new MulExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( '/', Spaces(inParens), UnaryExpr(inParens), push( new DivExpr(se(start.get()),expr(pop(1)),expr(pop())) ) ),
-					Sequence( '%', Spaces(inParens), UnaryExpr(inParens), push( new ModExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
-				)
-			)
-		);
-	}
-
-	@Cached
-	Rule UnaryExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			FirstOf(
-				Sequence( '#', Spaces(inParens), PowExpr(inParens), push( new LenExpr(se(start.get()),expr(pop())) ) ),
-				Sequence( '-', TestNot('-'), Spaces(inParens), PowExpr(inParens), push( new UnmExpr(se(start.get()),expr(pop())) ) ),
-				Sequence( Keyword("not",inParens), PowExpr(inParens), push( new NotExpr(se(start.get()),expr(pop())) ) ),
-				PowExpr(inParens)
-			)
-		);
-	}
-
-	@Cached
-	Rule PowExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			SingleExpr(inParens),
-			Optional( '^', Spaces(inParens), PowExpr(inParens), push( new PowExpr(se(start.get()),expr(pop(1)),expr(pop())) ) )
-		);
-	}
-
-	@Cached
-	Rule SingleExpr(boolean inParens) {
-		return FirstOf(
-			FunctionExpr(inParens),
-			TableExpr(inParens),
-			VarExp(inParens),
-			Literal(inParens)
-		);
-	}
-
-	@Cached
-	Rule FunctionExpr(boolean inParens) {
-		return Sequence( "function", Spaces(inParens), Function(inParens) );
-	}
-
-	@Cached
-	Rule Function(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		Var<List<String>> names = new Var<List<String>>(new ArrayList<String>());
-		return Sequence(
-			start.set(currentIndex()),
-			'(', Spaces(true),
-			action( frame = new Frame(frame) ),
-			Optional(
-				FirstOf(
-					Sequence(
-						NameList(true,names), addSymbols(names.get()),
-						Optional( ',', Spaces(true), VarArgName() )
-					),
-					VarArgName()
-				)
-			),
-			')', Spaces(inParens), Block(), Keyword("end",inParens),
-			push( newFnDef(start.get()) ),
-			action( frame = frame.parent )
-		);
-	}
-
-	Rule VarArgName() {
-		return Sequence(
-			"...", Spaces(true),
-			action( frame.isVarArg = true )
-		);
-	}
-
-	@Cached
-	Rule VarArgs(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			"...", Spaces(inParens),
-			frame.isVarArg,
-			push( new VarArgs(se(start.get())) )
-		);
-	}
-
-	@Cached
-	Rule TableExpr(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		Var<List<TableExpr.Field>> fields = new Var<List<TableExpr.Field>>(new ArrayList<TableExpr.Field>());
-		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
-		return Sequence(
-			start.set(currentIndex()),
-			'{', Spaces(true),
-			Optional(
-				Field(fields,builder),
-				ZeroOrMore(
-					FieldSep(),
-					Field(fields,builder)
-				),
-				Optional( FieldSep() )
-			),
-			'}',
-			Spaces(inParens),
-			push( new TableExpr( se(start.get()), fields.get().toArray(new TableExpr.Field[0]), builder.get().build() ) )
-		);
-	}
-
-	Rule FieldSep() {
-		return Sequence( AnyOf(",;"), Spaces(true) );
-	}
-
-	Rule Field(Var<List<TableExpr.Field>> fields,Var<ExpList.Builder> builder) {
-		return FirstOf(
-			Sequence(
-				FirstOf( SubExpr(true), NameExpr(true) ),
-				'=', Spaces(true), Expr(true),
-				fields.get().add( new TableExpr.Field( expr(pop(1)), expr(pop()) ) )
-			),
-			Sequence(
-				Expr(true),
-				addToExpList(builder.get())
-			)
-		);
-	}
-
-	static Expr expr(Object obj) {
-		if( obj instanceof Expressions )
-			return new ExpressionsExpr((Expressions)obj);
-		return (Expr)obj;
-	}
-
-	@Cached
-	Rule VarExp(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			Var(inParens),
-			makeVarExp(start.get())
-		);
-	}
-
-	@Cached
-	Rule Var(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		Var<ExpList.Builder> builder = new Var<ExpList.Builder>();
-		return Sequence(
-			start.set(currentIndex()),
-			VarStart(inParens),
-			ZeroOrMore(
-				makeVarExp(start.get()),
-				FirstOf(
-					VarExt(inParens),
-					Sequence(
-						builder.set(new ExpList.Builder()),
-						Args(inParens,start,builder)
-					),
-					Sequence(
-						"->", Spaces(inParens),
-						builder.set(new ExpList.Builder()),
-						addToExpList(builder.get()),
-						VarExpB(inParens),
-						Args(inParens,start,builder)
-					)
-				)
-			)
-		);
-	}
-
-	@Cached
-	Rule VarExpB(boolean inParens) {
-		Var<Integer> start = new Var<Integer>();
-		return Sequence(
-			start.set(currentIndex()),
-			VarStart(inParens),
-			ZeroOrMore(
-				makeVarExp(start.get()),
-				VarExt(inParens)
-			),
-			makeVarExp(start.get())
-		);
-	}
-
-	@Cached
-	Rule VarExt(boolean inParens) {
-		return FirstOf(
-			SubExpr(inParens),
-			Sequence( '.', Spaces(inParens), NameExpr(inParens) )
-		);
-	}
-
-	@Cached
-	Rule VarStart(boolean inParens) {
-		return FirstOf(
-			Sequence(
-				'(', Spaces(true), Expr(true), ')', Spaces(inParens),
-				push(expr(pop())),
-				push(null)  // marker
-			),
-			Sequence(
-				push(null),  // marker
-				Name(inParens)
-			)
-		);
-	}
-
-	Expr env() {
+	private Expr env() {
 		int index = stackIndex(_ENV);
 		if( index != -1 )
 			return new GetLocalVar(null,index);
@@ -808,135 +841,187 @@ class LuanParser extends BaseParser<Object> {
 		throw new RuntimeException("_ENV not found");
 	}
 
-	boolean makeVarExp(int start) {
-		Object obj2 = pop();
-		if( obj2==null )
-			return true;
-		Object obj1 = pop();
-		if( obj1 != null )
-			return push( new IndexExpr( se(start), expr(obj1), expr(obj2) ) );
-		String name = (String)obj2;
-		int index = stackIndex(name);
-		if( index != -1 )
-			return push( new GetLocalVar(se(start),index) );
-		index = upValueIndex(name);
-		if( index != -1 )
-			return push( new GetUpVar(se(start),index) );
-		return push( new IndexExpr( se(start), env(), new ConstExpr(name) ) );
+	private interface Var {
+		public Expr expr();
+		public Settable settable();
 	}
 
-	// function should be on top of the stack
-	Rule Args(boolean inParens,Var<Integer> start,Var<ExpList.Builder> builder) {
-		return Sequence(
-			FirstOf(
-				Sequence(
-					'(', Spaces(true), Optional(ExpList(true,builder)), ')', Spaces(inParens)
-				),
-				Sequence(
-					TableExpr(inParens),
-					addToExpList(builder.get())
-				),
-				Sequence(
-					StringLiteral(inParens),
-					push(new ConstExpr(pop())),
-					addToExpList(builder.get())
-				)
-			),
-			push( new FnCall( se(start.get()), expr(pop()), builder.get().build() ) ),
-			push(null)  // marker
-		);
+	private Var nameVar(final int start,final String name) {
+		return new Var() {
+
+			public Expr expr() {
+				int index = stackIndex(name);
+				if( index != -1 )
+					return new GetLocalVar(se(start),index);
+				index = upValueIndex(name);
+				if( index != -1 )
+					return new GetUpVar(se(start),index);
+				return new IndexExpr( se(start), env(), new ConstExpr(name) );
+			}
+
+			public Settable settable() {
+				int index = stackIndex(name);
+				if( index != -1 )
+					return new SetLocalVar(index);
+				index = upValueIndex(name);
+				if( index != -1 )
+					return new SetUpVar(index);
+				return new SetTableEntry( se(start), env(), new ConstExpr(name) );
+			}
+		};
 	}
 
-	@Cached
-	Rule Expressions(boolean inParens) {
-		return FirstOf(
-			ExpList(inParens),
-			push( ExpList.emptyExpList )
-		);
+	private Var exprVar(final Expr expr) {
+		return new Var() {
+
+			public Expr expr() {
+				return expr;
+			}
+
+			public Settable settable() {
+				return null;
+			}
+		};
 	}
 
-	@Cached
-	Rule ExpList(boolean inParens) {
-		Var<ExpList.Builder> builder = new Var<ExpList.Builder>(new ExpList.Builder());
-		return Sequence(
-			ExpList(inParens,builder),
-			push( builder.get().build() )
-		);
+	private Var indexVar(final int start,final Expr table,final Expr key) {
+		return new Var() {
+
+			public Expr expr() {
+				return new IndexExpr( se(start), table, key );
+			}
+
+			public Settable settable() {
+				return new SetTableEntry(se(start),table,key);
+			}
+		};
 	}
 
-	Rule ExpList(boolean inParens,Var<ExpList.Builder> builder) {
-		return Sequence(
-			Expr(inParens),
-			addToExpList(builder.get()),
-			ZeroOrMore(
-				',', Spaces(inParens), Expr(inParens),
-				addToExpList(builder.get())
-			)
-		);
-	}
-
-	boolean addToExpList(ExpList.Builder bld) {
-		Object obj = pop();
-		if( obj instanceof Expressions ) {
-			bld.add( (Expressions)obj );
+	private FnCall Args(boolean inParens,int start,Expr fn,ExpList.Builder builder) throws ParseException {
+		parser.begin();
+		if( parser.match('(') ) {
+			Spaces(true);
+			ExpList(true,builder);  // optional
+			RequiredMatch(')');
+			Spaces(inParens);
 		} else {
-			bld.add( (Expr)obj );
+			Expr exp = TableExpr(inParens);
+			if( exp != null ) {
+				builder.add(exp);
+			} else {
+				String s = StringLiteral(inParens);
+				if( s != null ) {
+					builder.add( new ConstExpr(s) );
+				} else {
+					return parser.failure(null);
+				}
+			}
 		}
-		return true;
+		return parser.success( new FnCall( se(start), fn, builder.build() ) );
 	}
 
-	boolean addToExpList(ExpList.Builder bld, Expr expr) {
-		bld.add(expr);
-		return true;
+	private Expressions ExpList() throws ParseException {
+		return ExpList(false);
 	}
 
-	@Cached
-	Rule SubExpr(boolean inParens) {
-		return Sequence( '[', Spaces(true), Expr(true), ']', Spaces(inParens) );
+	private Expressions ExpList(boolean inParens) throws ParseException {
+		ExpList.Builder builder = new ExpList.Builder();
+		return ExpList(inParens,builder) ? builder.build() : null;
 	}
 
-	@Cached
-	Rule NameExpr(boolean inParens) {
-		return Sequence(
-			Name(inParens),
-			push( new ConstExpr((String)pop()) )
-		);
+	private boolean ExpList(boolean inParens,ExpList.Builder builder) throws ParseException {
+		parser.begin();
+		Expr exp = Expr(inParens);
+		if( exp==null )
+			return parser.failure();
+		builder.add(exp);
+		while( parser.match(',') ) {
+			Spaces(inParens);
+			builder.add( RequiredExpr(inParens) );
+		}
+		return parser.success();
 	}
 
-	@Cached
-	Rule Name(boolean inParens) {
-		return Sequence(
-			Sequence(
-				NameFirstChar(),
-				ZeroOrMore( NameChar() )
-			),
-			!keywords.contains(match()),
-			push(match()),
-			Spaces(inParens)
-		);
+	private Expr SubExpr(boolean inParens) throws ParseException {
+		parser.begin();
+		if( !parser.match('[') )
+			return parser.failure(null);
+		Spaces(true);
+		Expr exp = RequiredExpr(true);
+		RequiredMatch(']');
+		Spaces(inParens);
+		return parser.success(exp);
 	}
 
-	Rule NameChar() {
-		return FirstOf( NameFirstChar(), Digit() );
+	private Expr NameExpr(boolean inParens) throws ParseException {
+		String name = Name(inParens);
+		return name==null ? null : new ConstExpr(name);
 	}
 
-	Rule NameFirstChar() {
-		return FirstOf(
-			CharRange('a', 'z'),
-			CharRange('A', 'Z'),
-			'_'
-		);
+	private String RequiredName() throws ParseException {
+		parser.begin();
+		String name = Name();
+		if( name==null )
+			parser.exception("Name expected");
+		return parser.success(name);
 	}
 
-	Rule Keyword(String keyword,boolean inParens) {
-		return Sequence(
-			keyword,
-			TestNot( NameChar() ),
-			Spaces(inParens)
-		);
+	private String Name() throws ParseException {
+		return Name(false);
 	}
 
-	static final Set<String> keywords = new HashSet<String>(Arrays.asList(
+	private String Name(boolean inParens) throws ParseException {
+		int start = parser.begin();
+		if( !NameFirstChar() )
+			return parser.failure(null);
+		while( NameChar() );
+		String match = parser.textFrom(start);
+		if( keywords.contains(match) )
+			return parser.failure(null);
+		Spaces(inParens);
+		return parser.success(match);
+	}
+
+	private boolean NameChar() {
+		return NameFirstChar() || Digit();
+	}
+
+	private boolean NameFirstChar() {
+		return parser.inCharRange('a', 'z') || parser.inCharRange('A', 'Z') || parser.match('_');
+	}
+
+	private void RequiredMatch(char c) throws ParseException {
+		if( !parser.match(c) )
+			throw parser.exception("'"+c+"' expected");
+	}
+
+	private void RequiredMatch(String s) throws ParseException {
+		if( !parser.match(s) )
+			throw parser.exception("'"+s+"' expected");
+	}
+
+	private void RequiredKeyword(String keyword) throws ParseException {
+		RequiredKeyword(keyword,false);
+	}
+
+	private boolean Keyword(String keyword) throws ParseException {
+		return Keyword(keyword,false);
+	}
+
+	private void RequiredKeyword(String keyword,boolean inParens) throws ParseException {
+		if( !Keyword(keyword,inParens) )
+			throw parser.exception("'"+keyword+"' expected");
+	}
+
+	private boolean Keyword(String keyword,boolean inParens) throws ParseException {
+		parser.begin();
+		if( !parser.match(keyword) || NameChar() )
+			return parser.failure();
+		Spaces(inParens);
+		return parser.success();
+	}
+
+	private static final Set<String> keywords = new HashSet<String>(Arrays.asList(
 		"and",
 		"break",
 		"catch",
@@ -965,239 +1050,241 @@ class LuanParser extends BaseParser<Object> {
 		"while"
 	));
 
-	@Cached
-	Rule Literal(boolean inParens) {
-		return Sequence(
-			FirstOf(
-				NilLiteral(inParens),
-				BooleanLiteral(inParens),
-				NumberLiteral(inParens),
-				StringLiteral(inParens)
-			),
-			push(new ConstExpr(pop()))
-		);
+	private Expr Literal(boolean inParens) throws ParseException {
+		if( NilLiteral(inParens) )
+			return new ConstExpr(null);
+		Boolean b = BooleanLiteral(inParens);
+		if( b != null )
+			return new ConstExpr(b);
+		Number n = NumberLiteral(inParens);
+		if( n != null )
+			return new ConstExpr(n);
+		String s = StringLiteral(inParens);
+		if( s != null )
+			return new ConstExpr(s);
+		return null;
 	}
 
-	@Cached
-	Rule NilLiteral(boolean inParens) {
-		return Sequence( Keyword("nil",inParens), push(null) );
+	private boolean NilLiteral(boolean inParens) throws ParseException {
+		return Keyword("nil",inParens);
 	}
 
-	@Cached
-	Rule BooleanLiteral(boolean inParens) {
-		return FirstOf(
-			Sequence( Keyword("true",inParens), push(true) ),
-			Sequence( Keyword("false",inParens), push(false) )
-		);
+	private Boolean BooleanLiteral(boolean inParens) throws ParseException {
+		if( Keyword("true",inParens) )
+			return true;
+		if( Keyword("false",inParens) )
+			return false;
+		return null;
 	}
 
-	@Cached
-	Rule NumberLiteral(boolean inParens) {
-		return Sequence(
-			FirstOf(
-				Sequence(
-					IgnoreCase("0x"),
-					HexNumber()
-				),
-				Sequence(
-					DecNumber(),
-					push(Double.valueOf(match()))
-				)
-			),
-			TestNot( NameChar() ),
-			Spaces(inParens)
-		);
+	private Number NumberLiteral(boolean inParens) throws ParseException {
+		parser.begin();
+		Number n;
+		if( parser.matchIgnoreCase("0x") ) {
+			n = HexNumber();
+		} else {
+			n = DecNumber();
+		}
+		if( n==null || NameChar() )
+			return parser.failure(null);
+		Spaces(inParens);
+		return parser.success(n);
 	}
 
-	Rule DecNumber() {
-		return FirstOf(
-			Sequence(
-				Int(),
-				Optional( '.', Optional(Int()) ),
-				Exponent()
-			),
-			Sequence( '.', Int(), Exponent() )
-		);
+	private Number DecNumber() {
+		int start = parser.begin();
+		if( Int() ) {
+			if( parser.match('.') )
+				Int();  // optional
+		} else if( parser.match('.') && Int() ) {
+			// ok
+		} else
+			return parser.failure(null);
+		Exponent();  // optional
+		return parser.success(Double.valueOf(parser.textFrom(start)));
 	}
 
-	Rule Exponent() {
-		return Optional(
-			IgnoreCase('e'),
-			Optional(AnyOf("+-")),
-			Int()
-		);
+	private boolean Exponent() {
+		parser.begin();
+		if( !parser.matchIgnoreCase("e") )
+			return parser.failure();
+		parser.anyOf("+-");  // optional
+		if( !Int() )
+			return parser.failure();
+		return parser.success();
 	}
 
-	Rule Int() {
-		return OneOrMore(Digit());
-	}
-
-	Rule Digit() {
-		return CharRange('0', '9');
-	}
-
-	Rule HexNumber() {
-		return FirstOf(
-			Sequence(
-				HexInt(),
-				push( (double)Long.parseLong(match(),16) ),
-				Optional( '.', Optional(HexDec()) ),
-				HexExponent()
-			),
-			Sequence( push(0.0), '.', HexDec(), HexExponent() )
-		);
-	}
-
-	Rule HexDec() {
-		return Sequence(
-			HexInt(),
-			push( (Double)pop() + (double)Long.parseLong(match(),16) / Math.pow(16,matchLength()) )
-		);
-	}
-
-	Rule HexExponent() {
-		return Optional(
-			IgnoreCase('p'),
-			Sequence(
-				Optional(AnyOf("+-")),
-				HexInt()
-			),
-			push( (Double)pop() * Math.pow(2,(double)Long.parseLong(match())) )
-		);
-	}
-
-	Rule HexInt() {
-		return OneOrMore(Digit());
-	}
-
-
-	Rule HexDigit() {
-		return FirstOf(
-			Digit(),
-			AnyOf("abcdefABCDEF")
-		);
-	}
-
-	@Cached
-	Rule StringLiteral(boolean inParens) {
-		return Sequence(
-			FirstOf(
-				QuotedString('"'),
-				QuotedString('\''),
-				LongString()
-			),
-			Spaces(inParens)
-		);
-	}
-
-	Rule LongString() {
-		return Sequence(
-			'[',
-			ZeroOrMore('='),
-			nEquals(matchLength()),
-			'[',
-			ZeroOrMore(
-				TestNot(LongBracketsEnd()),
-				ANY
-			),
-			push( match() ),
-			LongBracketsEnd()
-		);
-	}
-
-	Rule QuotedString(char quote) {
-		StringBuilderVar buf = new StringBuilderVar();
-		return Sequence(
-			quote,
-			ZeroOrMore(
-				FirstOf(
-					Sequence(
-						NoneOf("\\\n"+quote),
-						buf.append(matchedChar())
-					),
-					EscSeq(buf)
-				)
-			),
-			quote,
-			push( buf.getString() )
-		);
-	}
-
-	Rule EscSeq(StringBuilderVar buf) {
-		return Sequence(
-			'\\',
-			FirstOf(
-				Sequence( 'a', buf.append('\u0007') ),
-				Sequence( 'b', buf.append('\b') ),
-				Sequence( 'f', buf.append('\f') ),
-				Sequence( 'n', buf.append('\n') ),
-				Sequence( 'r', buf.append('\r') ),
-				Sequence( 't', buf.append('\t') ),
-				Sequence( 'v', buf.append('\u000b') ),
-				Sequence( '\\', buf.append('\\') ),
-				Sequence( '"', buf.append('"') ),
-				Sequence( '\'', buf.append('\'') ),
-				Sequence(
-					'x',
-					Sequence( HexDigit(), HexDigit() ),
-					buf.append( (char)Integer.parseInt(match(),16) )
-				),
-				Sequence(
-					Sequence(
-						Digit(),
-						Optional(
-							Digit(),
-							Optional(
-								Digit()
-							)
-						)
-					),
-					buf.append( (char)Integer.parseInt(match()) )
-				)
-			)
-		);
-	}
-
-	@Cached
-	Rule Spaces(boolean inParens) {
-		return ZeroOrMore(
-			FirstOf(
-				AnyOf(" \t"),
-				Comment(),
-				Sequence( '\\', EndOfLine() ),
-				Sequence( inParens, AnyOf("\r\n"),
-					Optional( "--", ZeroOrMore(NoneOf("\r\n")) )
-				)
-			)
-		);
-	}
-
-	Rule Comment() {
-		return Sequence(
-			"--[",
-			ZeroOrMore('='),
-			nEquals(matchLength()),
-			'[',
-			ZeroOrMore(
-				TestNot(LongBracketsEnd()),
-				ANY
-			),
-			LongBracketsEnd()
-		);
-	}
-
-	Rule LongBracketsEnd() {
-		return Sequence( ']', ZeroOrMore('='), nEquals==matchLength(), ']' );
-	}
-
-	static boolean action(Object obj) {
+	private boolean Int() {
+		if( !Digit() )
+			return false;
+		while( Digit() );
 		return true;
 	}
 
-	// for debugging
-	boolean print(Object o) {
-		System.out.println(o);
+	private boolean Digit() {
+		return parser.inCharRange('0', '9');
+	}
+
+	private Number HexNumber() {
+		int start = parser.begin();
+		double n;
+		if( HexInt() ) {
+			n = (double)Long.parseLong(parser.textFrom(start),16);
+			if( parser.match('.') ) {
+				start = parser.currentIndex();
+				if( HexInt() ) {
+					String dec = parser.textFrom(start);
+					n += (double)Long.parseLong(dec,16) / Math.pow(16,dec.length());
+				}
+			}
+		} else if( parser.match('.') && HexInt() ) {
+			String dec = parser.textFrom(start+1);
+			n = (double)Long.parseLong(dec,16) / Math.pow(16,dec.length());
+		} else {
+			return parser.failure(null);
+		}
+		if( parser.matchIgnoreCase("p") ) {
+			parser.anyOf("+-");  // optional
+			start = parser.currentIndex();
+			if( !HexInt() )
+				return parser.failure(null);
+			n *= Math.pow(2,(double)Long.parseLong(parser.textFrom(start)));
+		}
+		return parser.success(Double.valueOf(n));
+	}
+
+	private boolean HexInt() {
+		if( !HexDigit() )
+			return false;
+		while( HexDigit() );
 		return true;
+	}
+
+
+	private boolean HexDigit() {
+		return Digit() || parser.anyOf("abcdefABCDEF");
+	}
+
+	private String StringLiteral(boolean inParens) throws ParseException {
+		String s;
+		if( (s=QuotedString('"'))==null
+			&& (s=QuotedString('\''))==null
+			&& (s=LongString())==null
+		)
+			return null;
+		Spaces(inParens);
+		return s;
+	}
+
+	private String LongString() throws ParseException {
+		parser.begin();
+		if( !parser.match('[') )
+			return parser.failure(null);
+		int start = parser.currentIndex();
+		while( parser.match('=') );
+		int nEquals = parser.currentIndex() - start;
+		if( !parser.match('[') )
+			return parser.failure(null);
+		start = parser.currentIndex();
+		while( !LongBracketsEnd(nEquals) ) {
+			if( !parser.anyChar() )
+				throw parser.exception("Unclosed long string");
+		}
+		String s = parser.text.substring( start, parser.currentIndex() - nEquals - 2 );
+		return parser.success(s);
+	}
+
+	private String QuotedString(char quote) throws ParseException {
+		parser.begin();
+		if( !parser.match(quote) )
+			return parser.failure(null);
+		StringBuilder buf = new StringBuilder();
+		while( !parser.match(quote) ) {
+			Character c = EscSeq();
+			if( c != null ) {
+				buf.append(c);
+			} else {
+				if( !parser.anyChar() )
+					throw parser.exception("Unclosed string");
+				buf.append(parser.lastChar());
+			}
+		}
+		return parser.success(buf.toString());
+	}
+
+	private Character EscSeq() {
+		parser.begin();
+		if( !parser.match('\\') )
+			return parser.failure(null);
+		if( parser.match('a') )  return '\u0007';
+		if( parser.match('b') )  return '\b';
+		if( parser.match('f') )  return '\f';
+		if( parser.match('n') )  return '\n';
+		if( parser.match('r') )  return '\r';
+		if( parser.match('t') )  return '\t';
+		if( parser.match('v') )  return '\u000b';
+		if( parser.match('\\') )  return '\\';
+		if( parser.match('"') )  return '"';
+		if( parser.match('\'') )  return '\'';
+		int start = parser.currentIndex();
+		if( parser.match('x') && HexDigit() && HexDigit() )
+			return (char)Integer.parseInt(parser.textFrom(start+1),16);
+		if( Digit() ) {
+			if( Digit() ) Digit();  // optional
+			return (char)Integer.parseInt(parser.textFrom(start));
+		}
+		return parser.failure(null);
+	}
+
+	private void Spaces() throws ParseException {
+		Spaces(false);
+	}
+
+	private void Spaces(boolean inParens) throws ParseException {
+		while( parser.anyOf(" \t") || Comment() || ContinueOnNextLine() || inParens && NewLine() );
+	}
+
+	private boolean ContinueOnNextLine() {
+		parser.begin();
+		return parser.match('\\') &&  EndOfLine() ? parser.success() : parser.failure();
+	}
+
+	private boolean NewLine() {
+		if( !EndOfLine() )
+			return false;
+		if( parser.match("--") ) {
+			while( parser.noneOf("\r\n") );
+		}
+		return true;
+	}
+
+	private boolean Comment() throws ParseException {
+		parser.begin();
+		if( !parser.match("--[") )
+			return parser.failure();
+		int start = parser.currentIndex();
+		while( parser.match('=') );
+		int nEquals = parser.currentIndex() - start;
+		if( !parser.match('[') )
+			return parser.failure();
+		while( !LongBracketsEnd(nEquals) ) {
+			if( !parser.anyChar() )
+				throw parser.exception("Unclosed comment");
+		}
+		return parser.success();
+	}
+
+	private boolean LongBracketsEnd(int nEquals) {
+		parser.begin();
+		if( !parser.match(']') )
+			return parser.failure();
+		while( nEquals-- > 0 ) {
+			if( !parser.match('=') )
+				return parser.failure();
+		}
+		if( !parser.match(']') )
+			return parser.failure();
+		return parser.success();
 	}
 
 }

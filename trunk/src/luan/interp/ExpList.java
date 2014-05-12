@@ -54,6 +54,8 @@ final class ExpList implements Expressions {
 		private final List<Adder> adders = new ArrayList<Adder>();
 
 		void add(Expr expr) {
+			if( expr==null )
+				throw new NullPointerException();
 			adders.add( new ExprAdder(expr) );
 		}
 

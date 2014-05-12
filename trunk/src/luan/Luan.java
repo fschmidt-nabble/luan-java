@@ -2,7 +2,7 @@ package luan;
 
 
 public final class Luan {
-	public static final String version = "Luan 0.0";
+	public static final String version = "Luan 0.1";
 
 	public static String type(Object obj) {
 		if( obj == null )

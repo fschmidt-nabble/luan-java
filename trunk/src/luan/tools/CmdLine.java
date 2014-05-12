@@ -1,13 +1,13 @@
 package luan.tools;
 
-import java.util.Arrays;
-import java.util.Scanner;
+import java.io.IOException;
 import luan.lib.BasicLib;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanFunction;
 import luan.LuanTable;
 import luan.LuanException;
+import jline.ConsoleReader;
 
 
 public class CmdLine {
@@ -101,16 +101,23 @@ public class CmdLine {
 	}
 
 	static void interactive(LuanState luan,LuanTable env) {
-		while( true ) {
-			System.out.print("> ");
-			String input = new Scanner(System.in).nextLine();
-			try {
-				Object[] rtn = luan.eval(input,"stdin",env);
-				if( rtn.length > 0 )
-					BasicLib.print(luan,rtn);
-			} catch(LuanException e) {
-				System.out.println(e.getMessage());
+		try {
+			ConsoleReader console = new ConsoleReader();
+			console.setDefaultPrompt("> ");
+			while( true ) {
+				String input = console.readLine();
+				if( input==null )
+					break;
+				try {
+					Object[] rtn = luan.eval(input,"stdin",env);
+					if( rtn.length > 0 )
+						BasicLib.print(luan,rtn);
+				} catch(LuanException e) {
+					System.out.println(e.getMessage());
+				}
 			}
+		} catch(IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
