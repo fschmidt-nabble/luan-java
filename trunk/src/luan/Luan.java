@@ -6,18 +6,18 @@ public final class Luan {
 
 	public static String type(Object obj) {
 		if( obj == null )
-			return "Nil";
+			return "nil";
 		if( obj instanceof String )
-			return "String";
+			return "string";
 		if( obj instanceof Boolean )
-			return "Boolean";
+			return "boolean";
 		if( obj instanceof Number )
-			return "Number";
+			return "number";
 		if( obj instanceof LuanTable )
-			return "Table";
+			return "table";
 		if( obj instanceof LuanFunction )
-			return "Function";
-		return "Userdata";
+			return "function";
+		return "userdata";
 	}
 
 	public static boolean toBoolean(Object obj) {
