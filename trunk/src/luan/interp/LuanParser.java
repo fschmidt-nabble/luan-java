@@ -327,9 +327,22 @@ final class LuanParser {
 		RequiredMatch( "=" );
 		Spaces();
 		Expr from = RequiredExpr();
-		RequiredKeyword("to");
-		Expr to = RequiredExpr();
-		Expr step = Keyword("step") ? RequiredExpr() : new ConstExpr(1);
+		Expr to;
+		Expr step;
+		if( parser.match(',') ) {
+			Spaces();
+			to = RequiredExpr();
+			if( parser.match(',') ) {
+				Spaces();
+				step = RequiredExpr();
+			} else {
+				step = new ConstExpr(1);
+			}
+		} else {
+			RequiredKeyword("to");
+			to = RequiredExpr();
+			step = Keyword("step") ? RequiredExpr() : new ConstExpr(1);
+		}
 		addSymbol(name);  // add "for" var to symbols
 		RequiredKeyword("do");
 		Stmt loop = RequiredLoopBlock();
