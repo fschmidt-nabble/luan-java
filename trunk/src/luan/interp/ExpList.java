@@ -63,10 +63,19 @@ final class ExpList implements Expressions {
 			adders.add( new ExpressionsAdder(expressions) );
 		}
 
+		void add(Code code) {
+			if( code instanceof Expr ) {
+				add((Expr)code);
+			} else {
+				add((Expressions)code);
+			}
+		}
+
 		Expressions build() {
-			if( adders.isEmpty() )
+			int size = adders.size();
+			if( size == 0 )
 				return emptyExpList;
-			if( adders.size() == 1 ) {
+			if( size == 1 ) {
 				Adder adder = adders.get(0);
 				if( adder instanceof ExpressionsAdder ) {
 					ExpressionsAdder ea = (ExpressionsAdder)adder;
@@ -75,7 +84,14 @@ final class ExpList implements Expressions {
 				ExprAdder ea = (ExprAdder)adder;
 				return new SingleExpList(ea.expr);
 			}
-			return new ExpList( adders.toArray(new Adder[0]) );
+			Adder[] a = adders.toArray(new Adder[size]);
+			for( int i=0; i<size-1; i++ ) {
+				Adder adder = a[i];
+				if( adder instanceof ExpressionsAdder ) {
+					a[i] = new ExprAdder(new ExpressionsExpr(((ExpressionsAdder)adder).expressions));
+				}
+			}
+			return new ExpList(a);
 		}
 	}
 
