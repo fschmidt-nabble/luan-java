@@ -18,11 +18,11 @@ final class FnCall extends CodeImpl implements Expressions {
 		this.fnName = fnExpr.se().text();
 	}
 
-	@Override public Object[] eval(LuanStateImpl luan) throws LuanException {
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		return call( luan, fnExpr.eval(luan) );
 	}
 
-	private Object[] call(LuanStateImpl luan,Object o) throws LuanException {
+	private Object call(LuanStateImpl luan,Object o) throws LuanException {
 		if( o instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)o;
 			return luan.bit(se).call( fn, fnName, args.eval(luan) );

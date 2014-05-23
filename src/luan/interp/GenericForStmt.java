@@ -27,11 +27,21 @@ final class GenericForStmt extends CodeImpl implements Stmt {
 		String name = iterExpr.se().text();
 		try {
 			while(true) {
-				Object[] vals = bit.call(iter,name);
-				if( vals.length==0 || vals[0]==null )
+				Object vals = bit.call(iter,name);
+				if( vals==null )
 					break;
-				for( int i=0; i<nVars; i++ ) {
-					luan.stackSet( iVars+i, i < vals.length ? vals[i] : null );
+				if( vals instanceof Object[] ) {
+					Object[] a = (Object[])vals;
+					if( a.length==0 )
+						break;
+					for( int i=0; i<nVars; i++ ) {
+						luan.stackSet( iVars+i, i < a.length ? a[i] : null );
+					}
+				} else {
+					luan.stackSet( iVars, vals );
+					for( int i=1; i<nVars; i++ ) {
+						luan.stackSet( iVars+i, null );
+					}
 				}
 				block.eval(luan);
 			}

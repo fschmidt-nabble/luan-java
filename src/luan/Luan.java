@@ -4,6 +4,17 @@ package luan;
 public final class Luan {
 	public static final String version = "Luan 0.1";
 
+	public static Object first(Object obj) {
+		if( !(obj instanceof Object[]) )
+			return obj;
+		Object[] a = (Object[])obj;
+		return a.length==0 ? null : a[0];
+	}
+
+	public static Object[] array(Object obj) {
+		return obj instanceof Object[] ? (Object[])obj : new Object[]{obj};
+	}
+
 	public static String type(Object obj) {
 		if( obj == null )
 			return "nil";
@@ -49,10 +60,6 @@ public final class Luan {
 			} catch(NumberFormatException e) {}
 		}
 		return null;
-	}
-
-	public static Object first(Object[] a) {
-		return a.length==0 ? null : a[0];
 	}
 
 	public static String toString(Number n) {

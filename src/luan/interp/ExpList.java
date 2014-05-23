@@ -39,8 +39,13 @@ final class ExpList implements Expressions {
 		}
 
 		public void addTo(LuanStateImpl luan,List<Object> list) throws LuanException {
-			for( Object val : expressions.eval(luan) ) {
-				list.add( val );
+			Object obj = expressions.eval(luan);
+			if( obj instanceof Object[] ) {
+				for( Object val : (Object[])obj ) {
+					list.add( val );
+				}
+			} else {
+				list.add(obj);
 			}
 		}
 
@@ -115,8 +120,8 @@ final class ExpList implements Expressions {
 			this.expr = expr;
 		}
 
-		@Override public Object[] eval(LuanStateImpl luan) throws LuanException {
-			return new Object[]{expr.eval(luan)};
+		@Override public Object eval(LuanStateImpl luan) throws LuanException {
+			return expr.eval(luan);
 		}
 
 		@Override public LuanSource.Element se() {
@@ -130,12 +135,19 @@ final class ExpList implements Expressions {
 		this.adders = adders;
 	}
 
-	@Override public Object[] eval(LuanStateImpl luan) throws LuanException {
+	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		List<Object> list = new ArrayList<Object>();
 		for( Adder adder : adders ) {
 			adder.addTo(luan,list);
 		}
-		return list.toArray();
+		switch( list.size() ) {
+		case 0:
+			return EMPTY;
+		case 1:
+			return list.get(0);
+		default:
+			return list.toArray();
+		}
 	}
 
 	@Override public LuanSource.Element se() {

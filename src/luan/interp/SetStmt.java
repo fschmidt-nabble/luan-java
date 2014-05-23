@@ -18,10 +18,18 @@ final class SetStmt implements Stmt {
 	}
 
 	@Override public void eval(LuanStateImpl luan) throws LuanException {
-		final Object[] vals = expressions.eval(luan);
-		for( int i=0; i<vars.length; i++ ) {
-			Object val = i < vals.length ? vals[i] : null;
-			vars[i].set(luan,val);
+		final Object obj = expressions.eval(luan);
+		if( obj instanceof Object[] ) {
+			Object[] vals = (Object[])obj;
+			for( int i=0; i<vars.length; i++ ) {
+				Object val = i < vals.length ? vals[i] : null;
+				vars[i].set(luan,val);
+			}
+		} else {
+			vars[0].set(luan,obj);
+			for( int i=1; i<vars.length; i++ ) {
+				vars[i].set(luan,null);
+			}
 		}
 	}
 

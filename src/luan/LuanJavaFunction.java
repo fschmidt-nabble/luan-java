@@ -49,7 +49,7 @@ public final class LuanJavaFunction extends LuanFunction {
 		return method.getParameterTypes();
 	}
 
-	@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
+	@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 		args = fixArgs(luan,args);
 		try {
 			return doCall(luan,args);
@@ -59,12 +59,12 @@ public final class LuanJavaFunction extends LuanFunction {
 		}
 	}
 
-	public Object[] rawCall(LuanState luan,Object[] args) throws LuanException {
+	public Object rawCall(LuanState luan,Object[] args) throws LuanException {
 		args = fixArgs(luan,args);
 		return doCall(luan,args);
 	}
 
-	private Object[] doCall(LuanState luan,Object[] args) throws LuanException {
+	private Object doCall(LuanState luan,Object[] args) throws LuanException {
 		Object rtn;
 		try {
 			rtn = method.invoke(obj,args);
@@ -158,35 +158,25 @@ public final class LuanJavaFunction extends LuanFunction {
 
 
 	private interface RtnConverter {
-		public Object[] convert(Object obj);
+		public Object convert(Object obj);
 	}
 
 	private static final RtnConverter RTN_EMPTY = new RtnConverter() {
-		public Object[] convert(Object obj) {
+		@Override public Object[] convert(Object obj) {
 			return EMPTY;
 		}
 	};
 
-	private static final RtnConverter RTN_ARRAY = new RtnConverter() {
-		public Object[] convert(Object obj) {
-			if( obj == null )
-				return NULL_RTN;
-			return (Object[])obj;
+	private static final RtnConverter RTN_SAME = new RtnConverter() {
+		@Override public Object convert(Object obj) {
+			return obj;
 		}
 	};
-
-	private static final RtnConverter RTN_ONE = new RtnConverter() {
-		public Object[] convert(Object obj) {
-			return new Object[]{obj};
-		}
-	};
-
-	private static final Object[] NULL_RTN = new Object[1];
 
 	private static final RtnConverter RTN_NUMBER_ARRAY = new RtnConverter() {
-		public Object[] convert(Object obj) {
+		@Override public Object convert(Object obj) {
 			if( obj == null )
-				return NULL_RTN;
+				return null;
 			Object[] rtn = new Object[Array.getLength(obj)];
 			for( int i=0; i<rtn.length; i++ ) {
 				rtn[i] = Array.get(obj,i);
@@ -199,13 +189,9 @@ public final class LuanJavaFunction extends LuanFunction {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_EMPTY;
-		if( rtnType.isArray() ) {
-			rtnType = rtnType.getComponentType();
-			if( isNumber(rtnType) )
-				return RTN_NUMBER_ARRAY;
-			return RTN_ARRAY;
-		}
-		return RTN_ONE;
+		if( rtnType.isArray() && isNumber(rtnType.getComponentType()) )
+			return RTN_NUMBER_ARRAY;
+		return RTN_SAME;
 	}
 
 	private static boolean isNumber(Class<?> rtnType) {

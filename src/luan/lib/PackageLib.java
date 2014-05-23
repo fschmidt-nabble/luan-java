@@ -19,7 +19,7 @@ public final class PackageLib {
 	public static final String NAME = "Package";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			LuanTable global = luan.global();
 			module.put("loaded",luan.loaded());
@@ -36,7 +36,7 @@ public final class PackageLib {
 			searchers.add(fileSearcher);
 			searchers.add(javaFileSearcher);
 			module.put("searchers",searchers);
-			return new Object[]{module};
+			return module;
 		}
 	};
 
@@ -62,7 +62,7 @@ public final class PackageLib {
 				searchers = new LuanTable(Collections.<Object>singletonList(preloadSearcher));
 			for( Object s : searchers.asList() ) {
 				LuanFunction searcher = (LuanFunction)s;
-				Object[] a = luan.JAVA.call(searcher,"<searcher>",modName);
+				Object[] a = Luan.array(luan.JAVA.call(searcher,"<searcher>",modName));
 				if( a.length >= 1 && a[0] instanceof LuanFunction ) {
 					LuanFunction loader = (LuanFunction)a[0];
 					a[0] = modName;
@@ -93,11 +93,10 @@ public final class PackageLib {
 	}
 
 	public static final LuanFunction fileLoader = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
-			String modName = (String)args[0];
+		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			String fileName = (String)args[1];
 			LuanFunction fn = BasicLib.load_file(luan,fileName);
-			return fn.call(luan,new Object[]{args[0],fileName});
+			return fn.call(luan,args);
 		}
 	};
 
@@ -124,13 +123,13 @@ public final class PackageLib {
 
 
 	public static final LuanFunction javaFileLoader = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
-			String modName = (String)args[0];
-			URL url = (URL)args[0];
+		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+			String urlStr = (String)args[1];
 			try {
+				URL url = new URL(urlStr);
 				String src = Utils.read(url);
-				LuanFunction fn = BasicLib.load(luan,src,url.toString(),false);
-				return fn.call(luan,new Object[]{args[0],url.toString()});
+				LuanFunction fn = BasicLib.load(luan,src,urlStr,false);
+				return fn.call(luan,args);
 			} catch(IOException e) {
 				throw luan.JAVA.exception(e);
 			}
@@ -147,7 +146,7 @@ public final class PackageLib {
 				String file = s.replaceAll("\\?",modName);
 				URL url = ClassLoader.getSystemResource(file);
 				if( url != null ) {
-					return new Object[]{javaFileLoader,url};
+					return new Object[]{javaFileLoader,url.toString()};
 				}
 			}
 			return LuanFunction.EMPTY;
