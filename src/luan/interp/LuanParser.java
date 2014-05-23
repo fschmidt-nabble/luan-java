@@ -223,7 +223,6 @@ final class LuanParser {
 			|| (stmt=ImportStmt()) != null
 			|| (stmt=BreakStmt()) != null
 			|| (stmt=GenericForStmt()) != null
-			|| (stmt=NumericForStmt()) != null
 			|| (stmt=TryStmt()) != null
 			|| (stmt=DoStmt()) != null
 			|| (stmt=WhileStmt()) != null
@@ -347,39 +346,6 @@ final class LuanParser {
 		RequiredKeyword("end");
 		Stmt stmt = new GenericForStmt( se(start), stackStart, symbolsSize() - stackStart, expr, loop );
 		popSymbols( symbolsSize() - stackStart );
-		return parser.success(stmt);
-	}
-
-	private Stmt NumericForStmt() throws ParseException {
-		int start = parser.begin();
-		if( !Keyword("for") )
-			return parser.failure(null);
-		String name = RequiredName();
-		RequiredMatch( "=" );
-		Spaces();
-		Expr from = expr(RequiredExpr());
-		Expr to;
-		Expr step;
-		if( parser.match(',') ) {
-			Spaces();
-			to = expr(RequiredExpr());
-			if( parser.match(',') ) {
-				Spaces();
-				step = expr(RequiredExpr());
-			} else {
-				step = new ConstExpr(1);
-			}
-		} else {
-			RequiredKeyword("to");
-			to = expr(RequiredExpr());
-			step = Keyword("step") ? expr(RequiredExpr()) : new ConstExpr(1);
-		}
-		addSymbol(name);  // add "for" var to symbols
-		RequiredKeyword("do");
-		Stmt loop = RequiredLoopBlock();
-		RequiredKeyword("end");
-		Stmt stmt = new NumericForStmt( se(start), symbolsSize()-1, from, to, step, loop );
-		popSymbols(1);
 		return parser.success(stmt);
 	}
 
