@@ -16,7 +16,7 @@ public final class StringLib {
 	public static final String NAME = "String";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
 				module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
@@ -35,7 +35,7 @@ public final class StringLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			return module;
 		}
 	};
 
@@ -131,12 +131,12 @@ public final class StringLib {
 	public static LuanFunction gmatch(String s,String pattern) {
 		final Matcher m = Pattern.compile(pattern).matcher(s);
 		return new LuanFunction() {
-			public Object[] call(LuanState luan,Object[] args) {
+			@Override public Object call(LuanState luan,Object[] args) {
 				if( !m.find() )
-					return LuanFunction.EMPTY;
+					return null;
 				final int n = m.groupCount();
 				if( n == 0 )
-					return new String[]{m.group()};
+					return m.group();
 				String[] rtn = new String[n];
 				for( int i=0; i<n; i++ ) {
 					rtn[i] = m.group(i);

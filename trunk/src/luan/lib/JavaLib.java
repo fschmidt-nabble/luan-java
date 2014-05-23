@@ -30,7 +30,7 @@ public final class JavaLib {
 	public static final String NAME = "Java";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
 			LuanTable global = luan.global();
@@ -41,22 +41,22 @@ public final class JavaLib {
 				throw new RuntimeException(e);
 			}
 			luan.searchers().add(javaSearcher);
-			return new Object[]{module};
+			return module;
 		}
 	};
 
 	public static final LuanFunction javaSearcher = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
+		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			String modName = (String)args[0];
 			final Static s = JavaLib.getClass(luan,modName);
 			if( s==null )
-				return LuanFunction.EMPTY;
+				return null;
 			LuanFunction loader = new LuanFunction() {
-				@Override public Object[] call(LuanState luan,Object[] args) {
-					return new Object[]{s};
+				@Override public Object call(LuanState luan,Object[] args) {
+					return s;
 				}
 			};
-			return new Object[]{loader};
+			return loader;
 		}
 	};
 
@@ -368,7 +368,7 @@ public final class JavaLib {
 			}
 		}
 
-		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
+		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			for( LuanJavaFunction fn : fnMap.get(args.length) ) {
 				try {
 					return fn.rawCall(luan,args);
