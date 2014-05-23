@@ -11,13 +11,10 @@ import luan.LuanState;
 import luan.LuanSource;
 import luan.parser.Parser;
 import luan.parser.ParseException;
+import luan.lib.PackageLib;
 
 
 final class LuanParser {
-
-	static FnDef parse(LuanSource source,UpValue.Getter envGetter) throws ParseException {
-		return new LuanParser(source,envGetter).RequiredTarget();
-	}
 
 	private static final class Frame {
 		final Frame parent;
@@ -69,6 +66,11 @@ final class LuanParser {
 			upValueSymbols.add(name);
 			return upValueSymbols.size() - 1;
 		}
+
+		void addUpValueGetter(String name,UpValue.Getter upValueGetter) {
+			upValueSymbols.add(name);
+			upValueGetters.add(upValueGetter);
+		}
 	}
 
 	private static final String _ENV = "_ENV";
@@ -77,11 +79,17 @@ final class LuanParser {
 	private final LuanSource source;
 	private Frame frame;
 	private final Parser parser;
+	private final boolean interactive;
 
-	private LuanParser(LuanSource source,UpValue.Getter envGetter) {
+	LuanParser(LuanSource source,UpValue.Getter envGetter) {
 		this.source = source;
 		this.frame = new Frame(envGetter);
 		this.parser = new Parser(source.text);
+		this.interactive = envGetter==UpValue.globalGetter;
+	}
+
+	void addVar(String name,Object value) {
+		frame.addUpValueGetter(name,new UpValue.ValueGetter(value));
 	}
 
 	private LuanSource.Element se(int start) {
@@ -153,7 +161,7 @@ final class LuanParser {
 		return new FnDef( se(start), stmt, frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
 	}
 
-	private FnDef RequiredTarget() throws ParseException {
+	FnDef Expressions() throws ParseException {
 		Spaces();
 		int start = parser.begin();
 		Expressions exprs = ExpList();
@@ -161,7 +169,12 @@ final class LuanParser {
 			Stmt stmt = new ReturnStmt( se(start), exprs );
 			return parser.success(newFnDef(start,stmt));
 		}
-		parser.rollback();
+		return parser.failure(null);
+	}
+
+	FnDef RequiredModule() throws ParseException {
+		Spaces();
+		int start = parser.begin();
 		frame.isVarArg = true;
 		Stmt stmt = RequiredBlock();
 		if( parser.endOfInput() )
@@ -207,6 +220,7 @@ final class LuanParser {
 		if( (stmt=ReturnStmt()) != null
 			|| (stmt=FunctionStmt()) != null
 			|| (stmt=LocalFunctionStmt()) != null
+			|| (stmt=ImportStmt()) != null
 			|| (stmt=BreakStmt()) != null
 			|| (stmt=GenericForStmt()) != null
 			|| (stmt=NumericForStmt()) != null
@@ -286,6 +300,27 @@ final class LuanParser {
 		addSymbol( name );
 		FnDef fnDef = RequiredFunction(false);
 		return parser.success( new SetStmt( new SetLocalVar(symbolsSize()-1), fnDef ) );
+	}
+
+	private Stmt ImportStmt() throws ParseException {
+		int start = parser.begin();
+		if( !Keyword("import") )
+			return parser.failure(null);
+		Expr importExpr = new ConstExpr(se(start),PackageLib.require);
+		String modName = StringLiteral(false);
+		if( modName==null )
+			return parser.failure(null);
+		String varName = modName.substring(modName.lastIndexOf('.')+1);
+		LuanSource.Element se = se(start);
+		FnCall require = new FnCall( se, importExpr, new ExpList.SingleExpList(new ConstExpr(modName)) );
+		Settable settable;
+		if( interactive ) {
+			settable = new SetTableEntry( se(start), env(), new ConstExpr(varName) );
+		} else {
+			addSymbol( varName );
+			settable = new SetLocalVar(symbolsSize()-1);
+		}
+		return parser.success( new SetStmt( settable, expr(require) ) );
 	}
 
 	private Stmt BreakStmt() throws ParseException {
@@ -1060,6 +1095,7 @@ final class LuanParser {
 		"function",
 		"goto",
 		"if",
+		"import",
 		"in",
 		"local",
 		"nil",

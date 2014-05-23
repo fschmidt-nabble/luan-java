@@ -21,7 +21,6 @@ import luan.LuanTable;
 import luan.MetatableGetter;
 import luan.LuanException;
 import luan.LuanFunction;
-import luan.LuanLoader;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 
@@ -30,28 +29,36 @@ public final class JavaLib {
 
 	public static final String NAME = "Java";
 
-	public static final LuanLoader LOADER = new LuanLoader() {
-		@Override protected void load(LuanState luan) {
+	public static final LuanFunction LOADER = new LuanFunction() {
+		@Override public Object[] call(LuanState luan,Object[] args) {
 			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
-			LuanTable global = new LuanTable();
-			module.put( LuanState._G, global );
+			LuanTable global = luan.global();
 			try {
-				global.put( "import", new LuanJavaFunction(JavaLib.class.getMethod("importClass",LuanState.class,String.class),null) );
 				module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
 				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			luan.loaded().put(NAME,module);
+			luan.searchers().add(javaSearcher);
+			return new Object[]{module};
 		}
 	};
 
-	private static final LuanTable mt = new LuanTable();
-	static {
-		add( mt, "__index", LuanState.class, Object.class, Object.class );
-		add( mt, "__newindex", LuanState.class, Object.class, Object.class, Object.class );
-	}
+	public static final LuanFunction javaSearcher = new LuanFunction() {
+		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
+			String modName = (String)args[0];
+			final Static s = JavaLib.getClass(luan,modName);
+			if( s==null )
+				return LuanFunction.EMPTY;
+			LuanFunction loader = new LuanFunction() {
+				@Override public Object[] call(LuanState luan,Object[] args) {
+					return new Object[]{s};
+				}
+			};
+			return new Object[]{loader};
+		}
+	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) {
 		try {
@@ -59,6 +66,12 @@ public final class JavaLib {
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static final LuanTable mt = new LuanTable();
+	static {
+		add( mt, "__index", LuanState.class, Object.class, Object.class );
+		add( mt, "__newindex", LuanState.class, Object.class, Object.class, Object.class );
 	}
 
 	private static final MetatableGetter mg = new MetatableGetter() {
@@ -330,16 +343,16 @@ public final class JavaLib {
 			try {
 				cls = Thread.currentThread().getContextClassLoader().loadClass(name);
 			} catch(ClassNotFoundException e2) {
-				throw luan.JAVA.exception(e);
+				return null;
 			}
 		}
 		return new Static(cls);
 	}
-
+/*
 	public static void importClass(LuanState luan,String name) throws LuanException {
 		luan.currentEnvironment().put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
 	}
-
+*/
 	static class AmbiguousJavaFunction extends LuanFunction {
 		private final Map<Integer,List<LuanJavaFunction>> fnMap = new HashMap<Integer,List<LuanJavaFunction>>();
 

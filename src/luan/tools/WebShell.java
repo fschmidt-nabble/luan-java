@@ -27,13 +27,13 @@ public class WebShell extends HttpServlet {
 	protected LuanState newLuanState() throws LuanException {
 		return LuanState.newStandard();
 	}
-
+/*
 	protected LuanTable newEnvironment(LuanState luan) throws LuanException {
 		return luan.newEnvironment();
 	}
-
-	protected Object[] eval(LuanState luan,String cmd,LuanTable env) throws LuanException {
-		return luan.eval(cmd,"WebShell",env);
+*/
+	protected Object[] eval(LuanState luan,String cmd) throws LuanException {
+		return luan.eval(cmd,"WebShell",true);
 	}
 
 	@Override protected void service(HttpServletRequest request,HttpServletResponse response)
@@ -62,15 +62,11 @@ public class WebShell extends HttpServlet {
 						luan = newLuanState();
 						session.putValue("luan",luan);
 					}
-					LuanTable env = (LuanTable)session.getValue("env");
-					if( env==null ) {
-						env = newEnvironment(luan);
-						session.putValue("env",env);
-					}
 					luan.out = new PrintStream(history);
+					LuanTable env = luan.global();
 					env.put("request",request);
 					env.put("response",response);
-					Object[] result = eval(luan,cmd,env);
+					Object[] result = eval(luan,cmd);
 					if( result.length > 0 ) {
 						for( int i=0; i<result.length; i++ ) {
 							if( i > 0 )

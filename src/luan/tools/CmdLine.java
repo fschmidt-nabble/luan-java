@@ -14,14 +14,6 @@ public class CmdLine {
 
 	public static void main(String[] args) {
 		LuanState luan = LuanState.newStandard();
-		LuanTable env;
-		try {
-			env = luan.newEnvironment();
-		} catch(LuanException e) {
-			System.err.println("command line error: "+e.getMessage());
-			System.exit(-1);
-			throw new RuntimeException();  // never
-		}
 		boolean interactive = false;
 		boolean showVersion = false;
 		int i = 0;
@@ -42,7 +34,7 @@ public class CmdLine {
 						error("'-e' needs argument");
 					String cmd = args[i];
 					try {
-						LuanFunction fn = BasicLib.load(luan,cmd,"(command line)",env);
+						LuanFunction fn = BasicLib.load(luan,cmd,"(command line)",false);
 						luan.JAVA.call(fn,null);
 					} catch(LuanException e) {
 						System.err.println("command line error: "+e.getMessage());
@@ -50,7 +42,7 @@ public class CmdLine {
 					}
 				} else if( arg.equals("-") ) {
 					try {
-						BasicLib.do_file(luan,"stdin",env);
+						BasicLib.do_file(luan,"stdin");
 					} catch(LuanException e) {
 						System.err.println(e.getMessage());
 						System.exit(-1);
@@ -72,9 +64,9 @@ public class CmdLine {
 			for( int j=0; j<args.length; j++ ) {
 				argsTable.put( j, args[j] );
 			}
-			env.put("arg",argsTable);
+			luan.global().put("arg",argsTable);
 			try {
-				LuanFunction fn = BasicLib.load_file(luan,file,env);
+				LuanFunction fn = BasicLib.load_file(luan,file);
 				luan.JAVA.call(fn,null,varArgs);
 			} catch(LuanException e) {
 //				System.err.println("error: "+e.getMessage());
@@ -83,7 +75,7 @@ public class CmdLine {
 			}
 		}
 		if( interactive )
-			interactive(luan,env);
+			interactive(luan);
 	}
 
 	private static void error(String msg) {
@@ -100,7 +92,7 @@ public class CmdLine {
 		System.exit(-1);
 	}
 
-	static void interactive(LuanState luan,LuanTable env) {
+	static void interactive(LuanState luan) {
 		try {
 			ConsoleReader console = new ConsoleReader();
 			console.setDefaultPrompt("> ");
@@ -109,7 +101,7 @@ public class CmdLine {
 				if( input==null )
 					break;
 				try {
-					Object[] rtn = luan.eval(input,"stdin",env);
+					Object[] rtn = luan.eval(input,"stdin",true);
 					if( rtn.length > 0 )
 						BasicLib.print(luan,rtn);
 				} catch(LuanException e) {

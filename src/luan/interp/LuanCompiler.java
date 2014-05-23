@@ -7,15 +7,43 @@ import luan.LuanSource;
 import luan.LuanElement;
 import luan.LuanTable;
 import luan.parser.ParseException;
+import java.util.Map;
 
 
 public final class LuanCompiler {
 	private LuanCompiler() {}  // never
 
-	public static LuanFunction compile(LuanState luan,LuanSource src,LuanTable env) throws LuanException {
-		UpValue.Getter envGetter = env!=null ? new UpValue.ValueGetter(env) : new UpValue.EnvGetter();
+	public static LuanFunction compileModule(LuanState luan,LuanSource src) throws LuanException {
+		UpValue.Getter envGetter = new UpValue.EnvGetter();
+		LuanParser parser = new LuanParser(src,envGetter);
+		for( Map.Entry<Object,Object> entry : luan.global() ) {
+			Object key = entry.getKey();
+			if( key instanceof String )
+				parser.addVar( (String)key, entry.getValue() );
+		}
 		try {
-			FnDef fnDef = LuanParser.parse(src,envGetter);
+			FnDef fnDef = parser.RequiredModule();
+			final Closure c = new Closure((LuanStateImpl)luan,fnDef);
+			return new LuanFunction() {
+				public Object[] call(LuanState luan,Object[] args) throws LuanException {
+					Object[] rtn = c.call(luan,args);
+					return rtn.length==0 ? new Object[]{c.upValues()[0].get()} : rtn;
+				}
+			};
+		} catch(ParseException e) {
+//e.printStackTrace();
+			LuanElement le = new LuanSource.CompilerElement(src);
+			throw luan.bit(le).exception( e.getFancyMessage() );
+		}
+	}
+
+	public static LuanFunction compileInteractive(LuanState luan,LuanSource src) throws LuanException {
+		UpValue.Getter envGetter = UpValue.globalGetter;
+		LuanParser parser = new LuanParser(src,envGetter);
+		try {
+			FnDef fnDef = parser.Expressions();
+			if( fnDef == null )
+				fnDef = parser.RequiredModule();
 			return new Closure((LuanStateImpl)luan,fnDef);
 		} catch(ParseException e) {
 //e.printStackTrace();
