@@ -31,9 +31,14 @@ final class TableExpr extends CodeImpl implements Expr {
 		for( Field field : fields ) {
 			table.put( field.key.eval(luan), field.value.eval(luan) );
 		}
-		Object[] a = expressions.eval(luan);
-		for( int i=0; i<a.length; i++ ) {
-			table.put( i+1, a[i] );
+		Object obj = expressions.eval(luan);
+		if( obj instanceof Object[] ) {
+			Object[] a = (Object[])obj;
+			for( int i=0; i<a.length; i++ ) {
+				table.put( i+1, a[i] );
+			}
+		} else {
+			table.put( 1, obj );
 		}
 		return table;
 	}

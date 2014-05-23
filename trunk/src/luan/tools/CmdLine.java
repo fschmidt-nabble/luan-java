@@ -101,7 +101,7 @@ public class CmdLine {
 				if( input==null )
 					break;
 				try {
-					Object[] rtn = luan.eval(input,"stdin",true);
+					Object[] rtn = Luan.array(luan.eval(input,"stdin",true));
 					if( rtn.length > 0 )
 						BasicLib.print(luan,rtn);
 				} catch(LuanException e) {

@@ -25,9 +25,11 @@ public final class LuanCompiler {
 			FnDef fnDef = parser.RequiredModule();
 			final Closure c = new Closure((LuanStateImpl)luan,fnDef);
 			return new LuanFunction() {
-				public Object[] call(LuanState luan,Object[] args) throws LuanException {
-					Object[] rtn = c.call(luan,args);
-					return rtn.length==0 ? new Object[]{c.upValues()[0].get()} : rtn;
+				@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+					Object rtn = c.call(luan,args);
+					if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
+						rtn = c.upValues()[0].get();
+					return rtn;
 				}
 			};
 		} catch(ParseException e) {

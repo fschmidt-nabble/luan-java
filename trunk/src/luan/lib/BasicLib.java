@@ -22,7 +22,7 @@ public final class BasicLib {
 	public static final String NAME = "Basic";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			LuanTable global = luan.global();
 			try {
@@ -54,7 +54,7 @@ public final class BasicLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			return module;
 		}
 	};
 
@@ -92,7 +92,7 @@ public final class BasicLib {
 		}
 	}
 
-	public static Object[] do_file(LuanState luan,String fileName) throws LuanException {
+	public static Object do_file(LuanState luan,String fileName) throws LuanException {
 		LuanFunction fn = load_file(luan,fileName);
 		return luan.JAVA.call(fn,null);
 	}

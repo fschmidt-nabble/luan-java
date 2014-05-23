@@ -1,5 +1,6 @@
 package luan.interp;
 
+import luan.Luan;
 import luan.LuanFunction;
 import luan.LuanState;
 import luan.LuanElement;
@@ -37,11 +38,11 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 		return upValues;
 	}
 
-	public Object[] call(LuanState luan,Object[] args) throws LuanException {
+	@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 		return call(this,(LuanStateImpl)luan,args);
 	}
 
-	private static Object[] call(Closure closure,LuanStateImpl luan,Object[] args) throws LuanException {
+	private static Object call(Closure closure,LuanStateImpl luan,Object[] args) throws LuanException {
 		while(true) {
 			FnDef fnDef = closure.fnDef;
 			Object[] varArgs = null;
@@ -60,7 +61,7 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 			for( int i=0; i<n; i++ ) {
 				stack[i] = args[i];
 			}
-			Object[] returnValues;
+			Object returnValues;
 			Closure tailFn;
 			try {
 				fnDef.block.eval(luan);
@@ -72,7 +73,7 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 			}
 			if( closure == null )
 				return returnValues;
-			args = returnValues;
+			args = Luan.array(returnValues);
 		}
 	}
 

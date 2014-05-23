@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import luan.Luan;
 import luan.LuanFunction;
 import luan.LuanState;
 import luan.LuanTable;
@@ -27,13 +28,9 @@ public class WebShell extends HttpServlet {
 	protected LuanState newLuanState() throws LuanException {
 		return LuanState.newStandard();
 	}
-/*
-	protected LuanTable newEnvironment(LuanState luan) throws LuanException {
-		return luan.newEnvironment();
-	}
-*/
+
 	protected Object[] eval(LuanState luan,String cmd) throws LuanException {
-		return luan.eval(cmd,"WebShell",true);
+		return Luan.array(luan.eval(cmd,"WebShell",true));
 	}
 
 	@Override protected void service(HttpServletRequest request,HttpServletResponse response)
