@@ -23,7 +23,7 @@ final class LenExpr extends UnaryOpExpr {
 		LuanBit bit = luan.bit(se);
 		LuanFunction fn = bit.getHandlerFunction("__len",o);
 		if( fn != null )
-			return Luan.first(bit.call(fn,"__len",o));
+			return Luan.first(bit.call(fn,"__len",new Object[]{o}));
 		if( o instanceof LuanTable ) {
 			LuanTable t = (LuanTable)o;
 			return t.length();

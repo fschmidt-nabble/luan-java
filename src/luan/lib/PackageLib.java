@@ -62,7 +62,7 @@ public final class PackageLib {
 				searchers = new LuanTable(Collections.<Object>singletonList(preloadSearcher));
 			for( Object s : searchers.asList() ) {
 				LuanFunction searcher = (LuanFunction)s;
-				Object[] a = Luan.array(luan.JAVA.call(searcher,"<searcher>",modName));
+				Object[] a = Luan.array(luan.JAVA.call(searcher,"<searcher>",new Object[]{modName}));
 				if( a.length >= 1 && a[0] instanceof LuanFunction ) {
 					LuanFunction loader = (LuanFunction)a[0];
 					a[0] = modName;
@@ -112,10 +112,9 @@ public final class PackageLib {
 	};
 
 	public static final LuanFunction preloadSearcher = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			String modName = (String)args[0];
-			Object mod = luan.preload().get(modName);
-			return new Object[]{mod};
+			return luan.preload().get(modName);
 		}
 	};
 

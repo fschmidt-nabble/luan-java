@@ -39,7 +39,7 @@ final class SetTableEntry extends CodeImpl implements Settable {
 		}
 		if( h instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)h;
-			luan.bit(se).call(fn,"__newindex",t,key,value);
+			luan.bit(se).call(fn,"__newindex",new Object[]{t,key,value});
 			return;
 		}
 		newindex(luan,h,key,value);

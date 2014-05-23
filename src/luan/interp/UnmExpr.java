@@ -22,7 +22,7 @@ final class UnmExpr extends UnaryOpExpr {
 		LuanBit bit = luan.bit(se);
 		LuanFunction fn = bit.getHandlerFunction("__unm",o);
 		if( fn != null ) {
-			return Luan.first(bit.call(fn,"__unm",o));
+			return Luan.first(bit.call(fn,"__unm",new Object[]{o}));
 		}
 		throw bit.exception("attempt to perform arithmetic on a "+Luan.type(o)+" value");
 	}

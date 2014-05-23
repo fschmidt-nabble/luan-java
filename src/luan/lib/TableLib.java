@@ -18,7 +18,7 @@ public final class TableLib {
 	public static final String NAME = "Table";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
 				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
@@ -31,7 +31,7 @@ public final class TableLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			return module;
 		}
 	};
 
@@ -93,7 +93,7 @@ public final class TableLib {
 			lt = new LessThan() {
 				public boolean isLessThan(Object o1,Object o2) {
 					try {
-						return Luan.toBoolean(Luan.first(luan.JAVA.call(comp,"comp-arg",o1,o2)));
+						return Luan.toBoolean(Luan.first(luan.JAVA.call(comp,"comp-arg",new Object[]{o1,o2})));
 					} catch(LuanException e) {
 						throw new LuanRuntimeException(e);
 					}

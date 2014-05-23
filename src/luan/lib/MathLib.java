@@ -11,7 +11,7 @@ public final class MathLib {
 	public static final String NAME = "Math";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
 				add( module, "abs", Double.TYPE );
@@ -41,7 +41,7 @@ public final class MathLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			return module;
 		}
 	};
 

@@ -35,6 +35,6 @@ final class EqExpr extends BinaryOpExpr {
 			return null;
 		LuanBit bit = luan.bit(se);
 		LuanFunction fn = bit.checkFunction(f);
-		return Luan.toBoolean( Luan.first(bit.call(fn,"__eq",o1,o2)) );
+		return Luan.toBoolean( Luan.first(bit.call(fn,"__eq",new Object[]{o1,o2})) );
 	}
 }

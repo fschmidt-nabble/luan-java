@@ -34,7 +34,7 @@ final class IndexExpr extends BinaryOpExpr {
 		}
 		if( h instanceof LuanFunction ) {
 			LuanFunction fn = (LuanFunction)h;
-			return Luan.first(luan.bit(se).call(fn,"__index",t,key));
+			return Luan.first(luan.bit(se).call(fn,"__index",new Object[]{t,key}));
 		}
 		return index(luan,h,key);
 	}

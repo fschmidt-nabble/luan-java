@@ -11,14 +11,14 @@ public final class HtmlLib {
 	public static final String NAME = "Html";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
 				add( module, "encode", String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			return new Object[]{module};
+			return module;
 		}
 	};
 

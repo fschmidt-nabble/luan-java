@@ -30,7 +30,7 @@ final class ReturnStmt extends CodeImpl implements Stmt {
 			if( tailFn instanceof Closure ) {
 				luan.tailFn = (Closure)tailFn;
 			} else {
-				luan.returnValues =  luan.bit(tailFnExpr.se()).call(tailFn,tailFnExpr.se().text(),luan.returnValues);
+				luan.returnValues =  luan.bit(tailFnExpr.se()).call(tailFn,tailFnExpr.se().text(),Luan.array(luan.returnValues));
 			}
 		}
 		if( throwReturnException )

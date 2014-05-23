@@ -16,7 +16,11 @@ public final class LuanBit {
 		return new LuanException(this,msg);
 	}
 
-	public Object call(LuanFunction fn,String fnName,Object... args) throws LuanException {
+	public Object call(LuanFunction fn,String fnName) throws LuanException {
+		return call(fn,fnName,LuanFunction.EMPTY);
+	}
+
+	public Object call(LuanFunction fn,String fnName,Object[] args) throws LuanException {
 		List<StackTraceElement> stackTrace = luan.stackTrace;
 		stackTrace.add( new StackTraceElement(el,fnName) );
 		try {
@@ -49,14 +53,14 @@ public final class LuanBit {
 	public String toString(Object obj) throws LuanException {
 		LuanFunction fn = getHandlerFunction("__tostring",obj);
 		if( fn != null )
-			return checkString( Luan.first( call(fn,"__tostring",obj) ) );
+			return checkString( Luan.first( call(fn,"__tostring",new Object[]{obj}) ) );
 		return Luan.toString(obj);
 	}
 
 	public String repr(Object obj) throws LuanException {
 		LuanFunction fn = getHandlerFunction("__repr",obj);
 		if( fn != null )
-			return checkString( Luan.first( call(fn,"__repr",obj) ) );
+			return checkString( Luan.first( call(fn,"__repr",new Object[]{obj}) ) );
 		String repr = Luan.repr(obj);
 		if( repr==null )
 			throw exception( "value '" + obj + "' doesn't support repr()" );
@@ -90,14 +94,14 @@ public final class LuanBit {
 		}
 		LuanFunction fn = getBinHandler("__lt",o1,o2);
 		if( fn != null )
-			return Luan.toBoolean( Luan.first(call(fn,"__lt",o1,o2)) );
+			return Luan.toBoolean( Luan.first(call(fn,"__lt",new Object[]{o1,o2})) );
 		throw exception( "attempt to compare " + Luan.type(o1) + " with " + Luan.type(o2) );
 	}
 
 	public Object arithmetic(String op,Object o1,Object o2) throws LuanException {
 		LuanFunction fn = getBinHandler(op,o1,o2);
 		if( fn != null )
-			return Luan.first(call(fn,op,o1,o2));
+			return Luan.first(call(fn,op,new Object[]{o1,o2}));
 		String type = Luan.toNumber(o1)==null ? Luan.type(o1) : Luan.type(o2);
 		throw exception("attempt to perform arithmetic on a "+type+" value");
 	}

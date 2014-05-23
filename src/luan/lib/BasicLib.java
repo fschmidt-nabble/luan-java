@@ -208,12 +208,12 @@ public final class BasicLib {
 		return new LuanFunction() {
 			double v = from;
 
-			@Override public Object[] call(LuanState luan,Object[] args) {
+			@Override public Object call(LuanState luan,Object[] args) {
 				if( step > 0.0 && v > to || step < 0.0 && v < to )
 					return LuanFunction.EMPTY;
 				double rtn = v;
 				v += step;
-				return new Object[]{rtn};
+				return rtn;
 			}
 		};
 	}
