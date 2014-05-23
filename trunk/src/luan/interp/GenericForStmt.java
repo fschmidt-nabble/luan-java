@@ -4,6 +4,7 @@ import luan.Luan;
 import luan.LuanException;
 import luan.LuanFunction;
 import luan.LuanSource;
+import luan.LuanBit;
 
 
 final class GenericForStmt extends CodeImpl implements Stmt {
@@ -22,9 +23,11 @@ final class GenericForStmt extends CodeImpl implements Stmt {
 
 	@Override public void eval(LuanStateImpl luan) throws LuanException {
 		LuanFunction iter = luan.bit(se).checkFunction( iterExpr.eval(luan) );
+		LuanBit bit = luan.bit(iterExpr.se());
+		String name = iterExpr.se().text();
 		try {
 			while(true) {
-				Object[] vals = luan.bit(iterExpr.se()).call(iter,iterExpr.se().text());
+				Object[] vals = bit.call(iter,name);
 				if( vals.length==0 || vals[0]==null )
 					break;
 				for( int i=0; i<nVars; i++ ) {

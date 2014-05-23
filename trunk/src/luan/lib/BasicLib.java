@@ -40,6 +40,7 @@ public final class BasicLib {
 				add( global, "load_file", LuanState.class, String.class );
 				add( global, "pairs", LuanState.class, LuanTable.class );
 				add( global, "print", LuanState.class, new Object[0].getClass() );
+				add( global, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
 				add( global, "raw_equal", Object.class, Object.class );
 				add( global, "raw_get", LuanTable.class, Object.class );
 				add( global, "raw_len", LuanState.class, Object.class );
@@ -98,7 +99,7 @@ public final class BasicLib {
 
 	private static LuanFunction pairs(final Iterator<Map.Entry<Object,Object>> iter) {
 		return new LuanFunction() {
-			public Object[] call(LuanState luan,Object[] args) {
+			@Override public Object[] call(LuanState luan,Object[] args) {
 				if( !iter.hasNext() )
 					return LuanFunction.EMPTY;
 				Map.Entry<Object,Object> entry = iter.next();
@@ -198,6 +199,23 @@ public final class BasicLib {
 
 	public static String repr(LuanState luan,Object v) throws LuanException {
 		return luan.JAVA.repr(v);
+	}
+
+	public static LuanFunction range(LuanState luan,final double from,final double to,Double stepV) throws LuanException {
+		final double step = stepV==null ? 1.0 : stepV;
+		if( step == 0.0 )
+			throw luan.JAVA.exception("bad argument #3 (step may not be zero)");
+		return new LuanFunction() {
+			double v = from;
+
+			@Override public Object[] call(LuanState luan,Object[] args) {
+				if( step > 0.0 && v > to || step < 0.0 && v < to )
+					return LuanFunction.EMPTY;
+				double rtn = v;
+				v += step;
+				return new Object[]{rtn};
+			}
+		};
 	}
 
 }
