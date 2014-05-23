@@ -10,7 +10,6 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
-import luan.LuanLoader;
 import luan.LuanJavaFunction;
 import luan.LuanException;
 import luan.LuanSource;
@@ -22,11 +21,10 @@ public final class BasicLib {
 
 	public static final String NAME = "Basic";
 
-	public static final LuanLoader LOADER = new LuanLoader() {
-		@Override protected void load(LuanState luan) {
+	public static final LuanFunction LOADER = new LuanFunction() {
+		@Override public Object[] call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			LuanTable global = new LuanTable();
-			module.put( LuanState._G, global );
+			LuanTable global = luan.global();
 			try {
 				global.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
 				add( global, "assert_boolean", LuanState.class, Boolean.TYPE );
@@ -34,12 +32,12 @@ public final class BasicLib {
 				add( global, "assert_number", LuanState.class, Number.class );
 				add( global, "assert_string", LuanState.class, String.class );
 				add( global, "assert_table", LuanState.class, LuanTable.class );
-				add( global, "do_file", LuanState.class, String.class, LuanTable.class );
+				add( global, "do_file", LuanState.class, String.class );
 				add( global, "error", LuanState.class, Object.class );
 				add( global, "get_metatable", LuanState.class, Object.class );
 				add( global, "ipairs", LuanState.class, LuanTable.class );
-				add( global, "load", LuanState.class, String.class, String.class, LuanTable.class );
-				add( global, "load_file", LuanState.class, String.class, LuanTable.class );
+				add( global, "load", LuanState.class, String.class, String.class, Boolean.class );
+				add( global, "load_file", LuanState.class, String.class );
 				add( global, "pairs", LuanState.class, LuanTable.class );
 				add( global, "print", LuanState.class, new Object[0].getClass() );
 				add( global, "raw_equal", Object.class, Object.class );
@@ -55,7 +53,7 @@ public final class BasicLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			luan.loaded().put(NAME,module);
+			return new Object[]{module};
 		}
 	};
 
@@ -76,22 +74,25 @@ public final class BasicLib {
 		return Luan.type(obj);
 	}
 
-	public static LuanFunction load(LuanState luan,String text,String sourceName,LuanTable env) throws LuanException {
-		return LuanCompiler.compile(luan,new LuanSource(sourceName,text),env);
+	public static LuanFunction load(LuanState luan,String text,String sourceName,Boolean interactive) throws LuanException {
+		if( interactive!=null && interactive )
+			return LuanCompiler.compileInteractive(luan,new LuanSource(sourceName,text));
+		else
+			return LuanCompiler.compileModule(luan,new LuanSource(sourceName,text));
 	}
 
 
-	public static LuanFunction load_file(LuanState luan,String fileName,LuanTable env) throws LuanException {
+	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
 			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
-			return load(luan,src,fileName,env);
+			return load(luan,src,fileName,false);
 		} catch(IOException e) {
 			throw luan.JAVA.exception(e);
 		}
 	}
 
-	public static Object[] do_file(LuanState luan,String fileName,LuanTable env) throws LuanException {
-		LuanFunction fn = load_file(luan,fileName,env);
+	public static Object[] do_file(LuanState luan,String fileName) throws LuanException {
+		LuanFunction fn = load_file(luan,fileName);
 		return luan.JAVA.call(fn,null);
 	}
 

@@ -119,7 +119,7 @@ final class LuanStateImpl extends LuanState {
 	UpValue getUpValue(UpValue.EnvGetter getter) throws LuanException {
 		UpValue uv = envs.get(getter);
 		if( uv == null ) {
-			LuanTable env = newEnvironment();
+			LuanTable env = new LuanTable();
 			uv = new UpValue(env);
 			envs.put(getter,uv);
 		}

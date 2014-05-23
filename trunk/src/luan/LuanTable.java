@@ -243,7 +243,17 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 	}
 
 	public void insert(int pos,Object value) {
+		if( value==null )
+			throw new UnsupportedOperationException();
 		list().add(pos-1,value);
+		mapToList();
+	}
+
+	public void add(Object value) {
+		if( value==null )
+			throw new UnsupportedOperationException();
+		list().add(value);
+		mapToList();
 	}
 
 	public Object remove(int pos) {

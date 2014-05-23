@@ -102,4 +102,10 @@ final class UpValue implements DeepCloneable<UpValue> {
 		}
 	}
 
+	static final Getter globalGetter = new Getter() {
+		public UpValue get(LuanStateImpl luan) {
+			return new UpValue(luan.global());
+		}
+	};
+
 }
