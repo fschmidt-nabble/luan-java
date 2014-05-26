@@ -20,6 +20,10 @@ final class LenExpr extends UnaryOpExpr {
 			String s = (String)o;
 			return s.length();
 		}
+		if( o instanceof byte[] ) {
+			byte[] a = (byte[])o;
+			return a.length;
+		}
 		LuanBit bit = luan.bit(se);
 		LuanFunction fn = bit.getHandlerFunction("__len",o);
 		if( fn != null )
