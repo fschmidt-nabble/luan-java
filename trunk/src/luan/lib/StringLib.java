@@ -19,8 +19,9 @@ public final class StringLib {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
-				module.put( "byte", new LuanJavaFunction(StringLib.class.getMethod("byte_",String.class,Integer.class,Integer.class),null) );
-				module.put( "char", new LuanJavaFunction(StringLib.class.getMethod("char_",new byte[0].getClass()),null) );
+				add( module, "to_binary", String.class );
+				add( module, "to_integers", String.class );
+				add( module, "from_integers", new int[0].getClass() );
 				add( module, "find", String.class, String.class, Integer.class, Boolean.class );
 				add( module, "format", String.class, new Object[0].getClass() );
 				add( module, "gmatch", String.class, String.class );
@@ -59,14 +60,25 @@ public final class StringLib {
 		return i==null ? dflt : end(s,i);
 	}
 
-	public static byte[] byte_(String s,Integer i,Integer j) {
-		int start = start(s,i,0);
-		int end = end(s,j,start+1);
-		return s.substring(start,end).getBytes();
+	public static byte[] to_binary(String s) {
+		return s.getBytes();
 	}
 
-	public static String char_(byte... bytes) {
-		return new String(bytes);
+	public static int[] to_integers(String s) {
+		char[] a = s.toCharArray();
+		int[] chars = new int[a.length];
+		for( int i=0; i<a.length; i++ ) {
+			chars[i] = a[i];
+		}
+		return chars;
+	}
+
+	public static String from_integers(int... chars) {
+		char[] a = new char[chars.length];
+		for( int i=0; i<chars.length; i++ ) {
+			a[i] = (char)chars[i];
+		}
+		return new String(a);
 	}
 
 	public static int len(String s) {
