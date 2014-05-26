@@ -28,6 +28,8 @@ public final class Luan {
 			return "table";
 		if( obj instanceof LuanFunction )
 			return "function";
+		if( obj instanceof byte[] )
+			return "binary";
 		return "userdata";
 	}
 
@@ -98,6 +100,8 @@ public final class Luan {
 			LuanException le = (LuanException)obj;
 			return le.getMessage();
 		}
+		if( obj instanceof byte[] )
+			return "binary: " + Integer.toHexString(obj.hashCode());
 		return obj.toString();
 	}
 

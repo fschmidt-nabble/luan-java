@@ -1,0 +1,33 @@
+package luan.lib;
+
+import luan.LuanState;
+import luan.LuanTable;
+import luan.LuanFunction;
+import luan.LuanJavaFunction;
+
+
+public final class BinaryLib {
+
+	public static final String NAME = "Binary";
+
+	public static final LuanFunction LOADER = new LuanFunction() {
+		@Override public Object call(LuanState luan,Object[] args) {
+			LuanTable module = new LuanTable();
+			try {
+				add( module, "to_string", new byte[0].getClass() );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return module;
+		}
+	};
+
+	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
+		t.put( method, new LuanJavaFunction(BinaryLib.class.getMethod(method,parameterTypes),null) );
+	}
+
+	public static String to_string(byte[] bytes) {
+		return new String(bytes);
+	}
+
+}

@@ -14,6 +14,7 @@ import luan.lib.MathLib;
 import luan.lib.StringLib;
 import luan.lib.TableLib;
 import luan.lib.HtmlLib;
+import luan.lib.BinaryLib;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
@@ -115,6 +116,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 			luan.load(StringLib.NAME,StringLib.LOADER);
 			luan.load(TableLib.NAME,TableLib.LOADER);
 			luan.load(HtmlLib.NAME,HtmlLib.LOADER);
+			luan.load(BinaryLib.NAME,BinaryLib.LOADER);
 			return luan;
 		} catch(LuanException e) {
 			throw new RuntimeException(e);

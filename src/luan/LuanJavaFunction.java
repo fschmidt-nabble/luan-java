@@ -195,8 +195,7 @@ public final class LuanJavaFunction extends LuanFunction {
 	}
 
 	private static boolean isNumber(Class<?> rtnType) {
-		return rtnType == Byte.TYPE
-			|| rtnType == Short.TYPE
+		return rtnType == Short.TYPE
 			|| rtnType == Integer.TYPE
 			|| rtnType == Long.TYPE
 			|| rtnType == Float.TYPE
