@@ -13,6 +13,7 @@ import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanException;
 import luan.lib.HtmlLib;
+import luan.lib.IoLib;
 
 
 public class WebRun extends HttpServlet {
@@ -33,7 +34,7 @@ public class WebRun extends HttpServlet {
 		String code = request.getParameter("code");
 		try {
 			LuanState luan = newLuanState();
-			luan.out = out;
+			luan.set( "Io.stdout", IoLib.writer(out) );
 			LuanTable env = luan.global();
 			env.put("request",request);
 			env.put("response",response);

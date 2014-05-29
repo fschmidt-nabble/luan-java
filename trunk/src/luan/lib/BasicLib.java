@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -63,12 +65,15 @@ public final class BasicLib {
 	}
 
 	public static void print(LuanState luan,Object... args) throws LuanException {
+		LuanFunction write = (LuanFunction)luan.get("Io.stdout.write");
+		List list = new ArrayList();
 		for( int i=0; i<args.length; i++ ) {
 			if( i > 0 )
-				luan.out.print('\t');
-			luan.out.print( luan.JAVA.toString(args[i]) );
+				list.add("\t");
+			list.add(args[i]);
 		}
-		luan.out.println();
+		list.add("\n");
+		write.call(luan,list.toArray());
 	}
 
 	public static String type(Object obj) {
@@ -83,16 +88,12 @@ public final class BasicLib {
 	}
 
 
-	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
-		try {
-			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
-			return load(luan,src,fileName,false);
-		} catch(IOException e) {
-			throw luan.JAVA.exception(e);
-		}
+	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException, IOException {
+		String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
+		return load(luan,src,fileName,false);
 	}
 
-	public static Object do_file(LuanState luan,String fileName) throws LuanException {
+	public static Object do_file(LuanState luan,String fileName) throws LuanException, IOException {
 		LuanFunction fn = load_file(luan,fileName);
 		return luan.JAVA.call(fn,null);
 	}

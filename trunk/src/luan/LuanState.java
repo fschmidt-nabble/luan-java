@@ -15,6 +15,7 @@ import luan.lib.StringLib;
 import luan.lib.TableLib;
 import luan.lib.HtmlLib;
 import luan.lib.BinaryLib;
+import luan.lib.IoLib;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
@@ -24,10 +25,6 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	private LuanTable loaded;
 	private LuanTable preload;
 	private LuanTable searchers;
-
-	public InputStream in = System.in;
-	public PrintStream out = System.out;
-	public PrintStream err = System.err;
 
 	private final List<MetatableGetter> mtGetters;
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
@@ -117,6 +114,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 			luan.load(TableLib.NAME,TableLib.LOADER);
 			luan.load(HtmlLib.NAME,HtmlLib.LOADER);
 			luan.load(BinaryLib.NAME,BinaryLib.LOADER);
+			luan.load(IoLib.NAME,IoLib.LOADER);
 			return luan;
 		} catch(LuanException e) {
 			throw new RuntimeException(e);
