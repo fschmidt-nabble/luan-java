@@ -41,7 +41,7 @@ public final class BasicLib {
 				add( global, "load", LuanState.class, String.class, String.class, Boolean.class );
 				add( global, "load_file", LuanState.class, String.class );
 				add( global, "pairs", LuanState.class, LuanTable.class );
-				add( global, "print", LuanState.class, new Object[0].getClass() );
+//				add( global, "print", LuanState.class, new Object[0].getClass() );
 				add( global, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
 				add( global, "raw_equal", Object.class, Object.class );
 				add( global, "raw_get", LuanTable.class, Object.class );
@@ -53,6 +53,7 @@ public final class BasicLib {
 				add( global, "to_string", LuanState.class, Object.class );
 				add( global, "type", Object.class );
 				global.put( "_VERSION", Luan.version );
+				add( module, "values", new Object[0].getClass() );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
@@ -63,10 +64,10 @@ public final class BasicLib {
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
 	}
-
+/*
 	public static void print(LuanState luan,Object... args) throws LuanException {
 		LuanFunction write = (LuanFunction)luan.get("Io.stdout.write");
-		List list = new ArrayList();
+		List<Object> list = new ArrayList<Object>();
 		for( int i=0; i<args.length; i++ ) {
 			if( i > 0 )
 				list.add("\t");
@@ -75,7 +76,7 @@ public final class BasicLib {
 		list.add("\n");
 		write.call(luan,list.toArray());
 	}
-
+*/
 	public static String type(Object obj) {
 		return Luan.type(obj);
 	}
@@ -88,13 +89,31 @@ public final class BasicLib {
 	}
 
 
-	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException, IOException {
-		String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
-		return load(luan,src,fileName,false);
+	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
+		try {
+			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
+			return load(luan,src,fileName,false);
+		} catch(IOException e) {
+			throw luan.JAVA.exception(e);
+		}
 	}
 
-	public static Object do_file(LuanState luan,String fileName) throws LuanException, IOException {
+	public static LuanFunction load_java_resource(LuanState luan,String path) throws LuanException {
+		try {
+			String src = new IoLib.LuanUrl(IoLib.java_resource_to_url(path)).read_text();
+			return load(luan,src,path,false);
+		} catch(IOException e) {
+			throw luan.JAVA.exception(e);
+		}
+	}
+
+	public static Object do_file(LuanState luan,String fileName) throws LuanException {
 		LuanFunction fn = load_file(luan,fileName);
+		return luan.JAVA.call(fn,null);
+	}
+
+	public static Object do_java_resource(LuanState luan,String path) throws LuanException {
+		LuanFunction fn = load_java_resource(luan,path);
 		return luan.JAVA.call(fn,null);
 	}
 
@@ -215,6 +234,16 @@ public final class BasicLib {
 				double rtn = v;
 				v += step;
 				return rtn;
+			}
+		};
+	}
+
+	public static LuanFunction values(final Object... args) throws LuanException {
+		return new LuanFunction() {
+			int i = 0;
+
+			@Override public Object call(LuanState luan,Object[] unused) {
+				return i < args.length ? args[i++] : null;
 			}
 		};
 	}

@@ -820,7 +820,6 @@ final class LuanParser {
 	private Var VarExt(boolean inParens,int start,Code exp1) throws ParseException {
 		parser.begin();
 		Expr exp2 = SubExpr(inParens);
-		exp2 = SubExpr(inParens);
 		if( exp2 != null )
 			return parser.success(indexVar(start,expr(exp1),exp2));
 		if( parser.match('.') ) {
