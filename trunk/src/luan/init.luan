@@ -1,0 +1,15 @@
+--Io.stdout.write "this is init.luan\n"
+
+function _G.print(...)
+	local list = {}
+	for v in Basic.values(...) do
+		list[#list+1] = to_string(v)
+		list[#list+1] = '\t'
+	end
+	if #list == 0 then
+		Io.stdout.write( '\n' )
+	else
+		list[#list] = '\n'
+		Io.stdout.write( Table.unpack(list) )
+	end
+end

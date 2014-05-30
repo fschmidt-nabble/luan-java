@@ -1,5 +1,6 @@
 package luan.lib;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -8,9 +9,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
@@ -27,6 +31,9 @@ public final class IoLib {
 			LuanTable module = new LuanTable();
 			try {
 				add( module, "file", String.class );
+				add( module, "java_resource_to_url", String.class );
+				add( module, "url", String.class );
+				add( module, "java_resource", String.class );
 
 				LuanTable stdin = new LuanTable();
 				stdin.put( "read_text", new LuanJavaFunction(
@@ -37,6 +44,9 @@ public final class IoLib {
 				) );
 				stdin.put( "read_lines", new LuanJavaFunction(
 					IoLib.class.getMethod( "stdin_read_lines" ), null
+				) );
+				stdin.put( "read_blocks", new LuanJavaFunction(
+					IoLib.class.getMethod( "stdin_read_blocks", Integer.class ), null
 				) );
 				module.put( "stdin", stdin );
 			} catch(NoSuchMethodException e) {
@@ -92,6 +102,11 @@ public final class IoLib {
 		public LuanFunction read_lines() throws IOException {
 			return lines(new BufferedReader(new FileReader(file)));
 		}
+
+		public LuanFunction read_blocks(Integer blockSize) throws IOException {
+			int n = blockSize!=null ? blockSize : Utils.bufSize;
+			return blocks(new FileInputStream(file),n);
+		}
 	}
 
 	public static LuanTable file(String name) {
@@ -116,6 +131,9 @@ public final class IoLib {
 			tbl.put( "read_lines", new LuanJavaFunction(
 				LuanFile.class.getMethod( "read_lines" ), file
 			) );
+			tbl.put( "read_blocks", new LuanJavaFunction(
+				LuanFile.class.getMethod( "read_blocks", Integer.class ), file
+			) );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
@@ -123,16 +141,85 @@ public final class IoLib {
 	}
 
 
-	public String stdin_read_text() throws IOException {
+	public static final class LuanUrl {
+		private final URL url;
+
+		LuanUrl(String s) throws MalformedURLException {
+			this.url = new URL(s);
+		}
+
+		public String read_text() throws IOException {
+			Reader in = new InputStreamReader(url.openStream());
+			String s = Utils.readAll(in);
+			in.close();
+			return s;
+		}
+
+		public byte[] read_binary() throws IOException {
+			InputStream in = url.openStream();
+			byte[] a = Utils.readAll(in);
+			in.close();
+			return a;
+		}
+
+		public LuanFunction read_lines() throws IOException {
+			return lines(new BufferedReader(new InputStreamReader(url.openStream())));
+		}
+
+		public LuanFunction read_blocks(Integer blockSize) throws IOException {
+			int n = blockSize!=null ? blockSize : Utils.bufSize;
+			return blocks(url.openStream(),n);
+		}
+	}
+
+	public static LuanTable url(String s) throws MalformedURLException {
+		LuanTable tbl = new LuanTable();
+		LuanUrl url = new LuanUrl(s);
+		try {
+			tbl.put( "read_text", new LuanJavaFunction(
+				LuanUrl.class.getMethod( "read_text" ), url
+			) );
+			tbl.put( "read_binary", new LuanJavaFunction(
+				LuanUrl.class.getMethod( "read_binary" ), url
+			) );
+			tbl.put( "read_lines", new LuanJavaFunction(
+				LuanUrl.class.getMethod( "read_lines" ), url
+			) );
+			tbl.put( "read_blocks", new LuanJavaFunction(
+				LuanUrl.class.getMethod( "read_blocks", Integer.class ), url
+			) );
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		return tbl;
+	}
+
+
+
+	public static String stdin_read_text() throws IOException {
 		return Utils.readAll(new InputStreamReader(System.in));
 	}
 
-	public byte[] stdin_read_binary() throws IOException {
+	public static byte[] stdin_read_binary() throws IOException {
 		return Utils.readAll(System.in);
 	}
 
-	public LuanFunction stdin_read_lines() throws IOException {
+	public static LuanFunction stdin_read_lines() throws IOException {
 		return lines(new BufferedReader(new InputStreamReader(System.in)));
+	}
+
+	public static LuanFunction stdin_read_blocks(Integer blockSize) throws IOException {
+		int n = blockSize!=null ? blockSize : Utils.bufSize;
+		return blocks(System.in,n);
+	}
+
+	public static String java_resource_to_url(String path) throws IOException {
+		URL url = ClassLoader.getSystemResource(path);
+		return url==null ? null : url.toString();
+	}
+
+	public static LuanTable java_resource(String path) throws IOException {
+		return url(java_resource_to_url(path));
 	}
 
 
@@ -204,11 +291,13 @@ public final class IoLib {
 		return writer;
 	}
 
-	public static LuanFunction lines(final BufferedReader in) {
+	static LuanFunction lines(final BufferedReader in) {
 		return new LuanFunction() {
-			public Object call(LuanState luan,Object[] args) throws LuanException {
+			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 				try {
-					if( args.length==1 && "close".equals(args[0]) ) {
+					if( args.length > 0 ) {
+						if( args.length > 1 || !"close".equals(args[0]) )
+							throw luan.JAVA.exception( "the only argument allowed is 'close'" );
 						in.close();
 						return null;
 					}
@@ -216,6 +305,30 @@ public final class IoLib {
 					if( rtn==null )
 						in.close();
 					return rtn;
+				} catch(IOException e) {
+					throw luan.JAVA.exception(e);
+				}
+			}
+		};
+	}
+
+	static LuanFunction blocks(final InputStream in,final int blockSize) {
+		return new LuanFunction() {
+			final byte[] a = new byte[blockSize];
+
+			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+				try {
+					if( args.length > 0 ) {
+						if( args.length > 1 || !"close".equals(args[0]) )
+							throw luan.JAVA.exception( "the only argument allowed is 'close'" );
+						in.close();
+						return null;
+					}
+					if( in.read(a) == -1 ) {
+						in.close();
+						return null;
+					}
+					return a;
 				} catch(IOException e) {
 					throw luan.JAVA.exception(e);
 				}

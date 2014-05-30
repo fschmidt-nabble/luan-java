@@ -22,7 +22,7 @@ import luan.LuanElement;
 public final class Utils {
 	private Utils() {}  // never
 
-	private static final int bufSize = 8192;
+	static final int bufSize = 8192;
 
 	public static void checkNotNull(LuanState luan,Object v,String expected) throws LuanException {
 		if( v == null )
