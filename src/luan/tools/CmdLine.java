@@ -1,5 +1,6 @@
 package luan.tools;
 
+import java.io.Console;
 import java.io.IOException;
 import luan.lib.BasicLib;
 import luan.Luan;
@@ -7,7 +8,6 @@ import luan.LuanState;
 import luan.LuanFunction;
 import luan.LuanTable;
 import luan.LuanException;
-import jline.ConsoleReader;
 
 
 public class CmdLine {
@@ -93,23 +93,19 @@ public class CmdLine {
 	}
 
 	static void interactive(LuanState luan) {
-		try {
-			ConsoleReader console = new ConsoleReader();
-			console.setDefaultPrompt("> ");
-			while( true ) {
-				String input = console.readLine();
-				if( input==null )
-					break;
-				try {
-					Object[] rtn = Luan.array(luan.eval(input,"stdin",true));
-					if( rtn.length > 0 )
-						BasicLib.print(luan,rtn);
-				} catch(LuanException e) {
-					System.out.println(e.getMessage());
-				}
+		Console console = System.console();
+		LuanFunction print = (LuanFunction)luan.global().get("print");
+		while( true ) {
+			String input = console.readLine("> ");
+			if( input==null )
+				break;
+			try {
+				Object[] rtn = Luan.array(luan.eval(input,"stdin",true));
+				if( rtn.length > 0 )
+					luan.JAVA.call(print,"print",rtn);
+			} catch(LuanException e) {
+				System.out.println(e.getMessage());
 			}
-		} catch(IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 
