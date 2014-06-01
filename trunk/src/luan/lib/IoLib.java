@@ -34,6 +34,7 @@ public final class IoLib {
 				add( module, "java_resource_to_url", String.class );
 				add( module, "url", String.class );
 				add( module, "java_resource", String.class );
+				add( module, "read_console_line", String.class );
 
 				LuanTable stdin = new LuanTable();
 				stdin.put( "read_text", new LuanJavaFunction(
@@ -220,6 +221,12 @@ public final class IoLib {
 
 	public static LuanTable java_resource(String path) throws IOException {
 		return url(java_resource_to_url(path));
+	}
+
+	public static String read_console_line(String prompt) throws IOException {
+		if( prompt==null )
+			prompt = "> ";
+		return System.console().readLine(prompt);
 	}
 
 

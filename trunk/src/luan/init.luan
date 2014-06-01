@@ -1,6 +1,6 @@
 --Io.stdout.write "this is init.luan\n"
 
-function _G.print(...)
+local function print(...)
 	local list = {}
 	for v in Basic.values(...) do
 		list[#list+1] = to_string(v)
@@ -11,5 +11,26 @@ function _G.print(...)
 	else
 		list[#list] = '\n'
 		Io.stdout.write( Table.unpack(list) )
+	end
+end
+
+_G.print = print
+
+
+local Debug = {}
+Package.loaded.Debug = Debug
+_G.Debug = Debug
+
+function Debug.debug(prompt)
+	prompt = prompt or "luan_debug> "
+	local function console()
+		return Io.read_console_line(prompt)
+	end
+	for line in console do
+		local fn = load(line,"stdin",true)
+		local result = Table.pack( fn() )
+		if result.n > 0 then
+			print( Table.unpack(result,1,result.n) )
+		end
 	end
 end

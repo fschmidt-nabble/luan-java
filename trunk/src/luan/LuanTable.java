@@ -23,16 +23,30 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 
 	public LuanTable(List<Object> list) {
 		this.list = list;
+		this.map = new HashMap<Object,Object>();
+		map.put("n",list.size());
+		for( int i=0; i<list.size(); i++ ) {
+			if( list.get(i) == null ) {
+				listToMap(i);
+				break;
+			}
+		}
 	}
 
 	public LuanTable(Map<Object,Object> map) {
+		map.remove(null);
+		for( Iterator<Object> i=map.values().iterator(); i.hasNext(); ) {
+			if( i.next() == null )
+				i.remove();
+		}
 		this.map = map;
 	}
 
 	public LuanTable(Set<Object> set) {
 		map = new HashMap<Object,Object>();
 		for( Object obj : set ) {
-			map.put(obj,Boolean.TRUE);
+			if( obj != null )
+				map.put(obj,Boolean.TRUE);
 		}
 	}
 
@@ -200,10 +214,8 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 				} else if( i>=0 && i<list.size() ) {
 					Object old = list.get(i);
 					list.set(i,val);
-					if( val == null && i == list.size()-1 ) {
-						while( i>=0 && list.get(i)==null ) {
-							list.remove(i--);
-						}
+					if( val == null ) {
+						listToMap(i);
 					}
 					return old;
 				}
@@ -230,6 +242,20 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 				if( v == null )
 					break;
 				list.add(v);
+			}
+		}
+	}
+
+	private void listToMap(int from) {
+		if( list != null ) {
+			while( list.size() > from ) {
+				int i = list.size() - 1;
+				Object v = list.remove(i);
+				if( v != null ) {
+					if( map==null )
+						map = new HashMap<Object,Object>();
+					map.put(i+1,v);
+				}
 			}
 		}
 	}
@@ -314,11 +340,11 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 			}
 		};
 	}
-
+/*
 	public Object[] listToArray() {
 		return list==null ? new Object[0] : list.toArray();
 	}
-
+*/
 	public LuanTable subList(int from,int to) {
 		return new LuanTable(new ArrayList<Object>(list().subList(from-1,to-1)));
 	}

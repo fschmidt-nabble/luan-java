@@ -1,15 +1,19 @@
 package luan.parser;
 
+import luan.LuanSource;
+
 
 public final class Parser {
+	private final LuanSource src;
 	public final String text;
 	private final int len;
 	private int[] stack = new int[256];
 	private int frame = 0;
 	private int iHigh;
 
-	public Parser(String text) {
-		this.text = text;
+	public Parser(LuanSource src) {
+		this.src = src;
+		this.text = src.text;
 		this.len = text.length();
 	}
 
@@ -60,7 +64,7 @@ public final class Parser {
 	}
 
 	public ParseException exception(String msg) {
-		return new ParseException(msg,text,i(),iHigh);
+		return new ParseException(msg,src,i(),iHigh);
 	}
 
 	public ParseException exception() {

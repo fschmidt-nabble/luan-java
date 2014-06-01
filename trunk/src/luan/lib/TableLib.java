@@ -1,6 +1,7 @@
 package luan.lib;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import luan.Luan;
@@ -27,7 +28,7 @@ public final class TableLib {
 				add( module, "remove", LuanState.class, LuanTable.class, Integer.TYPE );
 				add( module, "sort", LuanState.class, LuanTable.class, LuanFunction.class );
 				add( module, "sub_list", LuanTable.class, Integer.TYPE, Integer.TYPE );
-				add( module, "unpack", LuanTable.class );
+				add( module, "unpack", LuanTable.class, Integer.class, Integer.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
@@ -111,12 +112,18 @@ public final class TableLib {
 		}
 	}
 
-	public static LuanTable pack(Object[] args) {
+	public static LuanTable pack(Object... args) {
 		return new LuanTable(new ArrayList<Object>(Arrays.asList(args)));
 	}
 
-	public static Object[] unpack(LuanTable list) {
-		return list.listToArray();
+	public static Object[] unpack(LuanTable tbl,Integer iFrom,Integer iTo) {
+		int from = iFrom!=null ? iFrom : 1;
+		int to = iTo!=null ? iTo : tbl.length();
+		List<Object> list = new ArrayList<Object>();
+		for( int i=from; i<=to; i++ ) {
+			list.add( tbl.get(i) );
+		}
+		return list.toArray();
 	}
 
 	public static LuanTable sub_list(LuanTable list,int from,int to) {
