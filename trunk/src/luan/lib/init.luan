@@ -34,3 +34,4 @@ function Debug.debug(prompt)
 		end
 	end
 end
+

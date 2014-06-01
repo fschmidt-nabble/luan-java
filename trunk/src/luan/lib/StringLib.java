@@ -9,6 +9,7 @@ import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
+import luan.MetatableGetter;
 
 
 public final class StringLib {
@@ -17,6 +18,7 @@ public final class StringLib {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
+			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
 			try {
 				add( module, "to_binary", String.class );
@@ -42,6 +44,42 @@ public final class StringLib {
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(StringLib.class.getMethod(method,parameterTypes),null) );
+	}
+
+	private static final LuanTable mt = new LuanTable();
+	static {
+		try {
+			add( mt, "__index", LuanState.class, String.class, Object.class );
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static final MetatableGetter mg = new MetatableGetter() {
+		public LuanTable getMetatable(Object obj) {
+			return obj instanceof String ? mt : null;
+		}
+	};
+
+	public static Object __index(LuanState luan,final String s,Object key) throws LuanException {
+		LuanTable mod = (LuanTable)luan.global().get("String");
+		if( mod!=null ) {
+			Object obj = mod.get(key);
+			if( obj instanceof LuanFunction ) {
+				final LuanFunction fn = (LuanFunction)obj;
+				return new LuanFunction() {
+					@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+						Object[] a = new Object[args.length+1];
+						a[0] = s;
+						System.arraycopy(args,0,a,1,args.length);
+						return fn.call(luan,a);
+					}
+				};
+			}
+		}
+		if( luan.global().get("Java") != null )
+			return JavaLib.__index(luan,s,key);
+		return null;
 	}
 
 	static int start(String s,int i) {

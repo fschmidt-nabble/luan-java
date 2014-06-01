@@ -136,7 +136,8 @@ public final class JavaLib {
 				}
 			}
 		}
-		throw luan.JAVA.exception("invalid member '"+key+"' for java object: "+obj);
+//		throw luan.JAVA.exception("invalid member '"+key+"' for java object: "+obj);
+		return null;
 	}
 
 	private static Object member(Object obj,List<Member> members) throws LuanException {

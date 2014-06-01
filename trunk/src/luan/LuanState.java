@@ -108,14 +108,14 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 			LuanState luan = LuanCompiler.newLuanState();
 			luan.load(BasicLib.NAME,BasicLib.LOADER);
 			luan.load(PackageLib.NAME,PackageLib.LOADER);
-			luan.load(JavaLib.NAME,JavaLib.LOADER);
 			luan.load(MathLib.NAME,MathLib.LOADER);
 			luan.load(StringLib.NAME,StringLib.LOADER);
 			luan.load(TableLib.NAME,TableLib.LOADER);
 			luan.load(HtmlLib.NAME,HtmlLib.LOADER);
 			luan.load(BinaryLib.NAME,BinaryLib.LOADER);
 			luan.load(IoLib.NAME,IoLib.LOADER);
-			BasicLib.do_java_resource(luan,"luan/init.luan");
+			luan.load(JavaLib.NAME,JavaLib.LOADER);
+			BasicLib.do_java_resource(luan,"luan/lib/init.luan");
 			return luan;
 		} catch(LuanException e) {
 			throw new RuntimeException(e);
