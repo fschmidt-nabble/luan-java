@@ -88,7 +88,6 @@ public final class BasicLib {
 			return LuanCompiler.compileModule(luan,new LuanSource(sourceName,text));
 	}
 
-
 	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
 			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
