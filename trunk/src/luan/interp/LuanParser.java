@@ -1210,6 +1210,7 @@ final class LuanParser {
 		int nEquals = parser.currentIndex() - start;
 		if( !parser.match('[') )
 			return parser.failure(null);
+		EndOfLine();
 		start = parser.currentIndex();
 		while( !LongBracketsEnd(nEquals) ) {
 			if( !parser.anyChar() )

@@ -35,3 +35,74 @@ function Debug.debug(prompt)
 	end
 end
 
+
+local standalone_usage = [=[
+usage: java luan.CmdLine [options] [script [args]]
+Available options are:
+  -e stat  execute string 'stat'
+  -i       enter interactive mode after executing 'script'
+  -v       show version information
+  --       stop handling options
+  -        stop handling options and execute stdin
+]=]
+
+local function standalone_error(msg)
+	Io.stderr.write( msg, "\n", standalone_usage )
+end
+
+function Basic.standalone(...)
+	local args = {...}
+	local interactive = false
+	local showVersion = false
+	local i = 1
+	if #args == 0 then
+		interactive = true
+		showVersion = true
+	else
+		while i <= #args do
+			local arg = args[i]
+			if arg.sub(1,1) ~= "-" or arg == "--" then
+				break
+			end
+			if arg == "-i" then
+				interactive = true
+			elseif arg == "-v" then
+				showVersion = true
+			elseif arg == "-e" then
+				i = i + 1
+				if i == #args then
+					standalone_error "'-e' needs argument"
+					return
+				end
+				local cmd = args[i]
+				local fn = load(cmd,"(command line)",true)
+				local result = Table.pack( fn() )
+				if result.n > 0 then
+					print( Table.unpack(result,1,result.n) )
+				end
+			elseif arg == "-" then
+				local src = Io.stdin.read_text()
+				local fn = load(src,"stdin",false)
+				fn()
+				return
+			else
+				standalone_error( "unrecognized option '"..arg.."'" )
+				return
+			end
+			i = i + 1
+		end
+	end
+	if showVersion then print(_VERSION) end
+	if i < #args then
+		local file = args[i]
+		_G.arg = {}
+		for j,v in ipairs(args) do
+			_G.arg[j-i] = v
+		end
+		local fn = load_file(file)
+		fn( Table.unpack(_G.arg) )
+	end
+	if interactive then
+		Debug.debug("> ")
+	end
+end
