@@ -93,7 +93,7 @@ function Basic.standalone(...)
 		end
 	end
 	if showVersion then print(_VERSION) end
-	if i < #args then
+	if i <= #args then
 		local file = args[i]
 		_G.arg = {}
 		for j,v in ipairs(args) do
