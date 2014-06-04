@@ -60,7 +60,7 @@ public class WebShell extends HttpServlet {
 						luan = newLuanState();
 						session.putValue("luan",luan);
 					}
-					luan.set( "Io.stdout", IoLib.writer(new PrintStream(history)) );
+					luan.set( "Io.stdout", IoLib.textWriter(new PrintStream(history)) );
 					LuanTable env = luan.global();
 					env.put("request",request);
 					env.put("response",response);
