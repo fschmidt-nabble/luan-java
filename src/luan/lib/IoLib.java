@@ -53,8 +53,8 @@ public final class IoLib {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			module.put( "stdout", writer(System.out) );
-			module.put( "stderr", writer(System.err) );
+			module.put( "stdout", textWriter(System.out) );
+			module.put( "stderr", textWriter(System.err) );
 			return module;
 		}
 	};
@@ -93,7 +93,7 @@ public final class IoLib {
 		}
 
 		public LuanTable text_writer() throws IOException {
-			return writer(new FileWriter(file));
+			return textWriter(new FileWriter(file));
 		}
 
 		public LuanTable binary_writer() throws IOException {
@@ -235,7 +235,7 @@ public final class IoLib {
 		public void close() throws IOException;
 	}
 
-	public static LuanTable writer(final PrintStream out) {
+	public static LuanTable textWriter(final PrintStream out) {
 		LuanWriter luanWriter = new LuanWriter() {
 
 			public void write(LuanState luan,Object... args) throws LuanException {
@@ -251,7 +251,7 @@ public final class IoLib {
 		return writer(luanWriter);
 	}
 
-	public static LuanTable writer(final Writer out) {
+	public static LuanTable textWriter(final Writer out) {
 		LuanWriter luanWriter = new LuanWriter() {
 
 			public void write(LuanState luan,Object... args) throws LuanException, IOException {

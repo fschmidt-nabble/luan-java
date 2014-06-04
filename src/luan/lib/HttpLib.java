@@ -36,7 +36,7 @@ public final class HttpLib {
 	{
 		LuanFunction fn = (LuanFunction)luan.get(FN_NAME);
 		ServletOutputStream sout = response.getOutputStream();
-		luan.set( "Io.stdout", IoLib.writer(new PrintStream(sout)) );
+		luan.set( "Io.stdout", IoLib.textWriter(new PrintStream(sout)) );
 
 		LuanTable module = (LuanTable)luan.loaded().get(NAME);
 

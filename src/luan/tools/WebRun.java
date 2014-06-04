@@ -34,7 +34,7 @@ public class WebRun extends HttpServlet {
 		String code = request.getParameter("code");
 		try {
 			LuanState luan = newLuanState();
-			luan.set( "Io.stdout", IoLib.writer(out) );
+			luan.set( "Io.stdout", IoLib.textWriter(out) );
 			LuanTable env = luan.global();
 			env.put("request",request);
 			env.put("response",response);
