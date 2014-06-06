@@ -28,18 +28,18 @@ public final class DeepCloner {
 			cloned.put(obj,rtn);
 			for( int i=0; i<rtn.length; i++ ) {
 				@SuppressWarnings("unchecked")
-				T t = (T)get(rtn[i]);
+				T t = get(rtn[i]);
 				rtn[i] = t;
 			}
 		}
 		return rtn;
 	}
 
-	public Object get(Object obj) {
+	public <T> T get(T obj) {
 		if( !(obj instanceof DeepCloneable) )
 			return obj;
 		@SuppressWarnings("unchecked")
-		DeepCloneable dc = deepClone((DeepCloneable)obj);
+		T dc = (T)deepClone((DeepCloneable)obj);
 		return dc;
 	}
 }
