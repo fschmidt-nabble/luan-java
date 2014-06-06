@@ -21,7 +21,9 @@ import luan.interp.LuanCompiler;
 
 public final class BasicLib {
 
-	public static final String NAME = "Basic";
+	public static void load(LuanState luan) throws LuanException {
+		luan.load("Basic",LOADER);
+	}
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
