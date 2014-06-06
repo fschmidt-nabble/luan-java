@@ -92,7 +92,7 @@ public final class BasicLib {
 
 	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
-			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : Utils.read(new File(fileName));
+			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : new IoLib.LuanFile(fileName).read_text();
 			return load(luan,src,fileName,false);
 		} catch(IOException e) {
 			throw luan.JAVA.exception(e);

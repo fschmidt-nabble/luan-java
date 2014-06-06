@@ -8,12 +8,18 @@ import java.io.Writer;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.net.Socket;
+import java.net.ServerSocket;
 import java.net.MalformedURLException;
 import luan.LuanState;
 import luan.LuanTable;
@@ -52,6 +58,9 @@ public final class IoLib {
 					IoLib.class.getMethod( "stdin_read_blocks", Integer.class ), null
 				) );
 				module.put( "stdin", stdin );
+
+				add( module, "socket", String.class, Integer.TYPE );
+				add( module, "socket_server", Integer.TYPE );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
@@ -64,139 +73,6 @@ public final class IoLib {
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(IoLib.class.getMethod(method,parameterTypes),null) );
 	}
-
-	public static final class LuanFile {
-		private final File file;
-
-		private LuanFile(String name) {
-			this.file = new File(name);
-		}
-
-		public String read_text() throws IOException {
-			return Utils.read(file);
-		}
-
-		public byte[] read_binary() throws IOException {
-			return Utils.readAll(file);
-		}
-
-		public void write(LuanState luan,Object obj) throws LuanException, IOException {
-			if( obj instanceof String ) {
-				String s = (String)obj;
-				Utils.write(file,s);
-				return;
-			}
-			if( obj instanceof byte[] ) {
-				byte[] a = (byte[])obj;
-				Utils.writeAll(file,a);
-				return;
-			}
-			throw luan.JAVA.exception( "bad argument #1 to 'write' (string or binary expected)" );
-		}
-
-		public LuanTable text_writer() throws IOException {
-			return textWriter(new FileWriter(file));
-		}
-
-		public LuanTable binary_writer() throws IOException {
-			return binaryWriter(new FileOutputStream(file));
-		}
-
-		public LuanFunction read_lines() throws IOException {
-			return lines(new BufferedReader(new FileReader(file)));
-		}
-
-		public LuanFunction read_blocks(Integer blockSize) throws IOException {
-			int n = blockSize!=null ? blockSize : Utils.bufSize;
-			return blocks(new FileInputStream(file),n);
-		}
-	}
-
-	public static LuanTable file(String name) {
-		LuanTable tbl = new LuanTable();
-		LuanFile file = new LuanFile(name);
-		try {
-			tbl.put( "read_text", new LuanJavaFunction(
-				LuanFile.class.getMethod( "read_text" ), file
-			) );
-			tbl.put( "read_binary", new LuanJavaFunction(
-				LuanFile.class.getMethod( "read_binary" ), file
-			) );
-			tbl.put( "write", new LuanJavaFunction(
-				LuanFile.class.getMethod( "write", LuanState.class, Object.class ), file
-			) );
-			tbl.put( "text_writer", new LuanJavaFunction(
-				LuanFile.class.getMethod( "text_writer" ), file
-			) );
-			tbl.put( "binary_writer", new LuanJavaFunction(
-				LuanFile.class.getMethod( "binary_writer" ), file
-			) );
-			tbl.put( "read_lines", new LuanJavaFunction(
-				LuanFile.class.getMethod( "read_lines" ), file
-			) );
-			tbl.put( "read_blocks", new LuanJavaFunction(
-				LuanFile.class.getMethod( "read_blocks", Integer.class ), file
-			) );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-		return tbl;
-	}
-
-
-	public static final class LuanUrl {
-		private final URL url;
-
-		LuanUrl(String s) throws MalformedURLException {
-			this.url = new URL(s);
-		}
-
-		public String read_text() throws IOException {
-			Reader in = new InputStreamReader(url.openStream());
-			String s = Utils.readAll(in);
-			in.close();
-			return s;
-		}
-
-		public byte[] read_binary() throws IOException {
-			InputStream in = url.openStream();
-			byte[] a = Utils.readAll(in);
-			in.close();
-			return a;
-		}
-
-		public LuanFunction read_lines() throws IOException {
-			return lines(new BufferedReader(new InputStreamReader(url.openStream())));
-		}
-
-		public LuanFunction read_blocks(Integer blockSize) throws IOException {
-			int n = blockSize!=null ? blockSize : Utils.bufSize;
-			return blocks(url.openStream(),n);
-		}
-	}
-
-	public static LuanTable url(String s) throws MalformedURLException {
-		LuanTable tbl = new LuanTable();
-		LuanUrl url = new LuanUrl(s);
-		try {
-			tbl.put( "read_text", new LuanJavaFunction(
-				LuanUrl.class.getMethod( "read_text" ), url
-			) );
-			tbl.put( "read_binary", new LuanJavaFunction(
-				LuanUrl.class.getMethod( "read_binary" ), url
-			) );
-			tbl.put( "read_lines", new LuanJavaFunction(
-				LuanUrl.class.getMethod( "read_lines" ), url
-			) );
-			tbl.put( "read_blocks", new LuanJavaFunction(
-				LuanUrl.class.getMethod( "read_blocks", Integer.class ), url
-			) );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-		return tbl;
-	}
-
 
 
 	public static String stdin_read_text() throws IOException {
@@ -345,4 +221,180 @@ public final class IoLib {
 		};
 	}
 
+
+
+	public static abstract class LuanIn {
+		abstract InputStream inputStream() throws IOException;
+
+		public String read_text() throws IOException {
+			Reader in = new InputStreamReader(inputStream());
+			String s = Utils.readAll(in);
+			in.close();
+			return s;
+		}
+
+		public byte[] read_binary() throws IOException {
+			InputStream in = inputStream();
+			byte[] a = Utils.readAll(in);
+			in.close();
+			return a;
+		}
+
+		public LuanFunction read_lines() throws IOException {
+			return lines(new BufferedReader(new InputStreamReader(inputStream())));
+		}
+
+		public LuanFunction read_blocks(Integer blockSize) throws IOException {
+			int n = blockSize!=null ? blockSize : Utils.bufSize;
+			return blocks(inputStream(),n);
+		}
+
+		LuanTable table() {
+			LuanTable tbl = new LuanTable();
+			try {
+				tbl.put( "read_text", new LuanJavaFunction(
+					LuanIn.class.getMethod( "read_text" ), this
+				) );
+				tbl.put( "read_binary", new LuanJavaFunction(
+					LuanIn.class.getMethod( "read_binary" ), this
+				) );
+				tbl.put( "read_lines", new LuanJavaFunction(
+					LuanIn.class.getMethod( "read_lines" ), this
+				) );
+				tbl.put( "read_blocks", new LuanJavaFunction(
+					LuanIn.class.getMethod( "read_blocks", Integer.class ), this
+				) );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return tbl;
+		}
+	}
+
+	public static abstract class LuanIO extends LuanIn {
+		abstract OutputStream outputStream() throws IOException;
+
+		public void write(LuanState luan,Object obj) throws LuanException, IOException {
+			if( obj instanceof String ) {
+				String s = (String)obj;
+				Writer out = new OutputStreamWriter(outputStream());
+				out.write(s);
+				out.close();
+				return;
+			}
+			if( obj instanceof byte[] ) {
+				byte[] a = (byte[])obj;
+				OutputStream out = outputStream();
+				Utils.copyAll(new ByteArrayInputStream(a),out);
+				out.close();
+				return;
+			}
+			throw luan.JAVA.exception( "bad argument #1 to 'write' (string or binary expected)" );
+		}
+
+		public LuanTable text_writer() throws IOException {
+			return textWriter(new BufferedWriter(new OutputStreamWriter(outputStream())));
+		}
+
+		public LuanTable binary_writer() throws IOException {
+			return binaryWriter(new BufferedOutputStream(outputStream()));
+		}
+
+		LuanTable table() {
+			LuanTable tbl = super.table();
+			try {
+				tbl.put( "write", new LuanJavaFunction(
+					LuanIO.class.getMethod( "write", LuanState.class, Object.class ), this
+				) );
+				tbl.put( "text_writer", new LuanJavaFunction(
+					LuanIO.class.getMethod( "text_writer" ), this
+				) );
+				tbl.put( "binary_writer", new LuanJavaFunction(
+					LuanIO.class.getMethod( "binary_writer" ), this
+				) );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return tbl;
+		}
+	}
+
+	public static final class LuanUrl extends LuanIn {
+		private final URL url;
+
+		public LuanUrl(String s) throws MalformedURLException {
+			this.url = new URL(s);
+		}
+
+		InputStream inputStream() throws IOException {
+			return url.openStream();
+		}
+	}
+
+	public static LuanTable url(String s) throws MalformedURLException {
+		return new LuanUrl(s).table();
+	}
+
+	public static final class LuanFile extends LuanIO {
+		private final File file;
+
+		public LuanFile(String name) {
+			this.file = new File(name);
+		}
+
+		InputStream inputStream() throws IOException {
+			return new FileInputStream(file);
+		}
+
+		OutputStream outputStream() throws IOException {
+			return new FileOutputStream(file);
+		}
+	}
+
+	public static LuanTable file(String name) {
+		return new LuanFile(name).table();
+	}
+
+	public static final class LuanSocket extends LuanIO {
+		private final Socket socket;
+
+		public LuanSocket(String host,int port) throws IOException {
+			this(new Socket(host,port));
+		}
+
+		public LuanSocket(Socket socket) throws IOException {
+			this.socket = socket;
+		}
+
+		InputStream inputStream() throws IOException {
+			return socket.getInputStream();
+		}
+
+		OutputStream outputStream() throws IOException {
+			return socket.getOutputStream();
+		}
+	}
+
+	public static LuanTable socket(String host,int port) throws IOException {
+		return new LuanSocket(host,port).table();
+	}
+
+	public static LuanFunction socket_server(int port) throws IOException {
+		final ServerSocket ss = new ServerSocket(port);
+		return new LuanFunction() {
+			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+				try {
+					if( args.length > 0 ) {
+						if( args.length > 1 || !"close".equals(args[0]) )
+							throw luan.JAVA.exception( "the only argument allowed is 'close'" );
+						ss.close();
+						return null;
+					}
+					return new LuanSocket(ss.accept()).table();
+				} catch(IOException e) {
+					throw luan.JAVA.exception(e);
+				}
+			}
+		};
+	}
 }

@@ -118,8 +118,7 @@ public final class PackageLib {
 		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			String urlStr = (String)args[1];
 			try {
-				URL url = new URL(urlStr);
-				String src = Utils.read(url);
+				String src = new IoLib.LuanUrl(urlStr).read_text();
 				LuanFunction fn = BasicLib.load(luan,src,urlStr,false);
 				return fn.call(luan,args);
 			} catch(IOException e) {
