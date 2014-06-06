@@ -53,7 +53,7 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 						varArgs[i] = args[fnDef.numArgs+i];
 					}
 				} else {
-					varArgs = LuanFunction.EMPTY;
+					varArgs = LuanFunction.NOTHING;
 				}
 			}
 			Object[] stack = luan.newFrame(closure,fnDef.stackSize,varArgs);

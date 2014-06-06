@@ -105,9 +105,9 @@ public final class PackageLib {
 			String modName = (String)args[0];
 			String path = (String)luan.get("Package.path");
 			if( path==null )
-				return LuanFunction.EMPTY;
+				return LuanFunction.NOTHING;
 			String file = search_path(modName,path);
-			return file==null ? LuanFunction.EMPTY : new Object[]{fileLoader,file};
+			return file==null ? LuanFunction.NOTHING : new Object[]{fileLoader,file};
 		}
 	};
 
@@ -140,7 +140,7 @@ public final class PackageLib {
 			String modName = (String)args[0];
 			String path = (String)luan.get("Package.jpath");
 			if( path==null )
-				return LuanFunction.EMPTY;
+				return LuanFunction.NOTHING;
 			for( String s : path.split(";") ) {
 				String file = s.replaceAll("\\?",modName);
 				URL url = ClassLoader.getSystemResource(file);
@@ -148,7 +148,7 @@ public final class PackageLib {
 					return new Object[]{javaFileLoader,url.toString()};
 				}
 			}
-			return LuanFunction.EMPTY;
+			return LuanFunction.NOTHING;
 		}
 	};
 

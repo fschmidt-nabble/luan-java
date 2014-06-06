@@ -120,7 +120,7 @@ public final class BasicLib {
 		return new LuanFunction() {
 			@Override public Object[] call(LuanState luan,Object[] args) {
 				if( !iter.hasNext() )
-					return LuanFunction.EMPTY;
+					return LuanFunction.NOTHING;
 				Map.Entry<Object,Object> entry = iter.next();
 				return new Object[]{entry.getKey(),entry.getValue()};
 			}
@@ -229,7 +229,7 @@ public final class BasicLib {
 
 			@Override public Object call(LuanState luan,Object[] args) {
 				if( step > 0.0 && v > to || step < 0.0 && v < to )
-					return LuanFunction.EMPTY;
+					return LuanFunction.NOTHING;
 				double rtn = v;
 				v += step;
 				return rtn;
