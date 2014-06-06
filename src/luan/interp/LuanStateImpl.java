@@ -66,8 +66,8 @@ final class LuanStateImpl extends LuanState {
 	}
 
 	@Override public LuanState shallowClone() {
-		if( frame != null )
-			throw new IllegalStateException("frame isn't null");
+//		if( frame != null )
+//			throw new IllegalStateException("frame isn't null");
 		return new LuanStateImpl(this);
 	}
 

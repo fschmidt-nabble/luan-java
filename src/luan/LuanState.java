@@ -16,6 +16,7 @@ import luan.lib.TableLib;
 import luan.lib.HtmlLib;
 import luan.lib.BinaryLib;
 import luan.lib.IoLib;
+import luan.lib.ThreadLib;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
@@ -40,10 +41,6 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	protected LuanState(LuanState luan) {
 		mtGetters = new ArrayList<MetatableGetter>(luan.mtGetters);
-	}
-
-	public final LuanState deepClone() {
-		return new DeepCloner().deepClone(this);
 	}
 
 	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
@@ -114,6 +111,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 			HtmlLib.load(luan);
 			BinaryLib.load(luan);
 			IoLib.load(luan);
+			ThreadLib.load(luan);
 			BasicLib.do_java_resource(luan,"luan/lib/init.luan");
 			JavaLib.load(luan);
 			return luan;

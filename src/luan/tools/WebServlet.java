@@ -11,6 +11,7 @@ import luan.LuanException;
 import luan.LuanRuntimeException;
 import luan.LuanFunction;
 import luan.LuanElement;
+import luan.DeepCloner;
 import luan.interp.LuanCompiler;
 import luan.lib.HttpLib;
 import luan.lib.BasicLib;
@@ -46,7 +47,7 @@ public class WebServlet extends HttpServlet {
 					HttpLib.load(luanState);
 				}
 			}
-			LuanState luan = luanState.deepClone();
+			LuanState luan = new DeepCloner().deepClone(luanState);
 			service(request,response,luan);
 		} catch(LuanException e) {
 			throw new LuanRuntimeException(e);
