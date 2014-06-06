@@ -11,7 +11,6 @@ import luan.LuanState;
 import luan.LuanSource;
 import luan.parser.Parser;
 import luan.parser.ParseException;
-import luan.lib.PackageLib;
 
 
 final class LuanParser {
@@ -305,7 +304,7 @@ final class LuanParser {
 		int start = parser.begin();
 		if( !Keyword("import") )
 			return parser.failure(null);
-		Expr importExpr = new ConstExpr(se(start),PackageLib.require);
+		Expr importExpr = (Expr)nameVar(start,"require").expr();
 		String modName = StringLiteral(false);
 		if( modName==null )
 			return parser.failure(null);

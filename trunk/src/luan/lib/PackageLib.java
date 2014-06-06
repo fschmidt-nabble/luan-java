@@ -16,7 +16,9 @@ import luan.LuanException;
 
 public final class PackageLib {
 
-	public static final String NAME = "Package";
+	public static void load(LuanState luan) throws LuanException {
+		luan.load("Package",LOADER);
+	}
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -26,7 +28,7 @@ public final class PackageLib {
 			module.put("preload",luan.preload());
 			module.put("path","?.luan");
 			try {
-				global.put("require",require);
+				add( global, "require", LuanState.class, String.class );
 				add( module, "search_path", String.class, String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -39,15 +41,6 @@ public final class PackageLib {
 			return module;
 		}
 	};
-
-	public static final LuanFunction require;
-	static {
-		try {
-			require = new LuanJavaFunction(PackageLib.class.getMethod("require", LuanState.class, String.class),null);
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(PackageLib.class.getMethod(method,parameterTypes),null) );

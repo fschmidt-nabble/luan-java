@@ -4,11 +4,14 @@ import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
 import luan.LuanJavaFunction;
+import luan.LuanException;
 
 
 public final class BinaryLib {
 
-	public static final String NAME = "Binary";
+	public static void load(LuanState luan) throws LuanException {
+		luan.load("Binary",LOADER);
+	}
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {

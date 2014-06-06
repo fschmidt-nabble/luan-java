@@ -4,11 +4,14 @@ import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
 import luan.LuanJavaFunction;
+import luan.LuanException;
 
 
 public final class HtmlLib {
 
-	public static final String NAME = "Html";
+	public static void load(LuanState luan) throws LuanException {
+		luan.load("Html",LOADER);
+	}
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
