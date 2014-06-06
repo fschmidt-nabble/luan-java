@@ -17,7 +17,7 @@ public final class LuanBit {
 	}
 
 	public Object call(LuanFunction fn,String fnName) throws LuanException {
-		return call(fn,fnName,LuanFunction.EMPTY);
+		return call(fn,fnName,LuanFunction.NOTHING);
 	}
 
 	public Object call(LuanFunction fn,String fnName,Object[] args) throws LuanException {

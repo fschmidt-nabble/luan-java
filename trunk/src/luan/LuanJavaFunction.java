@@ -159,9 +159,9 @@ public final class LuanJavaFunction extends LuanFunction {
 		public Object convert(Object obj);
 	}
 
-	private static final RtnConverter RTN_EMPTY = new RtnConverter() {
+	private static final RtnConverter RTN_NOTHING = new RtnConverter() {
 		@Override public Object[] convert(Object obj) {
-			return EMPTY;
+			return NOTHING;
 		}
 	};
 
@@ -186,7 +186,7 @@ public final class LuanJavaFunction extends LuanFunction {
 	private static RtnConverter getRtnConverter(JavaMethod m) {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
-			return RTN_EMPTY;
+			return RTN_NOTHING;
 		if( rtnType.isArray() && isNumber(rtnType.getComponentType()) )
 			return RTN_NUMBER_ARRAY;
 		return RTN_SAME;
