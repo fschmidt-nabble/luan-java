@@ -7,13 +7,13 @@ import luan.LuanSource;
 import luan.LuanBit;
 
 
-final class GenericForStmt extends CodeImpl implements Stmt {
+final class ForStmt extends CodeImpl implements Stmt {
 	private final int iVars;
 	private final int nVars;
 	private final Expr iterExpr;
 	private final Stmt block;
 
-	GenericForStmt(LuanSource.Element se,int iVars,int nVars,Expr iterExpr,Stmt block) {
+	ForStmt(LuanSource.Element se,int iVars,int nVars,Expr iterExpr,Stmt block) {
 		super(se);
 		this.iVars = iVars;
 		this.nVars = nVars;

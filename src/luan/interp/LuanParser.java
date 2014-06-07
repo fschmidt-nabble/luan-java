@@ -221,7 +221,7 @@ final class LuanParser {
 			|| (stmt=LocalFunctionStmt()) != null
 			|| (stmt=ImportStmt()) != null
 			|| (stmt=BreakStmt()) != null
-			|| (stmt=GenericForStmt()) != null
+			|| (stmt=ForStmt()) != null
 			|| (stmt=TryStmt()) != null
 			|| (stmt=DoStmt()) != null
 			|| (stmt=WhileStmt()) != null
@@ -330,7 +330,7 @@ final class LuanParser {
 		return parser.success( new BreakStmt() );
 	}
 
-	private Stmt GenericForStmt() throws ParseException {
+	private Stmt ForStmt() throws ParseException {
 		int start = parser.begin();
 		int stackStart = symbolsSize();
 		if( !Keyword("for") )
@@ -343,7 +343,7 @@ final class LuanParser {
 		addSymbols(names);
 		Stmt loop = RequiredLoopBlock();
 		RequiredKeyword("end");
-		Stmt stmt = new GenericForStmt( se(start), stackStart, symbolsSize() - stackStart, expr, loop );
+		Stmt stmt = new ForStmt( se(start), stackStart, symbolsSize() - stackStart, expr, loop );
 		popSymbols( symbolsSize() - stackStart );
 		return parser.success(stmt);
 	}
