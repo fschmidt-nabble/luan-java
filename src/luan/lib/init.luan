@@ -2,7 +2,7 @@
 
 local function print(...)
 	local list = {}
-	for v in Basic.values(...) do
+	for _,v in Basic.values(...) do
 		list[#list+1] = to_string(v)
 		list[#list+1] = '\t'
 	end
@@ -27,10 +27,14 @@ function Debug.debug(prompt)
 		return Io.read_console_line(prompt)
 	end
 	for line in console do
-		local fn = load(line,"stdin",true)
-		local result = Table.pack( fn() )
-		if result.n > 0 then
-			print( Table.unpack(result,1,result.n) )
+		try
+			local fn = load(line,"stdin",true,true)
+			local result = Table.pack( fn() )
+			if result.n > 0 then
+				print( Table.unpack(result,1,result.n) )
+			end
+		catch e do
+			print(e)
 		end
 	end
 end
@@ -75,14 +79,14 @@ function Basic.standalone(...)
 					return
 				end
 				local cmd = args[i]
-				local fn = load(cmd,"(command line)",true)
+				local fn = load(cmd,"(command line)",true,true)
 				local result = Table.pack( fn() )
 				if result.n > 0 then
 					print( Table.unpack(result,1,result.n) )
 				end
 			elseif arg == "-" then
 				local src = Io.stdin.read_text()
-				local fn = load(src,"stdin",false)
+				local fn = load(src,"stdin")
 				fn()
 				return
 			else

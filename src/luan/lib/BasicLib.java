@@ -40,7 +40,7 @@ public final class BasicLib {
 				add( global, "error", LuanState.class, Object.class );
 				add( global, "get_metatable", LuanState.class, Object.class );
 				add( global, "ipairs", LuanState.class, LuanTable.class );
-				add( global, "load", LuanState.class, String.class, String.class, Boolean.class );
+				add( global, "load", LuanState.class, String.class, String.class, Boolean.class, Boolean.class );
 				add( global, "load_file", LuanState.class, String.class );
 				add( global, "pairs", LuanState.class, LuanTable.class );
 //				add( global, "print", LuanState.class, new Object[0].getClass() );
@@ -83,17 +83,21 @@ public final class BasicLib {
 		return Luan.type(obj);
 	}
 
-	public static LuanFunction load(LuanState luan,String text,String sourceName,Boolean interactive) throws LuanException {
-		if( interactive!=null && interactive )
-			return LuanCompiler.compileInteractive(luan,new LuanSource(sourceName,text));
+	public static LuanFunction load(LuanState luan,String text,String sourceName,Boolean useGlobal,Boolean allowExpr)
+		throws LuanException
+	{
+		if( allowExpr==null )
+			allowExpr = false;
+		if( useGlobal!=null && useGlobal )
+			return LuanCompiler.compileGlobal(luan,new LuanSource(sourceName,text),allowExpr);
 		else
-			return LuanCompiler.compileModule(luan,new LuanSource(sourceName,text));
+			return LuanCompiler.compileModule(luan,new LuanSource(sourceName,text),allowExpr);
 	}
 
 	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
 			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : new IoLib.LuanFile(fileName).read_text();
-			return load(luan,src,fileName,false);
+			return load(luan,src,fileName,false,false);
 		} catch(IOException e) {
 			throw luan.JAVA.exception(e);
 		}
@@ -102,7 +106,7 @@ public final class BasicLib {
 	public static LuanFunction load_java_resource(LuanState luan,String path) throws LuanException {
 		try {
 			String src = new IoLib.LuanUrl(IoLib.java_resource_to_url(path)).read_text();
-			return load(luan,src,path,false);
+			return load(luan,src,path,false,false);
 		} catch(IOException e) {
 			throw luan.JAVA.exception(e);
 		}
@@ -244,7 +248,9 @@ public final class BasicLib {
 			int i = 0;
 
 			@Override public Object call(LuanState luan,Object[] unused) {
-				return i < args.length ? args[i++] : null;
+				if( ++i > args.length )
+					return LuanFunction.NOTHING;
+				return new Object[]{i,args[i-1]};
 			}
 		};
 	}

@@ -75,7 +75,7 @@ final class LuanParser {
 	private static final String _ENV = "_ENV";
 	private static final UpValue.Getter[] NO_UP_VALUE_GETTERS = new UpValue.Getter[0];
 
-	private final LuanSource source;
+	final LuanSource source;
 	private Frame frame;
 	private final Parser parser;
 	private final boolean interactive;
