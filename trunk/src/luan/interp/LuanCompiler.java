@@ -13,7 +13,7 @@ import java.util.Map;
 public final class LuanCompiler {
 	private LuanCompiler() {}  // never
 
-	public static LuanFunction compileModule(LuanState luan,LuanSource src) throws LuanException {
+	public static LuanFunction compileModule(LuanState luan,LuanSource src,boolean allowExpr) throws LuanException {
 		UpValue.Getter envGetter = new UpValue.EnvGetter();
 		LuanParser parser = new LuanParser(src,envGetter);
 		for( Map.Entry<Object,Object> entry : luan.global() ) {
@@ -21,35 +21,36 @@ public final class LuanCompiler {
 			if( key instanceof String )
 				parser.addVar( (String)key, entry.getValue() );
 		}
-		try {
-			FnDef fnDef = parser.RequiredModule();
-			final Closure c = new Closure((LuanStateImpl)luan,fnDef);
-			return new LuanFunction() {
-				@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-					Object rtn = c.call(luan,args);
-					if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
-						rtn = c.upValues()[0].get();
-					return rtn;
-				}
-			};
-		} catch(ParseException e) {
-//e.printStackTrace();
-			LuanElement le = new LuanSource.CompilerElement(src);
-			throw luan.bit(le).exception( e.getFancyMessage() );
-		}
+		FnDef fnDef = parse(luan,parser,allowExpr);
+		final Closure c = new Closure((LuanStateImpl)luan,fnDef);
+		return new LuanFunction() {
+			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+				Object rtn = c.call(luan,args);
+				if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
+					rtn = c.upValues()[0].get();
+				return rtn;
+			}
+		};
 	}
 
-	public static LuanFunction compileInteractive(LuanState luan,LuanSource src) throws LuanException {
+	public static LuanFunction compileGlobal(LuanState luan,LuanSource src,boolean allowExpr) throws LuanException {
 		UpValue.Getter envGetter = UpValue.globalGetter;
 		LuanParser parser = new LuanParser(src,envGetter);
+		FnDef fnDef = parse(luan,parser,allowExpr);
+		return new Closure((LuanStateImpl)luan,fnDef);
+	}
+
+	private static FnDef parse(LuanState luan,LuanParser parser,boolean allowExpr) throws LuanException {
 		try {
-			FnDef fnDef = parser.Expressions();
-			if( fnDef == null )
-				fnDef = parser.RequiredModule();
-			return new Closure((LuanStateImpl)luan,fnDef);
+			if( allowExpr ) {
+				FnDef fnDef = parser.Expressions();
+				if( fnDef != null )
+					return fnDef;
+			}
+			return parser.RequiredModule();
 		} catch(ParseException e) {
 //e.printStackTrace();
-			LuanElement le = new LuanSource.CompilerElement(src);
+			LuanElement le = new LuanSource.CompilerElement(parser.source);
 			throw luan.bit(le).exception( e.getFancyMessage() );
 		}
 	}

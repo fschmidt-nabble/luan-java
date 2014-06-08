@@ -119,7 +119,7 @@ public final class PackageLib {
 			String urlStr = (String)args[1];
 			try {
 				String src = new IoLib.LuanUrl(urlStr).read_text();
-				LuanFunction fn = BasicLib.load(luan,src,urlStr,false);
+				LuanFunction fn = BasicLib.load(luan,src,urlStr,false,false);
 				return fn.call(luan,args);
 			} catch(IOException e) {
 				throw luan.JAVA.exception(e);
