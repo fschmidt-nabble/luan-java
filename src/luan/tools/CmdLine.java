@@ -18,7 +18,8 @@ public class CmdLine {
 			LuanFunction standalone = (LuanFunction)luan.get("Basic.standalone");
 			luan.JAVA.call(standalone,"standalone",args);
 		} catch(LuanException e) {
-			System.err.println(e.getMessage());
+//			System.err.println(e.getMessage());
+			e.printStackTrace();
 			System.exit(-1);
 		}
 		System.exit(0);
