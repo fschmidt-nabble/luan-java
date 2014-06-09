@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.Socket;
@@ -300,7 +303,7 @@ public final class IoLib {
 			return binaryWriter(new BufferedOutputStream(outputStream()));
 		}
 
-		LuanTable table() {
+		@Override LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
 				tbl.put( "write", new LuanJavaFunction(
@@ -372,6 +375,33 @@ public final class IoLib {
 
 		OutputStream outputStream() throws IOException {
 			return socket.getOutputStream();
+		}
+
+		public LuanTable pickle_client(LuanState luan) throws IOException {
+			DataInputStream in = new DataInputStream(new BufferedInputStream(inputStream()));
+			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(outputStream()));
+			return new PickleClient(luan,in,out).table();
+		}
+
+		public void run_pickle_server(LuanState luan) throws IOException {
+			DataInputStream in = new DataInputStream(new BufferedInputStream(inputStream()));
+			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(outputStream()));
+			new PickleServer(luan,in,out).run();
+		}
+
+		@Override LuanTable table() {
+			LuanTable tbl = super.table();
+			try {
+				tbl.put( "pickle_client", new LuanJavaFunction(
+					LuanSocket.class.getMethod( "pickle_client", LuanState.class ), this
+				) );
+				tbl.put( "run_pickle_server", new LuanJavaFunction(
+					LuanSocket.class.getMethod( "run_pickle_server", LuanState.class ), this
+				) );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return tbl;
 		}
 	}
 

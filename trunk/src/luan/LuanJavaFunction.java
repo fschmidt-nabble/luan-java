@@ -69,7 +69,7 @@ public final class LuanJavaFunction extends LuanFunction {
 		try {
 			rtn = method.invoke(obj,args);
 		} catch(IllegalAccessException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("method = "+method,e);
 		} catch(InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			if( cause instanceof Error )
