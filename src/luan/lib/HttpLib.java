@@ -28,7 +28,7 @@ public final class HttpLib {
 		PackageLib.require(luan,NAME);
 		Object fn = luan.get(HttpLib.FN_NAME);
 		if( !(fn instanceof LuanFunction) )
-			throw luan.JAVA.exception( "function '"+HttpLib.FN_NAME+"' not defined" );
+			throw luan.exception( "function '"+HttpLib.FN_NAME+"' not defined" );
 	}
 
 	public static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response)
@@ -46,7 +46,7 @@ public final class HttpLib {
 			throw new RuntimeException(e);
 		}
 
-		luan.JAVA.call(fn,FN_NAME);
+		luan.call(fn,FN_NAME);
 	}
 
 	private final HttpServletRequest request;

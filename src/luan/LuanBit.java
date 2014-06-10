@@ -16,10 +16,6 @@ public final class LuanBit {
 		return new LuanException(this,msg);
 	}
 
-	public Object call(LuanFunction fn,String fnName) throws LuanException {
-		return call(fn,fnName,LuanFunction.NOTHING);
-	}
-
 	public Object call(LuanFunction fn,String fnName,Object[] args) throws LuanException {
 		List<StackTraceElement> stackTrace = luan.stackTrace;
 		stackTrace.add( new StackTraceElement(el,fnName) );

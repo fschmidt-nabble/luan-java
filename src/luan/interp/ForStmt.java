@@ -27,7 +27,7 @@ final class ForStmt extends CodeImpl implements Stmt {
 		String name = iterExpr.se().text();
 		try {
 			while(true) {
-				Object vals = bit.call(iter,name);
+				Object vals = bit.call(iter,name,LuanFunction.NOTHING);
 				if( vals==null )
 					break;
 				if( vals instanceof Object[] ) {

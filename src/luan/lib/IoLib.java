@@ -121,7 +121,7 @@ public final class IoLib {
 
 			public void write(LuanState luan,Object... args) throws LuanException {
 				for( Object obj : args ) {
-					out.print( luan.JAVA.toString(obj) );
+					out.print( luan.toString(obj) );
 				}
 			}
 
@@ -137,7 +137,7 @@ public final class IoLib {
 
 			public void write(LuanState luan,Object... args) throws LuanException, IOException {
 				for( Object obj : args ) {
-					out.write( luan.JAVA.toString(obj) );
+					out.write( luan.toString(obj) );
 				}
 			}
 
@@ -185,7 +185,7 @@ public final class IoLib {
 				try {
 					if( args.length > 0 ) {
 						if( args.length > 1 || !"close".equals(args[0]) )
-							throw luan.JAVA.exception( "the only argument allowed is 'close'" );
+							throw luan.exception( "the only argument allowed is 'close'" );
 						in.close();
 						return null;
 					}
@@ -194,7 +194,7 @@ public final class IoLib {
 						in.close();
 					return rtn;
 				} catch(IOException e) {
-					throw luan.JAVA.exception(e);
+					throw luan.exception(e);
 				}
 			}
 		};
@@ -208,7 +208,7 @@ public final class IoLib {
 				try {
 					if( args.length > 0 ) {
 						if( args.length > 1 || !"close".equals(args[0]) )
-							throw luan.JAVA.exception( "the only argument allowed is 'close'" );
+							throw luan.exception( "the only argument allowed is 'close'" );
 						in.close();
 						return null;
 					}
@@ -218,7 +218,7 @@ public final class IoLib {
 					}
 					return a;
 				} catch(IOException e) {
-					throw luan.JAVA.exception(e);
+					throw luan.exception(e);
 				}
 			}
 		};
@@ -292,7 +292,7 @@ public final class IoLib {
 				out.close();
 				return;
 			}
-			throw luan.JAVA.exception( "bad argument #1 to 'write' (string or binary expected)" );
+			throw luan.exception( "bad argument #1 to 'write' (string or binary expected)" );
 		}
 
 		public LuanTable text_writer() throws IOException {
@@ -416,13 +416,13 @@ public final class IoLib {
 				try {
 					if( args.length > 0 ) {
 						if( args.length > 1 || !"close".equals(args[0]) )
-							throw luan.JAVA.exception( "the only argument allowed is 'close'" );
+							throw luan.exception( "the only argument allowed is 'close'" );
 						ss.close();
 						return null;
 					}
 					return new LuanSocket(ss.accept()).table();
 				} catch(IOException e) {
-					throw luan.JAVA.exception(e);
+					throw luan.exception(e);
 				}
 			}
 		};

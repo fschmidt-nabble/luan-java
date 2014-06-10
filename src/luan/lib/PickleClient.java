@@ -29,7 +29,7 @@ public final class PickleClient {
 		} else {
 			String msg = (String)result[1];
 			String src = (String)result[2];
-			throw con.luan.JAVA.exception(
+			throw con.luan.exception(
 				msg + "\n"
 				+ "in:\n"
 				+ "------------------\n"

@@ -16,7 +16,7 @@ public final class Utils {
 
 	public static void checkNotNull(LuanState luan,Object v,String expected) throws LuanException {
 		if( v == null )
-			throw luan.JAVA.exception("bad argument #1 ("+expected+" expected, got nil)");
+			throw luan.exception("bad argument #1 ("+expected+" expected, got nil)");
 	}
 
 	public static String readAll(Reader in)
