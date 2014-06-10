@@ -49,7 +49,7 @@ public final class PickleCon {
 		while( i < size ) {
 			int n = in.read(a,i,size-i);
 			if( n == -1 )
-				throw luan.JAVA.exception( "end of stream" );
+				throw luan.exception( "end of stream" );
 			i += n;
 		}
 		return a;
@@ -59,7 +59,7 @@ public final class PickleCon {
 		ioModule.put("_read_binary",_read_binary);
 		src = in.readUTF();
 		LuanFunction fn = BasicLib.load(luan,src,"pickle-reader",true,false);
-		Object rtn = luan.JAVA.call(fn,null);
+		Object rtn = luan.call(fn);
 		ioModule.put("_binaries",null);
 		return rtn;
 	}
@@ -78,7 +78,7 @@ public final class PickleCon {
 			binaries.add(a);
 			return "Io._binaries[" + binaries.size() + "]";
 		}
-		throw luan.JAVA.exception( "invalid type: " + obj.getClass() );
+		throw luan.exception( "invalid type: " + obj.getClass() );
 	}
 
 	private String pickle(Object obj,Set<LuanTable> set) throws LuanException {
@@ -87,7 +87,7 @@ public final class PickleCon {
 
 	private String pickle(LuanTable tbl,Set<LuanTable> set) throws LuanException {
 		if( !set.add(tbl) ) {
-			throw luan.JAVA.exception( "circular reference in table" );
+			throw luan.exception( "circular reference in table" );
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append( "{" );
@@ -111,7 +111,7 @@ public final class PickleCon {
 			}
 		}
 		for( Object obj : args ) {
-			sb.append( luan.JAVA.toString(obj) );
+			sb.append( luan.toString(obj) );
 		}
 		out.writeUTF( sb.toString() );
 		for( byte[] a : binaries ) {

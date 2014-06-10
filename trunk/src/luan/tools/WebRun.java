@@ -38,7 +38,7 @@ public class WebRun extends HttpServlet {
 			LuanTable env = luan.global();
 			env.put("request",request);
 			env.put("response",response);
-			luan.eval(code,"WebRun",false);
+			luan.eval(code);
 		} catch(LuanException e) {
 			logger.error(null,e);
 			response.reset();

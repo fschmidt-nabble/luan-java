@@ -222,7 +222,7 @@ public final class StringLib {
 				if( Luan.toBoolean(val) ) {
 					String replacement = Luan.asString(val);
 					if( replacement==null )
-						throw luan.JAVA.exception( "invalid replacement value (a "+Luan.type(val)+")" );
+						throw luan.exception( "invalid replacement value (a "+Luan.type(val)+")" );
 					m.appendReplacement(sb,replacement);
 				}
 				i++;
@@ -245,11 +245,11 @@ public final class StringLib {
 						args[j] = m.group(j);
 					}
 				}
-				Object val = Luan.first( luan.JAVA.call(fn,"repl-arg",args) );
+				Object val = Luan.first( luan.call(fn,"repl-arg",args) );
 				if( Luan.toBoolean(val) ) {
 					String replacement = Luan.asString(val);
 					if( replacement==null )
-						throw luan.JAVA.exception( "invalid replacement value (a "+Luan.type(val)+")" );
+						throw luan.exception( "invalid replacement value (a "+Luan.type(val)+")" );
 					m.appendReplacement(sb,replacement);
 				}
 				i++;
@@ -257,7 +257,7 @@ public final class StringLib {
 			m.appendTail(sb);
 			return new Object[]{ sb.toString(), i };
 		}
-		throw luan.JAVA.exception( "bad argument #3 to 'gsub' (string/function/table expected)" );
+		throw luan.exception( "bad argument #3 to 'gsub' (string/function/table expected)" );
 	}
 
 	// note - String.format() is too stupid to convert between ints and floats.

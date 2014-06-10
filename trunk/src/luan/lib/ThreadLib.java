@@ -41,7 +41,7 @@ public final class ThreadLib {
 		final Object[] newArgs = cloner.deepClone(args);
 		exec.execute(new Runnable(){public void run() {
 			try {
-				newLuan.JAVA.call(newFn,"<forked>",newArgs);
+				newLuan.call(newFn,"<forked>",newArgs);
 			} catch(LuanException e) {
 				e.printStackTrace();
 			}

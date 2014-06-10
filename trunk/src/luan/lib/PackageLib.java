@@ -55,11 +55,11 @@ public final class PackageLib {
 				searchers = new LuanTable(Collections.<Object>singletonList(preloadSearcher));
 			for( Object s : searchers.asList() ) {
 				LuanFunction searcher = (LuanFunction)s;
-				Object[] a = Luan.array(luan.JAVA.call(searcher,"<searcher>",new Object[]{modName}));
+				Object[] a = Luan.array(luan.call(searcher,"<searcher>",new Object[]{modName}));
 				if( a.length >= 1 && a[0] instanceof LuanFunction ) {
 					LuanFunction loader = (LuanFunction)a[0];
 					a[0] = modName;
-					mod = Luan.first(luan.JAVA.call(loader,"<require \""+modName+"\">",a));
+					mod = Luan.first(luan.call(loader,"<require \""+modName+"\">",a));
 					if( mod != null ) {
 						loaded.put(modName,mod);
 					} else {
@@ -71,7 +71,7 @@ public final class PackageLib {
 				}
 			}
 			if( mod == null )
-				throw luan.JAVA.exception( "module '"+modName+"' not found" );
+				throw luan.exception( "module '"+modName+"' not found" );
 		}
 		return mod;
 	}
@@ -122,7 +122,7 @@ public final class PackageLib {
 				LuanFunction fn = BasicLib.load(luan,src,urlStr,false,false);
 				return fn.call(luan,args);
 			} catch(IOException e) {
-				throw luan.JAVA.exception(e);
+				throw luan.exception(e);
 			}
 		}
 	};

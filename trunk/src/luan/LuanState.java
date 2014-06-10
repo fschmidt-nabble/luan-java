@@ -20,7 +20,45 @@ import luan.lib.ThreadLib;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
-	public final LuanBit JAVA = bit(LuanElement.JAVA);
+	private final LuanBit JAVA = bit(LuanElement.JAVA);
+
+	public LuanException exception(Object msg) {
+		return JAVA.exception(msg);
+	}
+
+	public Object call(LuanFunction fn) throws LuanException {
+		return call(fn,null,LuanFunction.NOTHING);
+	}
+
+	public Object call(LuanFunction fn,String fnName) throws LuanException {
+		return call(fn,fnName,LuanFunction.NOTHING);
+	}
+
+	public Object call(LuanFunction fn,Object[] args) throws LuanException {
+		return call(fn,null,args);
+	}
+
+	public Object call(LuanFunction fn,String fnName,Object[] args) throws LuanException {
+		return JAVA.call(fn,fnName,args);
+	}
+
+	public LuanFunction checkFunction(Object obj) throws LuanException {
+		return JAVA.checkFunction(obj);
+	}
+
+	public String toString(Object obj) throws LuanException {
+		return JAVA.toString(obj);
+	}
+
+	public String repr(Object obj) throws LuanException {
+		return JAVA.repr(obj);
+	}
+
+	public boolean isLessThan(Object o1,Object o2) throws LuanException {
+		return JAVA.isLessThan(o1,o2);
+	}
+
+
 
 	private LuanTable global;
 	private LuanTable loaded;
@@ -120,9 +158,9 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		}
 	}
 
-	public final Object eval(String cmd,String sourceName,boolean allowExpr) throws LuanException {
-		LuanFunction fn = BasicLib.load(this,cmd,sourceName,true,allowExpr);
-		return JAVA.call(fn,null);
+	public final Object eval(String cmd) throws LuanException {
+		LuanFunction fn = BasicLib.load(this,cmd,"eval",true,true);
+		return call(fn);
 	}
 
 
