@@ -16,6 +16,21 @@ public final class LuanBit {
 		return new LuanException(this,msg);
 	}
 
+	public String stackTrace() {
+		StringBuilder buf = new StringBuilder();
+		LuanElement el = this.el;
+		for( int i  = luan.stackTrace.size() - 1; i>=0; i-- ) {
+			StackTraceElement stackTraceElement = luan.stackTrace.get(i);
+			buf.append( "\n\t" ).append( el.toString(stackTraceElement.fnName) );
+			el = stackTraceElement.call;
+		}
+		return buf.toString();
+	}
+
+	public void dumpStack() {
+		System.err.println( stackTrace() );
+	}
+
 	public Object call(LuanFunction fn,String fnName,Object[] args) throws LuanException {
 		List<StackTraceElement> stackTrace = luan.stackTrace;
 		stackTrace.add( new StackTraceElement(el,fnName) );

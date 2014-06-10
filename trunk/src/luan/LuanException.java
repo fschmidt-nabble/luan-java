@@ -6,7 +6,7 @@ public class LuanException extends Exception {
 
 	LuanException(LuanBit bit,Object msg) {
 		super(message(msg),cause(msg));
-		stackTrace = stackTrace(bit.luan,bit.el,msg);
+		stackTrace = stackTrace(bit,msg);
 	}
 
 	@Override public String getMessage() {
@@ -35,13 +35,9 @@ public class LuanException extends Exception {
 		}
 	}
 
-	private static String stackTrace(LuanState luan,LuanElement el,Object msg) {
+	private static String stackTrace(LuanBit bit,Object msg) {
 		StringBuilder buf = new StringBuilder();
-		for( int i  = luan.stackTrace.size() - 1; i>=0; i-- ) {
-			StackTraceElement stackTraceElement = luan.stackTrace.get(i);
-			buf.append( "\n\t" ).append( el.toString(stackTraceElement.fnName) );
-			el = stackTraceElement.call;
-		}
+		buf.append( bit.stackTrace() );
 		if( msg instanceof LuanException ) {
 			LuanException le = (LuanException)msg;
 			buf.append( "\ncaused by:" ).append( le.stackTrace );

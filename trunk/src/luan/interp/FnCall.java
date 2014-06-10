@@ -32,4 +32,8 @@ final class FnCall extends CodeImpl implements Expressions {
 			return call(luan,h);
 		throw luan.bit(fnExpr.se()).exception( "attempt to call '"+fnExpr.se().text()+"' (a " + Luan.type(o) + " value)" );
 	}
+
+	@Override public String toString() {
+		return "(FnCall "+fnName+" "+fnExpr+" "+args+")";
+	}
 }

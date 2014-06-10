@@ -18,4 +18,8 @@ final class ConstExpr extends CodeImpl implements Expr {
 	@Override public Object eval(LuanStateImpl luan) {
 		return obj;
 	}
+
+	@Override public String toString() {
+		return "(ConstExpr "+obj+")";
+	}
 }

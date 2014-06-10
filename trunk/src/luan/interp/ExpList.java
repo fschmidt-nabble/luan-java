@@ -121,11 +121,16 @@ final class ExpList implements Expressions {
 		}
 
 		@Override public Object eval(LuanStateImpl luan) throws LuanException {
+//System.out.println("SingleExpList "+expr);
 			return expr.eval(luan);
 		}
 
 		@Override public LuanSource.Element se() {
 			return expr.se();
+		}
+
+		@Override public String toString() {
+			return "(SingleExpList "+expr+")";
 		}
 	}
 
