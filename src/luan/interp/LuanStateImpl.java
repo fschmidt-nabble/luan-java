@@ -55,7 +55,7 @@ final class LuanStateImpl extends LuanState {
 	}
 
 	private Frame frame = null;
-	Object returnValues = LuanFunction.NOTHING;
+	Object returnValues;
 	Closure tailFn;
 	Map<UpValue.EnvGetter,UpValue> envs = new HashMap<UpValue.EnvGetter,UpValue>();
 
@@ -82,6 +82,7 @@ final class LuanStateImpl extends LuanState {
 
 	// returns stack
 	Object[] newFrame(Closure closure, int stackSize, Object[] varArgs) {
+		returnValues = LuanFunction.NOTHING;
 		frame = new Frame(frame,closure,stackSize,varArgs);
 		return frame.stack;
 	}
