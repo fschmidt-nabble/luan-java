@@ -83,6 +83,7 @@ final class LuanStateImpl extends LuanState {
 	// returns stack
 	Object[] newFrame(Closure closure, int stackSize, Object[] varArgs) {
 		returnValues = LuanFunction.NOTHING;
+		tailFn = null;
 		frame = new Frame(frame,closure,stackSize,varArgs);
 		return frame.stack;
 	}

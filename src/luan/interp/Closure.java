@@ -62,7 +62,6 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 				stack[i] = args[i];
 			}
 			Object returnValues;
-			Closure tailFn;
 			try {
 				fnDef.block.eval(luan);
 			} catch(ReturnException e) {
