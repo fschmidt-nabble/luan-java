@@ -16,9 +16,7 @@ import luan.LuanRuntimeException;
 
 public final class TableLib {
 
-	public static void load(LuanState luan) throws LuanException {
-		luan.load("Table",LOADER);
-	}
+	public static final String NAME = "Table";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {

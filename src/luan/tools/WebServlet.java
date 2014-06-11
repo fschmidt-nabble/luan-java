@@ -28,12 +28,12 @@ public class WebServlet extends HttpServlet {
 
 	protected LuanState newLuanState() throws LuanException {
 		LuanState luan = LuanCompiler.newLuanState();
-		BasicLib.load(luan);
-		PackageLib.load(luan);
-		MathLib.load(luan);
-		StringLib.load(luan);
-		TableLib.load(luan);
-		HtmlLib.load(luan);
+		luan.load(BasicLib.NAME,BasicLib.LOADER);
+		luan.load(PackageLib.NAME,PackageLib.LOADER);
+		luan.load(MathLib.NAME,MathLib.LOADER);
+		luan.load(StringLib.NAME,StringLib.LOADER);
+		luan.load(TableLib.NAME,TableLib.LOADER);
+		luan.load(HtmlLib.NAME,HtmlLib.LOADER);
 		return luan;
 	}
 

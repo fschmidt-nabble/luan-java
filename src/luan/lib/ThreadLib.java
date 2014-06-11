@@ -12,9 +12,7 @@ import luan.DeepCloner;
 
 public final class ThreadLib {
 
-	public static void load(LuanState luan) throws LuanException {
-		luan.load("Thread",LOADER);
-	}
+	public static final String NAME = "Thread";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {

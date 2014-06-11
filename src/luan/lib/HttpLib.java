@@ -21,7 +21,7 @@ import luan.LuanExitException;
 
 public final class HttpLib {
 
-	private static final String NAME = "Http";
+	public static final String NAME = "Http";
 	public static final String FN_NAME = "Http.server";
 
 	public static void load(LuanState luan) throws LuanException {

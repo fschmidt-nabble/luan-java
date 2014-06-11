@@ -9,9 +9,7 @@ import luan.LuanException;
 
 public final class HtmlLib {
 
-	public static void load(LuanState luan) throws LuanException {
-		luan.load("Html",LOADER);
-	}
+	public static final String NAME = "Html";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
