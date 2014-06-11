@@ -9,9 +9,7 @@ import luan.LuanException;
 
 public final class MathLib {
 
-	public static void load(LuanState luan) throws LuanException {
-		luan.load("Math",LOADER);
-	}
+	public static final String NAME = "Math";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {

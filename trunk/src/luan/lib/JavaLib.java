@@ -27,9 +27,7 @@ import luan.LuanElement;
 
 public final class JavaLib {
 
-	public static void load(LuanState luan) throws LuanException {
-		luan.load("Java",LOADER);
-	}
+	public static final String NAME = "Java";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {

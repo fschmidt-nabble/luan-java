@@ -16,9 +16,7 @@ import luan.LuanException;
 
 public final class PackageLib {
 
-	public static void load(LuanState luan) throws LuanException {
-		luan.load("Package",LOADER);
-	}
+	public static final String NAME = "Package";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
