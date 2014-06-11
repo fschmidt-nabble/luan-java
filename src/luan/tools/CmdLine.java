@@ -15,7 +15,7 @@ public class CmdLine {
 	public static void main(String[] args) {
 		LuanState luan = LuanState.newStandard();
 		try {
-			LuanFunction standalone = (LuanFunction)luan.get("Basic.standalone");
+			LuanFunction standalone = (LuanFunction)BasicLib.load_java_resource(luan,"luan/tools/cmd_line.luan");
 			luan.call(standalone,args);
 		} catch(LuanException e) {
 //			System.err.println(e.getMessage());
