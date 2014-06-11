@@ -1,8 +1,22 @@
 package luan;
 
+import luan.lib.BasicLib;
+
 
 public final class Luan {
 	public static final String version = "Luan 0.1";
+
+	public static void main(String[] args) {
+		LuanState luan = LuanState.newStandard();
+		try {
+			LuanFunction standalone = (LuanFunction)BasicLib.load_java_resource(luan,"luan/tools/cmd_line.luan");
+			luan.call(standalone,args);
+		} catch(LuanException e) {
+//			System.err.println(e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
 
 	public static Object first(Object obj) {
 		if( !(obj instanceof Object[]) )
