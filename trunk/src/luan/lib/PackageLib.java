@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -34,7 +35,7 @@ public final class PackageLib {
 			LuanTable searchers = luan.searchers();
 			searchers.add(preloadSearcher);
 			searchers.add(fileSearcher);
-			searchers.add(javaFileSearcher);
+			searchers.put("java",javaFileSearcher);
 			module.put("searchers",searchers);
 			return module;
 		}
@@ -48,12 +49,27 @@ public final class PackageLib {
 		LuanTable loaded = luan.loaded();
 		Object mod = loaded.get(modName);
 		if( mod == null ) {
+			List<Object> list = null;
+			String searchFor = modName;
 			LuanTable searchers = (LuanTable)luan.get("Package.searchers");
-			if( searchers == null )
-				searchers = new LuanTable(Collections.<Object>singletonList(preloadSearcher));
-			for( Object s : searchers.asList() ) {
+			if( searchers == null ) {
+				list = Collections.<Object>singletonList(preloadSearcher);
+			} else {
+				int i = modName.indexOf(':');
+				if( i != -1 ) {
+					String prefix = modName.substring(0,i);
+					Object searcher = searchers.get(prefix);
+					if( searcher != null ) {
+						list = Collections.<Object>singletonList(searcher);
+						searchFor = modName.substring(i+1);
+					}
+				}
+				if( list == null )
+					list = searchers.asList();
+			}
+			for( Object s : list ) {
 				LuanFunction searcher = (LuanFunction)s;
-				Object[] a = Luan.array(luan.call(searcher,"<searcher>",new Object[]{modName}));
+				Object[] a = Luan.array(luan.call(searcher,"<searcher>",new Object[]{searchFor}));
 				if( a.length >= 1 && a[0] instanceof LuanFunction ) {
 					LuanFunction loader = (LuanFunction)a[0];
 					a[0] = modName;
@@ -127,16 +143,10 @@ public final class PackageLib {
 
 	public static final LuanFunction javaFileSearcher = new LuanFunction() {
 		@Override public Object[] call(LuanState luan,Object[] args) {
-			String modName = (String)args[0];
-			String path = (String)luan.get("Package.jpath");
-			if( path==null )
-				return LuanFunction.NOTHING;
-			for( String s : path.split(";") ) {
-				String file = s.replaceAll("\\?",modName);
-				URL url = ClassLoader.getSystemResource(file);
-				if( url != null ) {
-					return new Object[]{javaFileLoader,url.toString()};
-				}
+			String path = (String)args[0];
+			String url = IoLib.java_resource_to_url(path);
+			if( url != null ) {
+				return new Object[]{javaFileLoader,url};
 			}
 			return LuanFunction.NOTHING;
 		}

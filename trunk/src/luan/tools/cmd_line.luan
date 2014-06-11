@@ -38,15 +38,15 @@ else
 				return
 			end
 			local cmd = args[i]
-			local fn = load(cmd,"(command line)",true,true)
-			local result = Table.pack( fn() )
+			local stat = load(cmd,"(command line)",true,true)
+			local result = Table.pack( stat() )
 			if result.n > 0 then
 				print( Table.unpack(result,1,result.n) )
 			end
 		elseif arg == "-" then
 			local src = Io.stdin.read_text()
-			local fn = load(src,"stdin")
-			fn()
+			local stdin = load(src,"stdin")
+			stdin()
 			return
 		else
 			standalone_error( "unrecognized option '"..arg.."'" )
@@ -62,8 +62,8 @@ if i <= #args then
 	for j,v in ipairs(args) do
 		_G.arg[j-i] = v
 	end
-	local fn = load_file(file)
-	fn( Table.unpack(_G.arg) )
+	local main_file = load_file(file)
+	main_file( Table.unpack(_G.arg) )
 end
 if interactive then
 	Debug.debug("> ")

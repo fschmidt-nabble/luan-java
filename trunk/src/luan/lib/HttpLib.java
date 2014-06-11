@@ -1,6 +1,6 @@
 package luan.lib;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -17,50 +17,65 @@ import luan.LuanException;
 import luan.LuanTable;
 import luan.LuanJavaFunction;
 import luan.LuanExitException;
+import luan.DeepCloner;
 
 
 public final class HttpLib {
 
 	public static final String NAME = "Http";
-	public static final String FN_NAME = "Http.server";
 
-	public static void load(LuanState luan) throws LuanException {
-		PackageLib.require(luan,NAME);
-		Object fn = luan.get(HttpLib.FN_NAME);
-		if( !(fn instanceof LuanFunction) )
-			throw luan.exception( "function '"+HttpLib.FN_NAME+"' not defined" );
-	}
+	public static final LuanFunction LOADER = new LuanFunction() {
+		@Override public Object call(LuanState luan,Object[] args) {
+			return new LuanTable();  // starts empty
+		}
+	};
 
-	public static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response)
-		throws LuanException, IOException
+	public static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
+		throws LuanException
 	{
-		LuanFunction fn = (LuanFunction)luan.get(FN_NAME);
-		ServletOutputStream sout = response.getOutputStream();
-		luan.set( "Io.stdout", IoLib.textWriter(new PrintStream(sout)) );
+		LuanState newLuan;
+		LuanFunction newFn;
+		synchronized(luan) {
+			Object mod = PackageLib.require(luan,modName);
+			if( !(mod instanceof LuanFunction) )
+				throw luan.exception( "module '"+modName+"' must return a function" );
+			LuanFunction fn = (LuanFunction)mod;
+			DeepCloner cloner = new DeepCloner();
+			newLuan = cloner.deepClone(luan);
+			newFn = cloner.get(fn);
+		}
 
 		LuanTable module = (LuanTable)luan.loaded().get(NAME);
-
+		if( module == null )
+			throw luan.exception( "module 'Http' not defined" );
+		HttpLib lib = new HttpLib(request,response);
 		try {
-			new HttpLib(request,response,module);
+			module.put( "request", lib.requestTable() );
+			module.put( "response", lib.responseTable() );
+			module.put( "write", new LuanJavaFunction(
+				HttpLib.class.getMethod( "text_write", LuanState.class, new Object[0].getClass() ), lib
+			) );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
 
-		luan.call(fn,FN_NAME);
+		newLuan.call(newFn,"<http>");
 	}
+
+
 
 	private final HttpServletRequest request;
 	private final HttpServletResponse response;
+	private PrintWriter writer = null;
+//	private ServletOutputStream sos = null;
 
-	private HttpLib(HttpServletRequest request,HttpServletResponse response,LuanTable module) throws NoSuchMethodException {
+	private HttpLib(HttpServletRequest request,HttpServletResponse response) {
 		this.request = request;
 		this.response = response;
+	}
 
+	private LuanTable requestTable() throws NoSuchMethodException {
 		LuanTable req = new LuanTable();
-		module.put("request",req);
-		LuanTable resp = new LuanTable();
-		module.put("response",resp);
-
 		req.put( "get_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("getAttribute",String.class),request) );
 		req.put( "set_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("setAttribute",String.class,Object.class),request) );
 		req.put( "get_parameter", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameter",String.class),request) );
@@ -72,17 +87,30 @@ public final class HttpLib {
 		req.put( "server_name", new LuanJavaFunction(HttpServletRequest.class.getMethod("getServerName"),request) );
 		add( req, "current_url" );
 		req.put( "remote_address", new LuanJavaFunction(HttpServletRequest.class.getMethod("getRemoteAddr"),request) );
+		return req;
+	}
 
+	private LuanTable responseTable() throws NoSuchMethodException {
+		LuanTable resp = new LuanTable();
 		add( resp, "send_redirect", String.class );
 		add( resp, "send_error", Integer.TYPE, String.class );
 		resp.put( "contains_header", new LuanJavaFunction(HttpServletResponse.class.getMethod("containsHeader",String.class),response) );
 		resp.put( "set_header", new LuanJavaFunction(HttpServletResponse.class.getMethod("setHeader",String.class,String.class),response) );
 		add( resp, "set_cookie", String.class, String.class, Boolean.TYPE, String.class );
 		add( resp, "remove_cookie", String.class, String.class );
+		return resp;
 	}
 
 	private void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(HttpLib.class.getMethod(method,parameterTypes),this) );
+	}
+
+	public void text_write(LuanState luan,Object... args) throws LuanException, IOException {
+		if( writer == null )
+			writer = response.getWriter();
+		for( Object obj : args ) {
+			writer.print( luan.toString(obj) );
+		}
 	}
 
 	public String get_cookie_value(String name) {

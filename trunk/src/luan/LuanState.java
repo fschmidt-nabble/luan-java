@@ -17,6 +17,7 @@ import luan.lib.HtmlLib;
 import luan.lib.BinaryLib;
 import luan.lib.IoLib;
 import luan.lib.ThreadLib;
+import luan.lib.HttpLib;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
@@ -152,6 +153,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 			luan.load(ThreadLib.NAME,ThreadLib.LOADER);
 			BasicLib.do_java_resource(luan,"luan/lib/init.luan");
 			luan.preload.put(JavaLib.NAME,JavaLib.LOADER);
+			luan.preload.put(HttpLib.NAME,HttpLib.LOADER);
 			return luan;
 		} catch(LuanException e) {
 			throw new RuntimeException(e);
