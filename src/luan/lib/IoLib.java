@@ -93,7 +93,7 @@ public final class IoLib {
 		return blocks(System.in,n);
 	}
 
-	public static String java_resource_to_url(String path) throws IOException {
+	public static String java_resource_to_url(String path) {
 		URL url = ClassLoader.getSystemResource(path);
 		return url==null ? null : url.toString();
 	}
@@ -425,4 +425,6 @@ public final class IoLib {
 			}
 		};
 	}
+
+	private void IoLib() {}  // never
 }
