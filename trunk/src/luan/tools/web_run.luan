@@ -1,0 +1,32 @@
+import "Http"
+
+local function lines(s)
+	local matcher = String.gmatch(s,"([^\n]*)\n|([^\n])+$")
+	return function()
+		local m1, m2 = matcher()
+		return m1 or m2
+	end
+end
+
+local function print_with_line_numbers(s)
+	i = 1
+	for line in lines(s) do
+		print(i,line)
+		i = i + 1
+	end
+end
+
+return function()
+	Http.response.set_content_type "text/plain"
+	Io.stdout = Http.response.text_writer()
+	local code = Http.request.get_parameter "code"
+	try
+		local fn = load(code,"<web_run>")
+		fn()
+	catch e do
+		print(e)
+		print()
+		print()
+		print_with_line_numbers(code)
+	end
+end

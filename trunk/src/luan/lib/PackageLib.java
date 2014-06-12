@@ -131,9 +131,10 @@ public final class PackageLib {
 	public static final LuanFunction javaFileLoader = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			String urlStr = (String)args[1];
+			String path = (String)args[2];
 			try {
 				String src = new IoLib.LuanUrl(urlStr).read_text();
-				LuanFunction fn = BasicLib.load(luan,src,urlStr,false,false);
+				LuanFunction fn = BasicLib.load(luan,src,path,false,false);
 				return fn.call(luan,args);
 			} catch(IOException e) {
 				throw luan.exception(e);
@@ -146,7 +147,7 @@ public final class PackageLib {
 			String path = (String)args[0];
 			String url = IoLib.java_resource_to_url(path);
 			if( url != null ) {
-				return new Object[]{javaFileLoader,url};
+				return new Object[]{javaFileLoader,url,path};
 			}
 			return LuanFunction.NOTHING;
 		}
