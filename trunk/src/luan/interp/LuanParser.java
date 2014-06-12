@@ -776,6 +776,7 @@ final class LuanParser {
 		if( exp==null )
 			exp = NameExpr(in);
 		if( exp!=null && parser.match('=') ) {
+			Spaces(in);
 			fields.add( new TableExpr.Field( exp, required(expr(Expr(in))) ) );
 			return parser.success();
 		}
