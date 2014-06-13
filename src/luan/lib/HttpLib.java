@@ -10,6 +10,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import luan.LuanState;
 import luan.LuanFunction;
 import luan.LuanElement;
@@ -30,20 +31,56 @@ public final class HttpLib {
 		}
 	};
 
-	public static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
+	public static void service_per_request(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
 		throws LuanException
 	{
 		LuanFunction fn;
 		synchronized(luan) {
-			Object mod = PackageLib.require(luan,modName);
-			if( !(mod instanceof LuanFunction) )
-				throw luan.exception( "module '"+modName+"' must return a function" );
-			fn = (LuanFunction)mod;
+			fn = getFn(luan,modName);
 			DeepCloner cloner = new DeepCloner();
 			luan = cloner.deepClone(luan);
 			fn = cloner.get(fn);
 		}
+		service(luan,request,response,fn);
+	}
 
+	public static void service_global(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
+		throws LuanException
+	{
+		LuanFunction fn = getFn(luan,modName);
+		service(luan,request,response,fn);
+	}
+
+	public static void service_per_session(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
+		throws LuanException
+	{
+		HttpSession session = request.getSession();
+		LuanState sessionLuan  = (LuanState)session.getValue("luan");
+		if( sessionLuan!=null ) {
+			luan = sessionLuan;
+		} else {
+			DeepCloner cloner = new DeepCloner();
+			luan = cloner.deepClone(luan);
+			session.putValue("luan",luan);
+		}
+		LuanFunction fn = getFn(luan,modName);
+		service(luan,request,response,fn);
+	}
+
+	private static LuanFunction getFn(LuanState luan,String modName) throws LuanException {
+		Object mod = PackageLib.require(luan,modName);
+		if( !(mod instanceof LuanTable) )
+			throw luan.exception( "module '"+modName+"' must return a table" );
+		LuanTable tbl = (LuanTable)mod;
+		LuanFunction fn = (LuanFunction)tbl.get("page");
+		if( fn == null )
+			throw luan.exception( "function 'page' is not defined" );
+		return fn;
+	}
+
+	private static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response,LuanFunction fn)
+		throws LuanException
+	{
 		LuanTable module = (LuanTable)luan.loaded().get(NAME);
 		if( module == null )
 			throw luan.exception( "module 'Http' not defined" );
@@ -88,6 +125,8 @@ public final class HttpLib {
 		req.put( "server_name", new LuanJavaFunction(HttpServletRequest.class.getMethod("getServerName"),request) );
 		add( req, "current_url" );
 		req.put( "remote_address", new LuanJavaFunction(HttpServletRequest.class.getMethod("getRemoteAddr"),request) );
+		add( req, "get_session_attribute", String.class );
+		add( req, "set_session_attribute", String.class, Object.class );
 		return req;
 	}
 
@@ -148,6 +187,14 @@ public final class HttpLib {
 
 	public void remove_cookie(String name, String domain) {
 		removeCookie(request,response,name,domain);
+	}
+
+	public Object get_session_attribute(String name) {
+		return request.getSession().getAttribute(name);
+	}
+
+	public void set_session_attribute(String name,Object value) {
+		request.getSession().setAttribute(name,value);
 	}
 
 

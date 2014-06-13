@@ -54,6 +54,7 @@ public final class BasicLib {
 				add( global, "to_string", LuanState.class, Object.class );
 				add( global, "type", Object.class );
 				global.put( "_VERSION", Luan.version );
+//				add( module, "new_luan" );
 				add( module, "values", new Object[0].getClass() );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -241,5 +242,9 @@ public final class BasicLib {
 			}
 		};
 	}
-
+/*
+	public static LuanTable new_luan() {
+		return LuanState.newStandard().global();
+	}
+*/
 }
