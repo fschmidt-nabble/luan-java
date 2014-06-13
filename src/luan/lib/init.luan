@@ -1,9 +1,30 @@
---Io.stdout.write "this is init.luan\n"
+function Package.preload_java(name,path)
+	Package.preload[name] = Package.get_loader(path)
+end
+
+function Package.load_java(name,path)
+	Package.preload_java(name,path)
+	local mod = require(name)
+	_G[name] = mod
+	return mod
+end
+
+local Basic = Package.load_java("Basic","luan.lib.BasicLib.LOADER")
+local String = Package.load_java("String","luan.lib.StringLib.LOADER")
+local Table = Package.load_java("Table","luan.lib.TableLib.LOADER")
+local Io = Package.load_java("Io","luan.lib.IoLib.LOADER")
+Package.load_java("Math","luan.lib.MathLib.LOADER")
+Package.load_java("Html","luan.lib.HtmlLib.LOADER")
+Package.load_java("Thread","luan.lib.ThreadLib.LOADER")
+Package.load_java("Binary","luan.lib.BinaryLib.LOADER")
+Package.preload_java("Java","luan.lib.JavaLib.LOADER")
+Package.preload_java("Http","luan.lib.HttpLib.LOADER")
+
 
 function Io.print_to(out,...)
 	local list = {}
 	for _,v in Basic.values(...) do
-		list[#list+1] = to_string(v)
+		list[#list+1] = _G.to_string(v)
 		list[#list+1] = '\t'
 	end
 	if #list == 0 then
@@ -35,10 +56,10 @@ function Debug.debug(prompt)
 	end
 	for line in console do
 		try
-			local fn = load(line,"stdin",true,true)
+			local fn = _G.load(line,"stdin",true,true)
 			Debug.print_if_something( fn() )
 		catch e do
-			print(e)
+			_G.print(e)
 		end
 	end
 end

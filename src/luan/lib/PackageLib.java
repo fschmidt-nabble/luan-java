@@ -28,6 +28,7 @@ public final class PackageLib {
 			module.put("path","?.luan");
 			try {
 				add( global, "require", LuanState.class, String.class );
+				add( module, "get_loader", String.class );
 				add( module, "search_path", String.class, String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -152,5 +153,16 @@ public final class PackageLib {
 			return LuanFunction.NOTHING;
 		}
 	};
+
+
+	public static LuanFunction get_loader(String path)
+		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException
+	{
+		int i = path.lastIndexOf('.');
+		String clsPath = path.substring(0,i);
+		String fld = path.substring(i+1);
+		Class cls = Class.forName(clsPath);
+		return (LuanFunction)cls.getField(fld).get(null);
+	}
 
 }
