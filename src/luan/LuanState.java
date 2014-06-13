@@ -160,11 +160,14 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		}
 	}
 
-	public final Object eval(String cmd) throws LuanException {
-		LuanFunction fn = BasicLib.load(this,cmd,"eval",true,true);
-		return call(fn);
+	public final Object eval(String cmd) {
+		try {
+			LuanFunction fn = BasicLib.load(this,cmd,"eval",true,true);
+			return call(fn);
+		} catch(LuanException e) {
+			throw new RuntimeException(e);
+		}
 	}
-
 
 	public final LuanTable getMetatable(Object obj) {
 		if( obj instanceof LuanTable ) {
