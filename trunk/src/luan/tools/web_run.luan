@@ -16,7 +16,7 @@ local function print_with_line_numbers(s)
 	end
 end
 
-return function()
+function page()
 	Http.response.set_content_type "text/plain"
 	Io.stdout = Http.response.text_writer()
 	local code = Http.request.get_parameter "code"

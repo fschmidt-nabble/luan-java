@@ -423,7 +423,7 @@ final class LuanParser {
 		parser.begin();
 		List<String> names = NameList(in);
 		if( names==null )
-			parser.exception("Name expected");
+			throw parser.exception("Name expected");
 		return parser.success(names);
 	}
 
@@ -433,11 +433,21 @@ final class LuanParser {
 			return null;
 		List<String> names = new ArrayList<String>();
 		names.add(name);
-		while( parser.match( ',' ) ) {
-			Spaces(in);
-			names.add( RequiredName(in) );
+		while( (name=anotherName(in)) != null ) {
+			names.add(name);
 		}
 		return names;
+	}
+
+	private String anotherName(In in) throws ParseException {
+		parser.begin();
+		if( !parser.match( ',' ) )
+			return parser.failure(null);
+		Spaces(in);
+		String name = Name(in);
+		if( name==null )
+			return parser.failure(null);
+		return parser.success(name);
 	}
 
 	private Stmt WhileStmt() throws ParseException {
@@ -1004,7 +1014,7 @@ final class LuanParser {
 		parser.begin();
 		String name = Name(in);
 		if( name==null )
-			parser.exception("Name expected");
+			throw parser.exception("Name expected");
 		return parser.success(name);
 	}
 

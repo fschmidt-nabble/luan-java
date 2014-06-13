@@ -1,0 +1,53 @@
+import "Http"
+
+local history = {}
+
+Io.stdout = {}
+function Io.stdout.write(...)
+	for _,v in Basic.values(...) do
+		history[#history+1] = v
+	end
+end
+
+function page()
+	if Http.request.get_parameter("clear") ~= nil then
+		history = {}
+	else
+		local cmd = Http.request.get_parameter("cmd")
+		if cmd ~= nil then
+			print( "% "..cmd )
+			try
+				local line = load(cmd,"<web_shell>",true,true);
+				Debug.print_if_something( line() )
+			catch e do
+				Io.print_to(Io.stderr,e)
+				print(e)
+			end
+		end
+	end
+
+	local write = Http.response.text_writer().write
+	write %>
+<html>
+<title>Luan Shell</title>
+	<body>
+		<p>This is a command shell.  Enter commands below.
+		<pre><%
+		for _,v in ipairs(history) do
+			write(v)
+		end
+		write %></pre>
+		<form name='theForm' method='post'>
+			% <input name='cmd' size=60>
+			<input type=submit value=run>
+			<input type=submit name=clear value=clear>
+		</form>
+		
+		<script>document.theForm.cmd.focus();</script>
+		
+		<p/>
+	</body>
+</html>
+<%
+
+end

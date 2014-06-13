@@ -1,25 +1,32 @@
 --Io.stdout.write "this is init.luan\n"
 
-local function print(...)
+function Io.print_to(out,...)
 	local list = {}
 	for _,v in Basic.values(...) do
 		list[#list+1] = to_string(v)
 		list[#list+1] = '\t'
 	end
 	if #list == 0 then
-		Io.stdout.write( '\n' )
+		out.write( '\n' )
 	else
 		list[#list] = '\n'
-		Io.stdout.write( Table.unpack(list) )
+		out.write( Table.unpack(list) )
 	end
 end
 
-_G.print = print
-
+function _G.print(...)
+	Io.print_to(Io.stdout,...)
+end
 
 local Debug = {}
 Package.loaded.Debug = Debug
 _G.Debug = Debug
+
+function Debug.print_if_something(...)
+	if Table.pack(...).n > 0 then
+		_G.print(...)
+	end
+end
 
 function Debug.debug(prompt)
 	prompt = prompt or "luan_debug> "
@@ -29,10 +36,7 @@ function Debug.debug(prompt)
 	for line in console do
 		try
 			local fn = load(line,"stdin",true,true)
-			local result = Table.pack( fn() )
-			if result.n > 0 then
-				print( Table.unpack(result,1,result.n) )
-			end
+			Debug.print_if_something( fn() )
 		catch e do
 			print(e)
 		end
