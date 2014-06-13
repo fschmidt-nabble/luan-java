@@ -37,10 +37,7 @@ public final class IoLib {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
-				add( module, "file", String.class );
-				add( module, "java_resource_to_url", String.class );
-				add( module, "url", String.class );
-				add( module, "java_resource", String.class );
+				add( module, "file", LuanState.class, String.class );
 				add( module, "read_console_line", String.class );
 
 				LuanTable stdin = new LuanTable();
@@ -89,15 +86,6 @@ public final class IoLib {
 	public static LuanFunction stdin_read_blocks(Integer blockSize) throws IOException {
 		int n = blockSize!=null ? blockSize : Utils.bufSize;
 		return blocks(System.in,n);
-	}
-
-	public static String java_resource_to_url(String path) {
-		URL url = ClassLoader.getSystemResource(path);
-		return url==null ? null : url.toString();
-	}
-
-	public static LuanTable java_resource(String path) throws IOException {
-		return url(java_resource_to_url(path));
 	}
 
 	public static String read_console_line(String prompt) throws IOException {
@@ -224,6 +212,7 @@ public final class IoLib {
 
 	public static abstract class LuanIn {
 		abstract InputStream inputStream() throws IOException;
+		abstract String name();
 
 		public String read_text() throws IOException {
 			Reader in = new InputStreamReader(inputStream());
@@ -251,6 +240,9 @@ public final class IoLib {
 		LuanTable table() {
 			LuanTable tbl = new LuanTable();
 			try {
+				tbl.put( "name", new LuanJavaFunction(
+					LuanIn.class.getMethod( "name" ), this
+				) );
 				tbl.put( "read_text", new LuanJavaFunction(
 					LuanIn.class.getMethod( "read_text" ), this
 				) );
@@ -328,10 +320,10 @@ public final class IoLib {
 		InputStream inputStream() throws IOException {
 			return url.openStream();
 		}
-	}
 
-	public static LuanTable url(String s) throws MalformedURLException {
-		return new LuanUrl(s).table();
+		String name() {
+			return url.toString();
+		}
 	}
 
 	public static final class LuanFile extends LuanIO {
@@ -348,10 +340,27 @@ public final class IoLib {
 		OutputStream outputStream() throws IOException {
 			return new FileOutputStream(file);
 		}
+
+		String name() {
+			return file.toString();
+		}
 	}
 
-	public static LuanTable file(String name) {
-		return new LuanFile(name).table();
+	public static LuanIn luanIo(LuanState luan,String name) throws LuanException {
+		if( Utils.isFile(name) )
+			return new LuanFile(name);
+		String url = Utils.toUrl(name);
+		if( url == null )
+			throw luan.exception( "file '"+name+"' not found" );
+		try {
+			return new LuanUrl(url);
+		} catch(MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static LuanTable file(LuanState luan,String name) throws LuanException {
+		return luanIo(luan,name).table();
 	}
 
 	public static final class LuanSocket extends LuanIO {
@@ -371,6 +380,10 @@ public final class IoLib {
 
 		OutputStream outputStream() throws IOException {
 			return socket.getOutputStream();
+		}
+
+		String name() {
+			return socket.toString();
 		}
 
 		public LuanTable pickle_client(LuanState luan) throws IOException {

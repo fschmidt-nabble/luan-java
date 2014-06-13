@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.File;
+import java.net.URL;
+import java.net.MalformedURLException;
 import luan.LuanState;
 import luan.LuanException;
 
@@ -49,4 +52,26 @@ public final class Utils {
 		return out.toByteArray();
 	}
 
+	public static boolean isFile(String path) {
+		return new File(path).exists();
+	}
+
+	public static String toUrl(String path) {
+		if( path.indexOf(':') == -1 )
+			return null;
+		if( path.startsWith("java:") ) {
+			path = path.substring(5);
+			URL url = ClassLoader.getSystemResource(path);
+			return url==null ? null : url.toString();
+		}
+		try {
+			new URL(path);
+			return path;
+		} catch(MalformedURLException e) {}
+		return null;
+	}
+
+	public static boolean exists(String path) {
+		return isFile(path) || toUrl(path)!=null;
+	}
 }

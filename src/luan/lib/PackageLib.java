@@ -1,8 +1,6 @@
 package luan.lib;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +32,6 @@ public final class PackageLib {
 			LuanTable searchers = luan.searchers();
 			searchers.add(preloadSearcher);
 			searchers.add(fileSearcher);
-			searchers.put("java",javaFileSearcher);
 			module.put("searchers",searchers);
 			return module;
 		}
@@ -54,17 +51,7 @@ public final class PackageLib {
 			if( searchers == null ) {
 				list = Collections.<Object>singletonList(preloadSearcher);
 			} else {
-				int i = modName.indexOf(':');
-				if( i != -1 ) {
-					String prefix = modName.substring(0,i);
-					Object searcher = searchers.get(prefix);
-					if( searcher != null ) {
-						list = Collections.<Object>singletonList(searcher);
-						searchFor = modName.substring(i+1);
-					}
-				}
-				if( list == null )
-					list = searchers.asList();
+				list = searchers.asList();
 			}
 			for( Object s : list ) {
 				LuanFunction searcher = (LuanFunction)s;
@@ -92,7 +79,7 @@ public final class PackageLib {
 	public static String search_path(String name,String path) {
 		for( String s : path.split(";") ) {
 			String file = s.replaceAll("\\?",name);
-			if( new File(file).exists() )
+			if( Utils.exists(file) )
 				return file;
 		}
 		return null;
@@ -124,33 +111,6 @@ public final class PackageLib {
 		}
 	};
 
-
-
-
-	public static final LuanFunction javaFileLoader = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-			String urlStr = (String)args[1];
-			String path = (String)args[2];
-			try {
-				String src = new IoLib.LuanUrl(urlStr).read_text();
-				LuanFunction fn = BasicLib.load(luan,src,path,false,false);
-				return fn.call(luan,args);
-			} catch(IOException e) {
-				throw luan.exception(e);
-			}
-		}
-	};
-
-	public static final LuanFunction javaFileSearcher = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
-			String path = (String)args[0];
-			String url = IoLib.java_resource_to_url(path);
-			if( url != null ) {
-				return new Object[]{javaFileLoader,url,path};
-			}
-			return LuanFunction.NOTHING;
-		}
-	};
 
 
 	public static LuanFunction get_loader(String path)
