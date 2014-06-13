@@ -35,13 +35,11 @@ public final class BasicLib {
 				add( global, "assert_string", LuanState.class, String.class );
 				add( global, "assert_table", LuanState.class, LuanTable.class );
 				add( global, "do_file", LuanState.class, String.class );
-				add( global, "do_java_resource", LuanState.class, String.class );
 				add( global, "error", LuanState.class, Object.class );
 				add( global, "get_metatable", LuanState.class, Object.class );
 				add( global, "ipairs", LuanState.class, LuanTable.class );
 				add( global, "load", LuanState.class, String.class, String.class, Boolean.class, Boolean.class );
 				add( global, "load_file", LuanState.class, String.class );
-				add( global, "load_java_resource", LuanState.class, String.class );
 				add( global, "pairs", LuanState.class, LuanTable.class );
 				add( global, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
 				add( global, "raw_equal", Object.class, Object.class );
@@ -54,6 +52,8 @@ public final class BasicLib {
 				add( global, "to_string", LuanState.class, Object.class );
 				add( global, "type", Object.class );
 				global.put( "_VERSION", Luan.version );
+				add( module, "do_java_resource", LuanState.class, String.class );
+				add( module, "load_java_resource", LuanState.class, String.class );
 //				add( module, "new_luan" );
 				add( module, "values", new Object[0].getClass() );
 			} catch(NoSuchMethodException e) {
