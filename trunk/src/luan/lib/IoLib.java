@@ -33,8 +33,6 @@ import luan.LuanException;
 
 public final class IoLib {
 
-	public static final String NAME = "Io";
-
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();

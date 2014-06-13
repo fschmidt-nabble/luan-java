@@ -9,8 +9,6 @@ import luan.LuanException;
 
 public final class BinaryLib {
 
-	public static final String NAME = "Binary";
-
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
