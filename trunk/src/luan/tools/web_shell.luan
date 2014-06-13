@@ -1,5 +1,7 @@
 import "Http"
 
+per_session = true
+
 local history = {}
 
 Io.stdout = {}
