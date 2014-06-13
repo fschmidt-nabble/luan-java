@@ -14,8 +14,6 @@ import luan.MetatableGetter;
 
 public final class StringLib {
 
-	public static final String NAME = "String";
-
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			luan.addMetatableGetter(mg);

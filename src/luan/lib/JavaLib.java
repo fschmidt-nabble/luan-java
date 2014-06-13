@@ -27,8 +27,6 @@ import luan.LuanElement;
 
 public final class JavaLib {
 
-	public static final String NAME = "Java";
-
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			luan.addMetatableGetter(mg);

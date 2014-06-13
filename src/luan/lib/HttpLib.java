@@ -24,8 +24,6 @@ import luan.DeepCloner;
 
 public final class HttpLib {
 
-	public static final String NAME = "Http";
-
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			return new LuanTable();  // starts empty
@@ -63,7 +61,7 @@ public final class HttpLib {
 			}
 		}
 
-		LuanTable module = (LuanTable)luan.loaded().get(NAME);
+		LuanTable module = (LuanTable)luan.loaded().get("Http");
 		if( module == null )
 			throw luan.exception( "module 'Http' not defined" );
 		HttpLib lib = new HttpLib(request,response);

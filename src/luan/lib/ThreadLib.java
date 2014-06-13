@@ -12,8 +12,6 @@ import luan.DeepCloner;
 
 public final class ThreadLib {
 
-	public static final String NAME = "Thread";
-
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
