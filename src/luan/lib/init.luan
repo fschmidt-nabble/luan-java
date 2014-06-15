@@ -17,6 +17,7 @@ Package.load_java("Math","luan.lib.MathLib.LOADER")
 Package.load_java("Html","luan.lib.HtmlLib.LOADER")
 Package.load_java("Thread","luan.lib.ThreadLib.LOADER")
 Package.load_java("Binary","luan.lib.BinaryLib.LOADER")
+Package.load_java("Os","luan.lib.OsLib.LOADER")
 Package.preload_java("Java","luan.lib.JavaLib.LOADER")
 Package.preload_java("Http","luan.lib.HttpLib.LOADER")
 
