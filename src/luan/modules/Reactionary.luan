@@ -1,0 +1,23 @@
+-- Reactionary
+
+host = "localhost"
+port = 9101
+
+function put(domain,password,dir)
+	local pc = Io.socket(host,port).pickle_client()
+	local pickle = pc.pickle
+	pc.call %>
+		Reactionary.do_put(<%=pickle(domain)%>,<%=pickle(password)%>,<%=pickle(dir)%>)
+	<%
+	pc.close()
+end
+
+function delete(domain,password)
+	local pc = Io.socket(host,port).pickle_client()
+	local pickle = pc.pickle
+	pc.call %>
+		Reactionary.do_delete(<%=pickle(domain)%>,<%=pickle(password)%>)
+	<%
+	pc.close()
+end
+
