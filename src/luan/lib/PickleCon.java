@@ -23,7 +23,7 @@ public final class PickleCon {
 	final LuanState luan;
 	private final DataInputStream in;
 	private final LuanFunction _read_binary;
-	private final LuanTable ioModule;
+	final LuanTable ioModule;
 	private final DataOutputStream out;
 	private final List<byte[]> binaries = new ArrayList<byte[]>();
 	String src;
@@ -57,11 +57,14 @@ public final class PickleCon {
 
 	public Object read() throws IOException, LuanException {
 		ioModule.put("_read_binary",_read_binary);
-		src = in.readUTF();
-		LuanFunction fn = BasicLib.load(luan,src,"pickle-reader",true,false);
-		Object rtn = luan.call(fn);
-		ioModule.put("_binaries",null);
-		return rtn;
+		try {
+			src = in.readUTF();
+			LuanFunction fn = BasicLib.load(luan,src,"pickle-reader",true,false);
+			return luan.call(fn);
+		} finally {
+			ioModule.put("_binaries",null);
+			ioModule.put("_read_binary",null);
+		}
 	}
 
 	public String pickle(Object obj) throws LuanException {

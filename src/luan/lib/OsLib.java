@@ -45,6 +45,17 @@ public final class OsLib {
 			return new IoLib.LuanFile(file).table();
 		}
 
+		public LuanTable list_children() {
+			File[] files = file.listFiles();
+			if( files==null )
+				return null;
+			LuanTable list = new LuanTable();
+			for( File f : files ) {
+				list.add(new LuanFile(f).table());
+			}
+			return list;
+		}
+
 		LuanTable table() {
 			LuanTable tbl = new LuanTable();
 			try {
@@ -69,11 +80,17 @@ public final class OsLib {
 				tbl.put( "mkdirs", new LuanJavaFunction(
 					File.class.getMethod( "mkdirs" ), file
 				) );
+				tbl.put( "last_modified", new LuanJavaFunction(
+					File.class.getMethod( "lastModified" ), file
+				) );
 				tbl.put( "child", new LuanJavaFunction(
 					LuanFile.class.getMethod( "child", String.class ), this
 				) );
 				tbl.put( "io_file", new LuanJavaFunction(
 					LuanFile.class.getMethod( "io_file" ), this
+				) );
+				tbl.put( "list_children", new LuanJavaFunction(
+					LuanFile.class.getMethod( "list_children" ), this
 				) );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);

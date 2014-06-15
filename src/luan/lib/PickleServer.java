@@ -8,15 +8,23 @@ import java.util.List;
 import java.util.ArrayList;
 import luan.Luan;
 import luan.LuanState;
+import luan.LuanTable;
+import luan.LuanFunction;
+import luan.LuanJavaFunction;
 import luan.LuanException;
 
 
-final class PickleServer {
+public final class PickleServer {
 
 	private final PickleCon con;
+	private boolean isRunning;
 
 	PickleServer(LuanState luan,DataInputStream in,DataOutputStream out) {
-		con = new PickleCon(luan,in,out);
+		this(new PickleCon(luan,in,out));
+	}
+
+	PickleServer(PickleCon con) {
+		this.con = con;
 	}
 
 	void next() throws IOException {
@@ -44,20 +52,54 @@ final class PickleServer {
 	}
 
 	public void run() {
+		LuanTable ioModule = con.ioModule;
+		Object old_reverse_pickle = ioModule.get("reverse_pickle");
+		Object old_close_pickle = ioModule.get("unreverse_pickle");
 		try {
-			while( true ) {
-				next();
+			try {
+				ioModule.put("reverse_pickle", new LuanJavaFunction(
+					PickleServer.class.getMethod( "reverse_pickle" ), this
+				) );
+				ioModule.put("unreverse_pickle", new LuanJavaFunction(
+					PickleServer.class.getMethod( "unreverse_pickle" ), this
+				) );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
 			}
-		} catch(EOFException e) {
-			// done
-		} catch(IOException e) {
-			e.printStackTrace();
+			isRunning = true;
+			try {
+				while( isRunning ) {
+					next();
+				}
+			} catch(EOFException e) {
+				// done
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+			if( isRunning ) {
+				try {
+					con.close();
+				} catch(IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		} finally {
+			ioModule.put("reverse_pickle",old_reverse_pickle);
+			ioModule.put("unreverse_pickle",old_close_pickle);
 		}
+	}
+
+	public LuanTable reverse_pickle() throws IOException {
 		try {
-			con.close();
-		} catch(IOException e) {
+			con.write( "return Io._reversed_pickle()\n" );
+		} catch(LuanException e) {
 			throw new RuntimeException(e);
 		}
+		return new PickleClient(con).table();
+	}
+
+	public void unreverse_pickle() {
+		isRunning = false;
 	}
 
 }

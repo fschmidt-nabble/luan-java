@@ -8,19 +8,43 @@ import luan.LuanState;
 import luan.LuanException;
 import luan.LuanTable;
 import luan.LuanJavaFunction;
+import luan.LuanFunction;
 
 
 public final class PickleClient {
 
 	private final PickleCon con;
+	private final LuanFunction _reversed_pickle;
 
 	PickleClient(LuanState luan,DataInputStream in,DataOutputStream out) {
-		con = new PickleCon(luan,in,out);
+		this(new PickleCon(luan,in,out));
+	}
+
+	PickleClient(PickleCon con) {
+		this.con = con;
+		try {
+			this._reversed_pickle = new LuanJavaFunction(
+				PickleClient.class.getMethod( "_reversed_pickle" ), this
+			);
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public Object _reversed_pickle() throws LuanException, IOException {
+		new PickleServer(con).run();
+		return con.read();
 	}
 
 	public Object call(Object... args) throws LuanException, IOException {
 		con.write(args);
-		Object[] result = Luan.array(con.read());
+		Object[] result;
+		con.ioModule.put("_reversed_pickle",_reversed_pickle);
+		try {
+			result = Luan.array(con.read());
+		} finally {
+			con.ioModule.put("_reversed_pickle",null);
+		}
 		boolean ok = (boolean)result[0];
 		if( ok ) {
 			Object[] rtn = new Object[result.length-1];
