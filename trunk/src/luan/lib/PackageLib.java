@@ -21,7 +21,7 @@ public final class PackageLib {
 			LuanTable global = luan.global();
 			module.put("loaded",luan.loaded());
 			module.put("preload",luan.preload());
-			module.put("path","?.luan");
+			module.put("path","?.luan;java:luan/modules/?.luan");
 			try {
 				add( global, "require", LuanState.class, String.class );
 				add( module, "get_loader", String.class );

@@ -212,7 +212,7 @@ public final class IoLib {
 
 	public static abstract class LuanIn {
 		abstract InputStream inputStream() throws IOException;
-		abstract String name();
+		public abstract String name();
 
 		public String read_text() throws IOException {
 			Reader in = new InputStreamReader(inputStream());
@@ -317,11 +317,11 @@ public final class IoLib {
 			this.url = new URL(s);
 		}
 
-		InputStream inputStream() throws IOException {
+		@Override InputStream inputStream() throws IOException {
 			return url.openStream();
 		}
 
-		String name() {
+		@Override public String name() {
 			return url.toString();
 		}
 	}
@@ -333,15 +333,15 @@ public final class IoLib {
 			this.file = new File(name);
 		}
 
-		InputStream inputStream() throws IOException {
+		@Override InputStream inputStream() throws IOException {
 			return new FileInputStream(file);
 		}
 
-		OutputStream outputStream() throws IOException {
+		@Override OutputStream outputStream() throws IOException {
 			return new FileOutputStream(file);
 		}
 
-		String name() {
+		@Override public String name() {
 			return file.toString();
 		}
 	}
@@ -374,15 +374,15 @@ public final class IoLib {
 			this.socket = socket;
 		}
 
-		InputStream inputStream() throws IOException {
+		@Override InputStream inputStream() throws IOException {
 			return socket.getInputStream();
 		}
 
-		OutputStream outputStream() throws IOException {
+		@Override OutputStream outputStream() throws IOException {
 			return socket.getOutputStream();
 		}
 
-		String name() {
+		@Override public String name() {
 			return socket.toString();
 		}
 

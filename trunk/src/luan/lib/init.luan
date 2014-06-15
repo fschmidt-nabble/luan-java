@@ -63,3 +63,7 @@ function Debug.debug(prompt)
 		end
 	end
 end
+
+
+-- import modules
+_G.Reactionary = require "Reactionary"
