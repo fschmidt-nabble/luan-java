@@ -30,6 +30,7 @@ final class PickleServer {
 					list.add( con.pickle(obj) );
 				}
 			} catch(LuanException e) {
+//e.printStackTrace();
 				list.add( "return false, " );
 				list.add( con.pickle(e.getMessage()) );
 				list.add( ", " );

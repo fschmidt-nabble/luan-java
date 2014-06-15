@@ -37,7 +37,7 @@ public final class IoLib {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
-				add( module, "file", LuanState.class, String.class );
+				add( module, "File", LuanState.class, String.class );
 				add( module, "read_console_line", String.class );
 
 				LuanTable stdin = new LuanTable();
@@ -55,7 +55,7 @@ public final class IoLib {
 				) );
 				module.put( "stdin", stdin );
 
-				add( module, "socket", String.class, Integer.TYPE );
+				add( module, "Socket", String.class, Integer.TYPE );
 				add( module, "socket_server", Integer.TYPE );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -330,7 +330,11 @@ public final class IoLib {
 		private final File file;
 
 		public LuanFile(String name) {
-			this.file = new File(name);
+			this(new File(name));
+		}
+
+		public LuanFile(File file) {
+			this.file = file;
 		}
 
 		@Override InputStream inputStream() throws IOException {
@@ -343,6 +347,22 @@ public final class IoLib {
 
 		@Override public String name() {
 			return file.toString();
+		}
+
+		public LuanTable os_file() {
+			return new OsLib.LuanFile(file).table();
+		}
+
+		@Override LuanTable table() {
+			LuanTable tbl = super.table();
+			try {
+				tbl.put( "os_file", new LuanJavaFunction(
+					LuanFile.class.getMethod( "os_file" ), this
+				) );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return tbl;
 		}
 	}
 
@@ -359,7 +379,7 @@ public final class IoLib {
 		}
 	}
 
-	public static LuanTable file(LuanState luan,String name) throws LuanException {
+	public static LuanTable File(LuanState luan,String name) throws LuanException {
 		return luanIo(luan,name).table();
 	}
 
@@ -386,7 +406,7 @@ public final class IoLib {
 			return socket.toString();
 		}
 
-		public LuanTable pickle_client(LuanState luan) throws IOException {
+		public LuanTable Pickle_client(LuanState luan) throws IOException {
 			DataInputStream in = new DataInputStream(new BufferedInputStream(inputStream()));
 			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(outputStream()));
 			return new PickleClient(luan,in,out).table();
@@ -401,8 +421,8 @@ public final class IoLib {
 		@Override LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
-				tbl.put( "pickle_client", new LuanJavaFunction(
-					LuanSocket.class.getMethod( "pickle_client", LuanState.class ), this
+				tbl.put( "Pickle_client", new LuanJavaFunction(
+					LuanSocket.class.getMethod( "Pickle_client", LuanState.class ), this
 				) );
 				tbl.put( "run_pickle_server", new LuanJavaFunction(
 					LuanSocket.class.getMethod( "run_pickle_server", LuanState.class ), this
@@ -414,7 +434,7 @@ public final class IoLib {
 		}
 	}
 
-	public static LuanTable socket(String host,int port) throws IOException {
+	public static LuanTable Socket(String host,int port) throws IOException {
 		return new LuanSocket(host,port).table();
 	}
 
