@@ -120,7 +120,7 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 		return "table: " + Integer.toHexString(hashCode());
 	}
 
-	public String repr() {
+	@Override public String repr() {
 		return repr( Collections.newSetFromMap(new IdentityHashMap<LuanTable,Boolean>()) );
 	}
 
@@ -181,7 +181,7 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 		} else {
 			String s = Luan.repr(obj);
 			if( s == null )
-				s = "\"<couldn't repr: " + Luan.stringEncode(Luan.toString(obj)) + ">\"";
+				s = "<couldn't repr: " + Luan.stringEncode(Luan.toString(obj)) + ">";
 			return s;
 		}
 	}

@@ -70,6 +70,8 @@ public final class PickleCon {
 	public String pickle(Object obj) throws LuanException {
 		if( obj == null )
 			return "nil";
+		if( obj instanceof Boolean )
+			return Luan.toString((Boolean)obj);
 		if( obj instanceof Number )
 			return Luan.toString((Number)obj);
 		if( obj instanceof String )

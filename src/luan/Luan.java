@@ -135,6 +135,8 @@ public final class Luan {
 	public static String repr(Object obj) {
 		if( obj == null )
 			return "nil";
+		if( obj instanceof Boolean )
+			return Luan.toString((Boolean)obj);
 		if( obj instanceof Number )
 			return Luan.toString((Number)obj);
 		if( obj instanceof String )
