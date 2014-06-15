@@ -28,12 +28,12 @@ public final class Parser {
 	}
 
 	public int begin() {
+		frame++;
 		if( frame == stack.length ) {
 			int[] a = new int[2*frame];
 			System.arraycopy(stack,0,a,0,frame);
 			stack = a;
 		}
-		frame++;
 		stack[frame] = stack[frame-1];
 		return i();
 	}

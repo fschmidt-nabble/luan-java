@@ -1,7 +1,7 @@
 package luan;
 
 
-public abstract class LuanFunction {
+public abstract class LuanFunction implements LuanRepr {
 
 	public abstract Object call(LuanState luan,Object[] args) throws LuanException;
 
@@ -9,6 +9,10 @@ public abstract class LuanFunction {
 
 	@Override public String toString() {
 		return "function: " + Integer.toHexString(hashCode());
+	}
+
+	@Override public String repr() {
+		return "<function>";
 	}
 
 }
