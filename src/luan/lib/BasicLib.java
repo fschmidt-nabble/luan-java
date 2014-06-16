@@ -36,7 +36,7 @@ public final class BasicLib {
 				add( global, "error", LuanState.class, Object.class );
 				add( global, "get_metatable", LuanState.class, Object.class );
 				add( global, "ipairs", LuanState.class, LuanTable.class );
-				add( global, "load", LuanState.class, String.class, String.class, Boolean.class, Boolean.class );
+				add( global, "load", LuanState.class, String.class, String.class, LuanTable.class, Boolean.class );
 				add( global, "load_file", LuanState.class, String.class );
 				add( global, "pairs", LuanState.class, LuanTable.class );
 				add( global, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
@@ -66,21 +66,18 @@ public final class BasicLib {
 		return Luan.type(obj);
 	}
 
-	public static LuanFunction load(LuanState luan,String text,String sourceName,Boolean useGlobal,Boolean allowExpr)
+	public static LuanFunction load(LuanState luan,String text,String sourceName,LuanTable env,Boolean allowExpr)
 		throws LuanException
 	{
 		if( allowExpr==null )
 			allowExpr = false;
-		if( useGlobal!=null && useGlobal )
-			return LuanCompiler.compileGlobal(luan,new LuanSource(sourceName,text),allowExpr);
-		else
-			return LuanCompiler.compileModule(luan,new LuanSource(sourceName,text),allowExpr);
+		return LuanCompiler.compile(luan,new LuanSource(sourceName,text),env,allowExpr);
 	}
 
 	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
 			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : IoLib.luanIo(luan,fileName).read_text();
-			return load(luan,src,fileName,false,false);
+			return load(luan,src,fileName,null,false);
 		} catch(IOException e) {
 			throw luan.exception(e);
 		}

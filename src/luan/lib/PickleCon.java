@@ -27,6 +27,7 @@ public final class PickleCon {
 	private final DataOutputStream out;
 	private final List<byte[]> binaries = new ArrayList<byte[]>();
 	String src;
+	private final LuanTable env;
 
 	PickleCon(LuanState luan,DataInputStream in,DataOutputStream out) {
 		this.in = in;
@@ -39,6 +40,7 @@ public final class PickleCon {
 			throw new RuntimeException(e);
 		}
 		this.ioModule = (LuanTable)luan.loaded().get("Io");
+		this.env = new LuanTable(luan.global());
 
 		this.out = out;
 	}
@@ -59,7 +61,7 @@ public final class PickleCon {
 		ioModule.put("_read_binary",_read_binary);
 		try {
 			src = in.readUTF();
-			LuanFunction fn = BasicLib.load(luan,src,"pickle-reader",true,false);
+			LuanFunction fn = BasicLib.load(luan,src,"pickle-reader",env,false);
 			return luan.call(fn);
 		} finally {
 			ioModule.put("_binaries",null);
