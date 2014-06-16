@@ -451,24 +451,24 @@ final class LuanParser {
 	}
 
 	private Stmt WhileStmt() throws ParseException {
-		parser.begin();
+		int start = parser.begin();
 		if( !Keyword("while",In.NOTHING) )
 			return parser.failure(null);
 		Expr cnd = expr(RequiredExpr(In.NOTHING));
 		RequiredKeyword("do",In.NOTHING);
 		Stmt loop = RequiredLoopBlock();
 		RequiredKeyword("end",In.NOTHING);
-		return parser.success( new WhileStmt(cnd,loop) );
+		return parser.success( new WhileStmt(se(start),cnd,loop) );
 	}
 
 	private Stmt RepeatStmt() throws ParseException {
-		parser.begin();
+		int start = parser.begin();
 		if( !Keyword("repeat",In.NOTHING) )
 			return parser.failure(null);
 		Stmt loop = RequiredLoopBlock();
 		RequiredKeyword("until",In.NOTHING);
 		Expr cnd = expr(RequiredExpr(In.NOTHING));
-		return parser.success( new RepeatStmt(loop,cnd) );
+		return parser.success( new RepeatStmt(se(start),loop,cnd) );
 	}
 
 	private Stmt RequiredLoopBlock() throws ParseException {
@@ -486,6 +486,7 @@ final class LuanParser {
 	}
 
 	private Stmt IfStmt2() throws ParseException {
+		int start = parser.currentIndex();
 		Expr cnd = expr(RequiredExpr(In.NOTHING));
 		RequiredKeyword("then",In.NOTHING);
 		Stmt thenBlock = RequiredBlock();
@@ -496,7 +497,7 @@ final class LuanParser {
 			elseBlock = Keyword("else",In.NOTHING) ? RequiredBlock() : Stmt.EMPTY;
 			RequiredKeyword("end",In.NOTHING);
 		}
-		return new IfStmt(cnd,thenBlock,elseBlock);
+		return new IfStmt(se(start),cnd,thenBlock,elseBlock);
 	}
 
 	private Stmt SetStmt() throws ParseException {

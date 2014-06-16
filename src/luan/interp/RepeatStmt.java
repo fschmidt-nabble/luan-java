@@ -2,13 +2,15 @@ package luan.interp;
 
 import luan.Luan;
 import luan.LuanException;
+import luan.LuanSource;
 
 
-final class RepeatStmt implements Stmt {
+final class RepeatStmt extends CodeImpl implements Stmt {
 	private final Stmt doStmt;
 	private final Expr cnd;
 
-	RepeatStmt(Stmt doStmt,Expr cnd) {
+	RepeatStmt(LuanSource.Element se,Stmt doStmt,Expr cnd) {
+		super(se);
 		this.doStmt = doStmt;
 		this.cnd = cnd;
 	}
@@ -17,7 +19,7 @@ final class RepeatStmt implements Stmt {
 		try {
 			do {
 				doStmt.eval(luan);
-			} while( !Luan.toBoolean( cnd.eval(luan) ) );
+			} while( !luan.bit(se).checkBoolean( cnd.eval(luan) ) );
 		} catch(BreakException e) {}
 	}
 }

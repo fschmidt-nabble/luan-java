@@ -61,6 +61,12 @@ public final class LuanBit {
 		throw exception( "attempt to call a " + Luan.type(obj) + " value" );
 	}
 
+	public Boolean checkBoolean(Object obj) throws LuanException {
+		if( obj instanceof Boolean )
+			return (Boolean)obj;
+		throw exception( "attempt to use a " + Luan.type(obj) + " as a boolean" );
+	}
+
 	public String toString(Object obj) throws LuanException {
 		LuanFunction fn = getHandlerFunction("__tostring",obj);
 		if( fn != null )
