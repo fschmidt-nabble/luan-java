@@ -3,6 +3,7 @@ import "Http"
 per_session = true
 
 local history = {}
+local env = {}
 
 Io.stdout = {}
 function Io.stdout.write(...)
@@ -19,7 +20,7 @@ function page()
 		if cmd ~= nil then
 			print( "% "..cmd )
 			try
-				local line = load(cmd,"<web_shell>",true,true);
+				local line = load(cmd,"<web_shell>",env,true);
 				Debug.print_if_something( line() )
 			catch e do
 				Io.print_to(Io.stderr,e)
