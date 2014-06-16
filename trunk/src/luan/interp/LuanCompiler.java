@@ -13,7 +13,7 @@ import java.util.Map;
 public final class LuanCompiler {
 	private LuanCompiler() {}  // never
 
-	public static LuanFunction compileModule(LuanState luan,LuanSource src,boolean allowExpr) throws LuanException {
+	private static LuanFunction compile(LuanState luan,LuanSource src,boolean allowExpr) throws LuanException {
 		UpValue.Getter envGetter = new UpValue.EnvGetter();
 		LuanParser parser = new LuanParser(src,envGetter);
 		for( Map.Entry<Object,Object> entry : luan.global() ) {
@@ -33,8 +33,10 @@ public final class LuanCompiler {
 		};
 	}
 
-	public static LuanFunction compileGlobal(LuanState luan,LuanSource src,boolean allowExpr) throws LuanException {
-		UpValue.Getter envGetter = UpValue.globalGetter;
+	public static LuanFunction compile(LuanState luan,LuanSource src,LuanTable env,boolean allowExpr) throws LuanException {
+		if( env==null )
+			return compile(luan,src,allowExpr);
+		UpValue.Getter envGetter = new UpValue.ValueGetter(env);
 		LuanParser parser = new LuanParser(src,envGetter);
 		FnDef fnDef = parse(luan,parser,allowExpr);
 		return new Closure((LuanStateImpl)luan,fnDef);

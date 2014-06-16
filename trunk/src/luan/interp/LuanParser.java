@@ -104,7 +104,7 @@ final class LuanParser {
 		this.source = source;
 		this.frame = new Frame(envGetter);
 		this.parser = new Parser(source);
-		this.interactive = envGetter==UpValue.globalGetter;
+		this.interactive = envGetter instanceof UpValue.ValueGetter;
 	}
 
 	void addVar(String name,Object value) {

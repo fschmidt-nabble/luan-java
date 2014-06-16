@@ -152,7 +152,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	public final Object eval(String cmd) {
 		try {
-			LuanFunction fn = BasicLib.load(this,cmd,"eval",true,true);
+			LuanFunction fn = BasicLib.load(this,cmd,"eval",null,true);
 			return call(fn);
 		} catch(LuanException e) {
 			throw new RuntimeException(e);

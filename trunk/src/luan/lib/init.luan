@@ -50,14 +50,23 @@ function Debug.print_if_something(...)
 	end
 end
 
+function Table.clone(tbl)
+	local new = {}
+	for k,v in _G.pairs(tbl) do
+		new[k] = v
+	end
+	return new
+end
+
 function Debug.debug(prompt)
 	prompt = prompt or "luan_debug> "
 	local function console()
 		return Io.read_console_line(prompt)
 	end
+	local env = Table.clone(_G)
 	for line in console do
 		try
-			local fn = _G.load(line,"stdin",true,true)
+			local fn = _G.load(line,"stdin",env,true)
 			Debug.print_if_something( fn() )
 		catch e do
 			_G.print(e)

@@ -21,6 +21,13 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 
 	public LuanTable() {}
 
+	public LuanTable(LuanTable tbl) {
+		if( tbl.map != null )
+			this.map = new HashMap<Object,Object>(tbl.map);
+		if( tbl.list != null )
+			this.list = new ArrayList<Object>(tbl.list);
+	}
+
 	public LuanTable(List<Object> list) {
 		this.list = list;
 		this.map = new HashMap<Object,Object>();
