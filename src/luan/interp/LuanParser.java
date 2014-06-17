@@ -249,7 +249,7 @@ final class LuanParser {
 			|| (stmt=RepeatStmt()) != null
 			|| (stmt=IfStmt()) != null
 			|| (stmt=SetStmt()) != null
-			|| (stmt=ExpressionsStmt()) != null
+			|| (stmt=FnCallStmt()) != null
 		) {
 			stmts.add(stmt);
 		}
@@ -523,12 +523,13 @@ final class LuanParser {
 		return parser.success( new SetStmt( vars.toArray(new Settable[0]), values ) );
 	}
 
-	private Stmt ExpressionsStmt() throws ParseException {
+	private Stmt FnCallStmt() throws ParseException {
 		parser.begin();
-		Expressions exprs = ExpList(In.NOTHING);
-		if( exprs==null )
+		Code code = VarExp(In.NOTHING);
+		if( !(code instanceof FnCall) )
 			return parser.failure(null);
-		return parser.success( new ExpressionsStmt(exprs) );
+		FnCall fnCall = (FnCall)code;
+		return parser.success( new FnCallStmt(fnCall) );
 	}
 
 	private Settable SettableVar() throws ParseException {
