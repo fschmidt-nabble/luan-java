@@ -2,110 +2,19 @@ package luan.interp;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import luan.LuanException;
 import luan.LuanSource;
+import luan.LuanFunction;
+import luan.Luan;
 
 
-final class ExpList implements Expressions {
-
-	private interface Adder {
-		public void addTo(LuanStateImpl luan,List<Object> list) throws LuanException;
-		public Code code();
-	}
-
-	private static class ExprAdder implements Adder {
-		private final Expr expr;
-
-		ExprAdder(Expr expr) {
-			this.expr = expr;
-		}
-
-		public void addTo(LuanStateImpl luan,List<Object> list) throws LuanException {
-			list.add( expr.eval(luan) );
-		}
-
-		public Code code() {
-			return expr;
-		}
-
-	}
-
-	private static class ExpressionsAdder implements Adder {
-		private final Expressions expressions;
-
-		ExpressionsAdder(Expressions expressions) {
-			this.expressions = expressions;
-		}
-
-		public void addTo(LuanStateImpl luan,List<Object> list) throws LuanException {
-			Object obj = expressions.eval(luan);
-			if( obj instanceof Object[] ) {
-				for( Object val : (Object[])obj ) {
-					list.add( val );
-				}
-			} else {
-				list.add(obj);
-			}
-		}
-
-		public Code code() {
-			return expressions;
-		}
-
-	}
-
-	static class Builder {
-		private final List<Adder> adders = new ArrayList<Adder>();
-
-		void add(Expr expr) {
-			if( expr==null )
-				throw new NullPointerException();
-			adders.add( new ExprAdder(expr) );
-		}
-
-		void add(Expressions expressions) {
-			adders.add( new ExpressionsAdder(expressions) );
-		}
-
-		void add(Code code) {
-			if( code instanceof Expr ) {
-				add((Expr)code);
-			} else {
-				add((Expressions)code);
-			}
-		}
-
-		Expressions build() {
-			int size = adders.size();
-			if( size == 0 )
-				return emptyExpList;
-			if( size == 1 ) {
-				Adder adder = adders.get(0);
-				if( adder instanceof ExpressionsAdder ) {
-					ExpressionsAdder ea = (ExpressionsAdder)adder;
-					return ea.expressions;
-				}
-				ExprAdder ea = (ExprAdder)adder;
-				return new SingleExpList(ea.expr);
-			}
-			Adder[] a = adders.toArray(new Adder[size]);
-			for( int i=0; i<size-1; i++ ) {
-				Adder adder = a[i];
-				if( adder instanceof ExpressionsAdder ) {
-					a[i] = new ExprAdder(new ExpressionsExpr(((ExpressionsAdder)adder).expressions));
-				}
-			}
-			return new ExpList(a);
-		}
-	}
-
-	private static final Object[] EMPTY = new Object[0];
+final class ExpList {
 
 	static final Expressions emptyExpList = new Expressions() {
 
 		@Override public Object[] eval(LuanStateImpl luan) {
-			return EMPTY;
+			return LuanFunction.NOTHING;
 		}
 
 		@Override public LuanSource.Element se() {
@@ -113,49 +22,75 @@ final class ExpList implements Expressions {
 		}
 	};
 
-	static class SingleExpList implements Expressions {
-		private final Expr expr;
-
-		SingleExpList(Expr expr) {
-			this.expr = expr;
+	static Expr[] toArray(List<Expressions> list) {
+		Expr[] a = new Expr[list.size()];
+		for( int i=0; i<a.length; i++ ) {
+			Expressions exprs = list.get(i);
+			if( exprs instanceof Expr ) {
+				a[i] = (Expr)exprs;
+			} else {
+				a[i] = new ExpressionsExpr(exprs);
+			}
 		}
-
-		@Override public Object eval(LuanStateImpl luan) throws LuanException {
-//System.out.println("SingleExpList "+expr);
-			return expr.eval(luan);
-		}
-
-		@Override public LuanSource.Element se() {
-			return expr.se();
-		}
-
-		@Override public String toString() {
-			return "(SingleExpList "+expr+")";
-		}
+		return a;
 	}
 
-	private final Adder[] adders;
-
-	private ExpList(Adder[] adders) {
-		this.adders = adders;
-	}
-
-	@Override public Object eval(LuanStateImpl luan) throws LuanException {
-		List<Object> list = new ArrayList<Object>();
-		for( Adder adder : adders ) {
-			adder.addTo(luan,list);
-		}
-		switch( list.size() ) {
+	static Expressions build(List<Expressions> list) {
+		switch(list.size()) {
 		case 0:
-			return EMPTY;
+			return emptyExpList;
 		case 1:
 			return list.get(0);
 		default:
-			return list.toArray();
+			if( list.get(list.size()-1) instanceof Expr ) {
+				return new ExprList1( toArray(list) );
+			} else {
+				Expressions last = list.remove(list.size()-1);
+				return new ExprList2( toArray(list), last );
+			}
 		}
 	}
 
-	@Override public LuanSource.Element se() {
-		return new LuanSource.Element(adders[0].code().se().source,adders[0].code().se().start,adders[adders.length-1].code().se().end);
+	private static class ExprList1 implements Expressions {
+		private final Expr[] exprs;
+
+		private ExprList1(Expr[] exprs) {
+			this.exprs = exprs;
+		}
+	
+		@Override public Object eval(LuanStateImpl luan) throws LuanException {
+			Object[] a = new Object[exprs.length];
+			for( int i=0; i<exprs.length; i++ ) {
+				a[i] = exprs[i].eval(luan);
+			}
+			return a;
+		}
+	
+		@Override public LuanSource.Element se() {
+			return new LuanSource.Element(exprs[0].se().source,exprs[0].se().start,exprs[exprs.length-1].se().end);
+		}
+	}
+
+	private static class ExprList2 implements Expressions {
+		private final Expr[] exprs;
+		private final Expressions last;
+	
+		private ExprList2(Expr[] exprs,Expressions last) {
+			this.exprs = exprs;
+			this.last = last;
+		}
+	
+		@Override public Object eval(LuanStateImpl luan) throws LuanException {
+			List<Object> list = new ArrayList<Object>();
+			for( Expr expr : exprs ) {
+				list.add( expr.eval(luan) );
+			}
+			list.addAll( Arrays.asList(Luan.array( last.eval(luan) )) );
+			return list.toArray();
+		}
+	
+		@Override public LuanSource.Element se() {
+			return new LuanSource.Element(exprs[0].se().source,exprs[0].se().start,last.se().end);
+		}
 	}
 }
