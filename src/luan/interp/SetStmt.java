@@ -9,7 +9,7 @@ final class SetStmt implements Stmt {
 	private final Expressions expressions;
 
 	SetStmt(Settable var,Expr expr) {
-		this( new Settable[]{var}, new ExpList.SingleExpList(expr) );
+		this( new Settable[]{var}, expr );
 	}
 
 	SetStmt(Settable[] vars,Expressions expressions) {

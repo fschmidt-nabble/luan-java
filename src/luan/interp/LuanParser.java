@@ -170,10 +170,10 @@ final class LuanParser {
 		return t;
 	}
 
-	private static Expr expr(Code code) {
-		if( code instanceof Expressions )
-			return new ExpressionsExpr((Expressions)code);
-		return (Expr)code;
+	private static Expr expr(Expressions exprs) {
+		if( exprs instanceof Expr )
+			return (Expr)exprs; 
+		return new ExpressionsExpr(exprs);
 	}
 
 	private FnDef newFnDef(int start,Stmt stmt) {
@@ -263,7 +263,7 @@ final class LuanParser {
 			return parser.failure(null);
 		EndOfLine();
 		In inJsp = in.jsp();
-		ExpList.Builder builder = new ExpList.Builder();
+		List<Expressions> builder = new ArrayList<Expressions>();
 		while(true) {
 			if( parser.match( "<%=" ) ) {
 				Spaces(inJsp);
@@ -271,7 +271,7 @@ final class LuanParser {
 				RequiredMatch( "%>" );
 			} else if( parser.match( "<%" ) ) {
 				Spaces(inJsp);
-				return parser.success(builder.build());
+				return parser.success(ExpList.build(builder));
 			} else {
 				int i = parser.currentIndex();
 				do {
@@ -333,7 +333,7 @@ final class LuanParser {
 			return parser.failure(null);
 		String varName = modName.substring(modName.lastIndexOf('.')+1);
 		LuanSource.Element se = se(start);
-		FnCall require = new FnCall( se, importExpr, new ExpList.SingleExpList(new ConstExpr(modName)) );
+		FnCall require = new FnCall( se, importExpr, new ConstExpr(modName) );
 		Settable settable;
 		if( interactive ) {
 			settable = new SetTableEntry( se(start), env(), new ConstExpr(varName) );
@@ -540,25 +540,25 @@ final class LuanParser {
 		return var.settable();
 	}
 
-	private Code RequiredExpr(In in) throws ParseException {
+	private Expressions RequiredExpr(In in) throws ParseException {
 		parser.begin();
 		return parser.success(required(Expr(in),"Bad expression"));
 	}
 
-	private Code Expr(In in) throws ParseException {
+	private Expressions Expr(In in) throws ParseException {
 		parser.begin();
-		Code exp;
+		Expressions exp;
 		return (exp = VarArgs(in)) != null
 			|| (exp = JspExpressions(in)) != null
 			|| (exp = OrExpr(in)) != null
 			? parser.success(exp)
-			: parser.failure((Code)null)
+			: parser.failure((Expressions)null)
 		;
 	}
 
-	private Code OrExpr(In in) throws ParseException {
+	private Expressions OrExpr(In in) throws ParseException {
 		int start = parser.begin();
-		Code exp = AndExpr(in);
+		Expressions exp = AndExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		while( Keyword("or",in) ) {
@@ -567,9 +567,9 @@ final class LuanParser {
 		return parser.success(exp);
 	}
 
-	private Code AndExpr(In in) throws ParseException {
+	private Expressions AndExpr(In in) throws ParseException {
 		int start = parser.begin();
-		Code exp = RelExpr(in);
+		Expressions exp = RelExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		while( Keyword("and",in) ) {
@@ -578,9 +578,9 @@ final class LuanParser {
 		return parser.success(exp);
 	}
 
-	private Code RelExpr(In in) throws ParseException {
+	private Expressions RelExpr(In in) throws ParseException {
 		int start = parser.begin();
-		Code exp = ConcatExpr(in);
+		Expressions exp = ConcatExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		while(true) {
@@ -608,9 +608,9 @@ final class LuanParser {
 		return parser.success(exp);
 	}
 
-	private Code ConcatExpr(In in) throws ParseException {
+	private Expressions ConcatExpr(In in) throws ParseException {
 		int start = parser.begin();
-		Code exp = SumExpr(in);
+		Expressions exp = SumExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		if( parser.match("..") ) {
@@ -620,9 +620,9 @@ final class LuanParser {
 		return parser.success(exp);
 	}
 
-	private Code SumExpr(In in) throws ParseException {
+	private Expressions SumExpr(In in) throws ParseException {
 		int start = parser.begin();
-		Code exp = TermExpr(in);
+		Expressions exp = TermExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		while(true) {
@@ -643,9 +643,9 @@ final class LuanParser {
 		return parser.match('-') && !parser.match('-') ? parser.success() : parser.failure();
 	}
 
-	private Code TermExpr(In in) throws ParseException {
+	private Expressions TermExpr(In in) throws ParseException {
 		int start = parser.begin();
-		Code exp = UnaryExpr(in);
+		Expressions exp = UnaryExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		while(true) {
@@ -669,7 +669,7 @@ final class LuanParser {
 		return parser.match('%') && !parser.match('>') ? parser.success() : parser.failure();
 	}
 
-	private Code UnaryExpr(In in) throws ParseException {
+	private Expressions UnaryExpr(In in) throws ParseException {
 		int start = parser.begin();
 		if( parser.match('#') ) {
 			Spaces(in);
@@ -683,15 +683,15 @@ final class LuanParser {
 			Spaces(in);
 			return parser.success( new NotExpr( se(start), required(expr(UnaryExpr(in))) ) );
 		}
-		Code exp = PowExpr(in);
+		Expressions exp = PowExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		return parser.success(exp);
 	}
 
-	private Code PowExpr(In in) throws ParseException {
+	private Expressions PowExpr(In in) throws ParseException {
 		int start = parser.begin();
-		Code exp = SingleExpr(in);
+		Expressions exp = SingleExpr(in);
 		if( exp==null )
 			return parser.failure(null);
 		if( parser.match('^') ) {
@@ -701,9 +701,9 @@ final class LuanParser {
 		return parser.success(exp);
 	}
 
-	private Code SingleExpr(In in) throws ParseException {
+	private Expressions SingleExpr(In in) throws ParseException {
 		parser.begin();
-		Code exp;
+		Expressions exp;
 		exp = FunctionExpr(in);
 		if( exp != null )
 			return parser.success(exp);
@@ -768,12 +768,12 @@ final class LuanParser {
 		In inParens = in.parens();
 		Spaces(inParens);
 		List<TableExpr.Field> fields = new ArrayList<TableExpr.Field>();
-		ExpList.Builder builder = new ExpList.Builder();
+		List<Expressions> builder = new ArrayList<Expressions>();
 		while( Field(fields,builder,in) && FieldSep(inParens) );
 		Spaces(inParens);
 		if( !parser.match('}') )
 			throw parser.exception("Expected table element or '}'");
-		return parser.success( new TableExpr( se(start), fields.toArray(new TableExpr.Field[0]), builder.build() ) );
+		return parser.success( new TableExpr( se(start), fields.toArray(new TableExpr.Field[0]), ExpList.build(builder) ) );
 	}
 
 	private boolean FieldSep(In in) throws ParseException {
@@ -783,7 +783,7 @@ final class LuanParser {
 		return true;
 	}
 
-	private boolean Field(List<TableExpr.Field> fields,ExpList.Builder builder,In in) throws ParseException {
+	private boolean Field(List<TableExpr.Field> fields,List<Expressions> builder,In in) throws ParseException {
 		parser.begin();
 		Expr exp = SubExpr(in);
 		if( exp==null )
@@ -794,15 +794,15 @@ final class LuanParser {
 			return parser.success();
 		}
 		parser.rollback();
-		Code code = Expr(in);
-		if( code != null ) {
-			builder.add(code);
+		Expressions exprs = Expr(in);
+		if( exprs != null ) {
+			builder.add(exprs);
 			return parser.success();
 		}
 		return parser.failure();
 	}
 
-	private Code VarExp(In in) throws ParseException {
+	private Expressions VarExp(In in) throws ParseException {
 		Var var = VarZ(in);
 		return var==null ? null : var.expr();
 	}
@@ -819,25 +819,25 @@ final class LuanParser {
 		return parser.success(var);
 	}
 
-	private Var Var2(In in,int start,Code exp1) throws ParseException {
+	private Var Var2(In in,int start,Expressions exp1) throws ParseException {
 		Var var = VarExt(in,start,exp1);
 		if( var != null )
 			return var;
 		if( parser.match("->") ) {
 			Spaces(in);
-			ExpList.Builder builder = new ExpList.Builder();
+			List<Expressions> builder = new ArrayList<Expressions>();
 			builder.add(exp1);
 			Expr exp2 = expr(RequiredVarExpB(in));
 			FnCall fnCall = required(Args( in, start, exp2, builder ));
 			return exprVar(fnCall);
 		}
-		FnCall fnCall = Args( in, start, expr(exp1), new ExpList.Builder() );
+		FnCall fnCall = Args( in, start, expr(exp1), new ArrayList<Expressions>() );
 		if( fnCall != null )
 			return exprVar(fnCall);
 		return null;
 	}
 
-	private Code RequiredVarExpB(In in) throws ParseException {
+	private Expressions RequiredVarExpB(In in) throws ParseException {
 		int start = parser.begin();
 		Var var = required(VarStart(in));
 		Var var2;
@@ -847,7 +847,7 @@ final class LuanParser {
 		return parser.success(var.expr());
 	}
 
-	private Var VarExt(In in,int start,Code exp1) throws ParseException {
+	private Var VarExt(In in,int start,Expressions exp1) throws ParseException {
 		parser.begin();
 		Expr exp2 = SubExpr(in);
 		if( exp2 != null )
@@ -888,7 +888,7 @@ final class LuanParser {
 	}
 
 	private interface Var {
-		public Code expr();
+		public Expressions expr();
 		public Settable settable();
 	}
 
@@ -917,10 +917,10 @@ final class LuanParser {
 		};
 	}
 
-	private Var exprVar(final Code expr) {
+	private Var exprVar(final Expressions expr) {
 		return new Var() {
 
-			public Code expr() {
+			public Expressions expr() {
 				return expr;
 			}
 
@@ -943,14 +943,14 @@ final class LuanParser {
 		};
 	}
 
-	private FnCall Args(In in,int start,Expr fn,ExpList.Builder builder) throws ParseException {
+	private FnCall Args(In in,int start,Expr fn,List<Expressions> builder) throws ParseException {
 		parser.begin();
 		return args(in,builder)
-			? parser.success( new FnCall( se(start), fn, builder.build() ) )
+			? parser.success( new FnCall( se(start), fn, ExpList.build(builder) ) )
 			: parser.failure((FnCall)null);
 	}
 
-	private boolean args(In in,ExpList.Builder builder) throws ParseException {
+	private boolean args(In in,List<Expressions> builder) throws ParseException {
 		if( parser.match('(') ) {
 			In inParens = in.parens();
 			Spaces(inParens);
@@ -979,13 +979,13 @@ final class LuanParser {
 	}
 
 	private Expressions ExpList(In in) throws ParseException {
-		ExpList.Builder builder = new ExpList.Builder();
-		return ExpList(in,builder) ? builder.build() : null;
+		List<Expressions> builder = new ArrayList<Expressions>();
+		return ExpList(in,builder) ? ExpList.build(builder) : null;
 	}
 
-	private boolean ExpList(In in,ExpList.Builder builder) throws ParseException {
+	private boolean ExpList(In in,List<Expressions> builder) throws ParseException {
 		parser.begin();
-		Code exp = Expr(in);
+		Expressions exp = Expr(in);
 		if( exp==null )
 			return parser.failure();
 		builder.add(exp);
