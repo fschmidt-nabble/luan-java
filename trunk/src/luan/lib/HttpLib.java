@@ -94,6 +94,7 @@ public final class HttpLib {
 
 	private LuanTable requestTable() throws NoSuchMethodException {
 		LuanTable req = new LuanTable();
+		req.put("java",request);
 		req.put( "get_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("getAttribute",String.class),request) );
 		req.put( "set_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("setAttribute",String.class,Object.class),request) );
 		req.put( "get_parameter", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameter",String.class),request) );
@@ -112,6 +113,7 @@ public final class HttpLib {
 
 	private LuanTable responseTable() throws NoSuchMethodException {
 		LuanTable resp = new LuanTable();
+		resp.put("java",response);
 		add( resp, "send_redirect", String.class );
 		add( resp, "send_error", Integer.TYPE, String.class );
 		resp.put( "contains_header", new LuanJavaFunction(HttpServletResponse.class.getMethod("containsHeader",String.class),response) );

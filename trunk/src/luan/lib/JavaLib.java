@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Collections;
+import java.util.Arrays;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -146,7 +147,8 @@ public final class JavaLib {
 					return member;
 				} else if( member instanceof Field ) {
 					Field field = (Field)member;
-					return field.get(obj);
+					Object rtn = field.get(obj);
+					return rtn instanceof Object[] ? Arrays.asList((Object[])rtn) : rtn;
 				} else {
 					Method method = (Method)member;
 					return new LuanJavaFunction(method,obj);
