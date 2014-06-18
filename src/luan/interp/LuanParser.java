@@ -76,19 +76,19 @@ final class LuanParser {
 		static final In NOTHING = new In(false,false);
 
 		final boolean parens;
-		final boolean jsp;
+		final boolean template;
 
-		private In(boolean parens,boolean jsp) {
+		private In(boolean parens,boolean template) {
 			this.parens = parens;
-			this.jsp = jsp;
+			this.template = template;
 		}
 
 		In parens() {
-			return parens ? this : new In(true,jsp);
+			return parens ? this : new In(true,template);
 		}
 
-		In jsp() {
-			return jsp ? this : new In(parens,true);
+		In template() {
+			return template ? this : new In(parens,true);
 		}
 	}
 
@@ -225,7 +225,15 @@ final class LuanParser {
 		if( parser.match( "--" ) ) {
 			while( parser.noneOf("\r\n") );
 		}
-		return EndOfLine() ? parser.success() : parser.failure();
+		if( EndOfLine() )
+			return parser.success();
+		parser.rollback();
+		Stmt stmt = TemplateStmt();
+		if( stmt != null ) {
+			stmts.add(stmt);
+			return parser.success();
+		}
+		return parser.failure();
 	}
 
 	private boolean EndOfLine() {
@@ -255,22 +263,34 @@ final class LuanParser {
 		}
 	}
 
-	private Expressions JspExpressions(In in) throws ParseException {
-		if( in.jsp )
+	private Stmt TemplateStmt() throws ParseException {
+		int start = parser.currentIndex();
+		Expressions exp = TemplateExpressions(In.NOTHING);
+		if( exp == null )
+			return null;
+		Expr fnExp = (Expr)nameVar(start,"Io").expr();
+		fnExp = new IndexExpr( se(start), fnExp, new ConstExpr("stdout") );
+		fnExp = new IndexExpr( se(start), fnExp, new ConstExpr("write") );
+		FnCall fnCall = new FnCall( se(start), fnExp, exp );
+		return new FnCallStmt(fnCall);
+	}
+
+	private Expressions TemplateExpressions(In in) throws ParseException {
+		if( in.template )
 			return null;
 		int start = parser.begin();
 		if( !parser.match( "%>" ) )
 			return parser.failure(null);
 		EndOfLine();
-		In inJsp = in.jsp();
+		In inTemplate = in.template();
 		List<Expressions> builder = new ArrayList<Expressions>();
 		while(true) {
 			if( parser.match( "<%=" ) ) {
-				Spaces(inJsp);
-				builder.add( RequiredExpr(inJsp) );
+				Spaces(inTemplate);
+				builder.add( RequiredExpr(inTemplate) );
 				RequiredMatch( "%>" );
 			} else if( parser.match( "<%" ) ) {
-				Spaces(inJsp);
+				Spaces(inTemplate);
 				return parser.success(ExpList.build(builder));
 			} else {
 				int i = parser.currentIndex();
@@ -278,7 +298,7 @@ final class LuanParser {
 					if( parser.match( "%>" ) )
 						throw parser.exception("'%>' unexpected");
 					if( !parser.anyChar() )
-						throw parser.exception("Unclosed JSP expressions");
+						throw parser.exception("Unclosed template expression");
 				} while( !parser.test( "<%" ) );
 				String match = parser.textFrom(i);
 				builder.add( new ConstExpr(match) );
@@ -336,7 +356,7 @@ final class LuanParser {
 		FnCall require = new FnCall( se, importExpr, new ConstExpr(modName) );
 		Settable settable;
 		if( interactive ) {
-			settable = new SetTableEntry( se(start), env(), new ConstExpr(varName) );
+			settable = nameVar(se,varName).settable();
 		} else {
 			addSymbol( varName );
 			settable = new SetLocalVar(symbolsSize()-1);
@@ -549,7 +569,7 @@ final class LuanParser {
 		parser.begin();
 		Expressions exp;
 		return (exp = VarArgs(in)) != null
-			|| (exp = JspExpressions(in)) != null
+			|| (exp = TemplateExpressions(in)) != null
 			|| (exp = OrExpr(in)) != null
 			? parser.success(exp)
 			: parser.failure((Expressions)null)
@@ -894,16 +914,20 @@ final class LuanParser {
 	}
 
 	private Var nameVar(final int start,final String name) {
+		return nameVar(se(start),name);
+	}
+
+	private Var nameVar(final LuanSource.Element se,final String name) {
 		return new Var() {
 
 			public Expr expr() {
 				int index = stackIndex(name);
 				if( index != -1 )
-					return new GetLocalVar(se(start),index);
+					return new GetLocalVar(se,index);
 				index = upValueIndex(name);
 				if( index != -1 )
-					return new GetUpVar(se(start),index);
-				return new IndexExpr( se(start), env(), new ConstExpr(name) );
+					return new GetUpVar(se,index);
+				return new IndexExpr( se, env(), new ConstExpr(name) );
 			}
 
 			public Settable settable() {
@@ -913,7 +937,7 @@ final class LuanParser {
 				index = upValueIndex(name);
 				if( index != -1 )
 					return new SetUpVar(index);
-				return new SetTableEntry( se(start), env(), new ConstExpr(name) );
+				return new SetTableEntry( se, env(), new ConstExpr(name) );
 			}
 		};
 	}
@@ -971,7 +995,7 @@ final class LuanParser {
 			builder.add( new ConstExpr(s) );
 			return true;
 		}
-		Expressions exps = JspExpressions(in);
+		Expressions exps = TemplateExpressions(in);
 		if( exps != null ) {
 			builder.add(exps);
 			return true;

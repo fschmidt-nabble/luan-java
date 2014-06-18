@@ -171,24 +171,10 @@ public final class LuanJavaFunction extends LuanFunction {
 		}
 	};
 
-	private static final RtnConverter RTN_NUMBER_ARRAY = new RtnConverter() {
-		@Override public Object convert(Object obj) {
-			if( obj == null )
-				return null;
-			Object[] rtn = new Object[Array.getLength(obj)];
-			for( int i=0; i<rtn.length; i++ ) {
-				rtn[i] = Array.get(obj,i);
-			}
-			return rtn;
-		}
-	};
-
 	private static RtnConverter getRtnConverter(JavaMethod m) {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_NOTHING;
-		if( rtnType.isArray() && isNumber(rtnType.getComponentType()) )
-			return RTN_NUMBER_ARRAY;
 		return RTN_SAME;
 	}
 
