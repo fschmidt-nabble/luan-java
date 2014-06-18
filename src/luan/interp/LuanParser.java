@@ -180,12 +180,12 @@ final class LuanParser {
 		return new FnDef( se(start), stmt, frame.stackSize, symbolsSize(), frame.isVarArg, frame.upValueGetters.toArray(NO_UP_VALUE_GETTERS) );
 	}
 
-	FnDef Expressions() throws ParseException {
+	FnDef Expression() throws ParseException {
 		Spaces(In.NOTHING);
 		int start = parser.begin();
-		Expressions exprs = ExpList(In.NOTHING);
-		if( exprs != null && parser.endOfInput() ) {
-			Stmt stmt = new ReturnStmt( se(start), exprs );
+		Expressions expr = Expr(In.NOTHING);
+		if( expr != null && parser.endOfInput() ) {
+			Stmt stmt = new ReturnStmt( se(start), expr );
 			return parser.success(newFnDef(start,stmt));
 		}
 		return parser.failure(null);
@@ -569,7 +569,6 @@ final class LuanParser {
 		parser.begin();
 		Expressions exp;
 		return (exp = VarArgs(in)) != null
-			|| (exp = TemplateExpressions(in)) != null
 			|| (exp = OrExpr(in)) != null
 			? parser.success(exp)
 			: parser.failure((Expressions)null)
@@ -887,7 +886,7 @@ final class LuanParser {
 		if( parser.match('(') ) {
 			In inParens = in.parens();
 			Spaces(inParens);
-			Expr exp = expr(Expr(inParens));
+			Expr exp = expr(RequiredExpr(inParens));
 			RequiredMatch(')');
 			Spaces(in);
 			return parser.success(exprVar(exp));
@@ -1010,12 +1009,22 @@ final class LuanParser {
 
 	private boolean ExpList(In in,List<Expressions> builder) throws ParseException {
 		parser.begin();
-		Expressions exp = Expr(in);
+		Expressions exp = TemplateExpressions(in);
+		if( exp != null ) {
+			builder.add(exp);
+			return parser.success();
+		}
+		exp = Expr(in);
 		if( exp==null )
 			return parser.failure();
 		builder.add(exp);
 		while( parser.match(',') ) {
 			Spaces(in);
+			exp = TemplateExpressions(in);
+			if( exp != null ) {
+				builder.add(exp);
+				return parser.success();
+			}
 			builder.add( RequiredExpr(in) );
 		}
 		return parser.success();
