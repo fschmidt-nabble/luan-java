@@ -38,7 +38,7 @@ public final class LuanCompiler {
 	private static FnDef parse(LuanState luan,LuanParser parser,boolean allowExpr) throws LuanException {
 		try {
 			if( allowExpr ) {
-				FnDef fnDef = parser.Expressions();
+				FnDef fnDef = parser.Expression();
 				if( fnDef != null )
 					return fnDef;
 			}
