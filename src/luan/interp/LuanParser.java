@@ -525,10 +525,10 @@ final class LuanParser {
 
 	private Stmt FnCallStmt() throws ParseException {
 		parser.begin();
-		Code code = VarExp(In.NOTHING);
-		if( !(code instanceof FnCall) )
+		Expressions exp = VarExp(In.NOTHING);
+		if( !(exp instanceof FnCall) )
 			return parser.failure(null);
-		FnCall fnCall = (FnCall)code;
+		FnCall fnCall = (FnCall)exp;
 		return parser.success( new FnCallStmt(fnCall) );
 	}
 
@@ -536,8 +536,8 @@ final class LuanParser {
 		int start = parser.begin();
 		Var var = VarZ(In.NOTHING);
 		if( var==null )
-			return null;
-		return var.settable();
+			return parser.failure(null);
+		return parser.success( var.settable() );
 	}
 
 	private Expressions RequiredExpr(In in) throws ParseException {
@@ -820,21 +820,22 @@ final class LuanParser {
 	}
 
 	private Var Var2(In in,int start,Expressions exp1) throws ParseException {
+		parser.begin();
 		Var var = VarExt(in,start,exp1);
 		if( var != null )
-			return var;
+			return parser.success(var);
 		if( parser.match("->") ) {
 			Spaces(in);
 			List<Expressions> builder = new ArrayList<Expressions>();
 			builder.add(exp1);
 			Expr exp2 = expr(RequiredVarExpB(in));
 			FnCall fnCall = required(Args( in, start, exp2, builder ));
-			return exprVar(fnCall);
+			return parser.success(exprVar(fnCall));
 		}
 		FnCall fnCall = Args( in, start, expr(exp1), new ArrayList<Expressions>() );
 		if( fnCall != null )
-			return exprVar(fnCall);
-		return null;
+			return parser.success(exprVar(fnCall));
+		return parser.failure(null);
 	}
 
 	private Expressions RequiredVarExpB(In in) throws ParseException {
@@ -1259,22 +1260,22 @@ final class LuanParser {
 		parser.begin();
 		if( !parser.match('\\') )
 			return parser.failure(null);
-		if( parser.match('a') )  return '\u0007';
-		if( parser.match('b') )  return '\b';
-		if( parser.match('f') )  return '\f';
-		if( parser.match('n') )  return '\n';
-		if( parser.match('r') )  return '\r';
-		if( parser.match('t') )  return '\t';
-		if( parser.match('v') )  return '\u000b';
-		if( parser.match('\\') )  return '\\';
-		if( parser.match('"') )  return '"';
-		if( parser.match('\'') )  return '\'';
+		if( parser.match('a') )  return parser.success('\u0007');
+		if( parser.match('b') )  return parser.success('\b');
+		if( parser.match('f') )  return parser.success('\f');
+		if( parser.match('n') )  return parser.success('\n');
+		if( parser.match('r') )  return parser.success('\r');
+		if( parser.match('t') )  return parser.success('\t');
+		if( parser.match('v') )  return parser.success('\u000b');
+		if( parser.match('\\') )  return parser.success('\\');
+		if( parser.match('"') )  return parser.success('"');
+		if( parser.match('\'') )  return parser.success('\'');
 		int start = parser.currentIndex();
 		if( parser.match('x') && HexDigit() && HexDigit() )
-			return (char)Integer.parseInt(parser.textFrom(start+1),16);
+			return parser.success((char)Integer.parseInt(parser.textFrom(start+1),16));
 		if( Digit() ) {
 			if( Digit() ) Digit();  // optional
-			return (char)Integer.parseInt(parser.textFrom(start));
+			return parser.success((char)Integer.parseInt(parser.textFrom(start)));
 		}
 		return parser.failure(null);
 	}
