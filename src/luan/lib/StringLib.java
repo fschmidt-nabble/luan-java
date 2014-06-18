@@ -75,7 +75,7 @@ public final class StringLib {
 				};
 			}
 		}
-		if( luan.global().get("Java") != null )
+		if( luan.loaded().get("Java") != null )
 			return JavaLib.__index(luan,s,key);
 		return null;
 	}

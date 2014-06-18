@@ -17,11 +17,15 @@ local function print_with_line_numbers(s)
 end
 
 function page()
-	Http.response.set_content_type "text/plain"
 	Io.stdout = Http.response.text_writer()
 	local code = Http.request.get_parameter "code"
+	local env = {
+		write = Io.stdout.write;
+		request = Http.request;
+		response = Http.response;
+	}
 	try
-		local fn = load(code,"<web_run>")
+		local fn = load(code,"<web_run>",env)
 		fn()
 	catch e do
 		print(e)
