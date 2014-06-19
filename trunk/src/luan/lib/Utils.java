@@ -52,8 +52,16 @@ public final class Utils {
 		return out.toByteArray();
 	}
 
+	public static boolean exists(File file) {
+		try {
+			return file.exists() && file.getName().equals(file.getCanonicalFile().getName());
+		} catch(IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static boolean isFile(String path) {
-		return new File(path).exists();
+		return exists(new File(path));
 	}
 
 	public static String toUrl(String path) {
