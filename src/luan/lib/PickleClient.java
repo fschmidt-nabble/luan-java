@@ -57,7 +57,7 @@ public final class PickleClient {
 				msg + "\n"
 				+ "in:\n"
 				+ "------------------\n"
-				+ src + "\n"
+				+ formatCode(src) + "\n"
 				+ "------------------\n"
 			);
 		}
@@ -80,5 +80,27 @@ public final class PickleClient {
 		}
 		return tbl;
 	}
+
+
+	public static String formatCode(String s) {
+		StringBuilder buf = new StringBuilder();
+		int line = 1;
+		int i = 0;
+		int i2 = 0;
+		while( i2 != -1 ) {
+			buf.append( line++ );
+			buf.append( '\t' );
+			i2 = s.indexOf('\n',i);
+			String lineStr = i2 == -1 ? s.substring(i) : s.substring(i,i2+1);
+			int j;
+			for( j=0; j<lineStr.length() && lineStr.charAt(j)=='\t'; j++ ) {
+				buf.append( "    " );
+			}
+			buf.append( lineStr.substring(j) );
+			i = i2 + 1;
+		}
+		return buf.toString();
+	}
+
 
 }
