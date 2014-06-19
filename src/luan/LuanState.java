@@ -131,18 +131,15 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		return t.put(a[a.length-1],value);
 	}
 
-	private final void load(String modName,LuanFunction loader) throws LuanException {
-		preload.put(modName,loader);
+	public final void globalImport(String modName) throws LuanException {
 		Object mod = PackageLib.require(this,modName);
-		if( mod==null )
-			throw new RuntimeException();
 		global.put(modName,mod);
 	}
 
 	public static LuanState newStandard() {
 		try {
 			LuanState luan = LuanCompiler.newLuanState();
-			luan.load("Package",PackageLib.LOADER);
+			luan.globalImport("Package");
 			BasicLib.do_file(luan,"java:luan/lib/init.luan");
 			return luan;
 		} catch(LuanException e) {

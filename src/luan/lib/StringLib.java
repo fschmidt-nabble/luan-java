@@ -171,7 +171,7 @@ public final class StringLib {
 			return new String[]{m.group()};
 		String[] rtn = new String[n];
 		for( int i=0; i<n; i++ ) {
-			rtn[i] = m.group(i);
+			rtn[i] = m.group(i+1);
 		}
 		return rtn;
 	}

@@ -1,25 +1,27 @@
-function Package.preload_java(name,path)
-	Package.preload[name] = Package.get_loader(path)
-end
-
-function Package.load_java(name,path)
-	Package.preload_java(name,path)
+function Package.global_import(name)
 	local mod = require(name)
 	_G[name] = mod
 	return mod
 end
 
-local Basic = Package.load_java("Basic","luan.lib.BasicLib.LOADER")
-local String = Package.load_java("String","luan.lib.StringLib.LOADER")
-local Table = Package.load_java("Table","luan.lib.TableLib.LOADER")
-local Io = Package.load_java("Io","luan.lib.IoLib.LOADER")
-Package.load_java("Math","luan.lib.MathLib.LOADER")
-Package.load_java("Html","luan.lib.HtmlLib.LOADER")
-Package.load_java("Thread","luan.lib.ThreadLib.LOADER")
-Package.load_java("Binary","luan.lib.BinaryLib.LOADER")
-Package.load_java("Os","luan.lib.OsLib.LOADER")
-Package.preload_java("Java","luan.lib.JavaLib.LOADER")
-Package.preload_java("Http","luan.lib.HttpLib.LOADER")
+local Basic = Package.global_import("Basic","luan.lib.BasicLib.LOADER")
+local String = Package.global_import("String","luan.lib.StringLib.LOADER")
+
+-- improved global_import
+function Package.global_import(name)
+	local short = name.match("\.([^.]+)$") or name
+	local mod = require(name)
+	_G[short] = mod
+	return mod
+end
+
+local Table = Package.global_import("Table","luan.lib.TableLib.LOADER")
+local Io = Package.global_import("Io","luan.lib.IoLib.LOADER")
+Package.global_import("Math","luan.lib.MathLib.LOADER")
+Package.global_import("Html","luan.lib.HtmlLib.LOADER")
+Package.global_import("Thread","luan.lib.ThreadLib.LOADER")
+Package.global_import("Binary","luan.lib.BinaryLib.LOADER")
+Package.global_import("Os","luan.lib.OsLib.LOADER")
 
 
 function Io.print_to(out,...)

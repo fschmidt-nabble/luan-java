@@ -52,6 +52,10 @@ public final class OsLib {
 			return list;
 		}
 
+		public boolean exists() {
+			return Utils.exists(file);
+		}
+
 		LuanTable table() {
 			LuanTable tbl = new IoLib.LuanFile(file).table();
 			try {
@@ -59,7 +63,7 @@ public final class OsLib {
 					File.class.getMethod( "getName" ), file
 				) );
 				tbl.put( "exists", new LuanJavaFunction(
-					File.class.getMethod( "exists" ), file
+					LuanFile.class.getMethod( "exists" ), this
 				) );
 				tbl.put( "is_directory", new LuanJavaFunction(
 					File.class.getMethod( "isDirectory" ), file
