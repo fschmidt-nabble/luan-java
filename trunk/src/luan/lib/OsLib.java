@@ -41,10 +41,6 @@ public final class OsLib {
 			return new LuanFile(new File(file,name)).table();
 		}
 
-		public LuanTable io_file() {
-			return new IoLib.LuanFile(file).table();
-		}
-
 		public LuanTable children() {
 			File[] files = file.listFiles();
 			if( files==null )
@@ -57,11 +53,8 @@ public final class OsLib {
 		}
 
 		LuanTable table() {
-			LuanTable tbl = new LuanTable();
+			LuanTable tbl = new IoLib.LuanFile(file).table();
 			try {
-				tbl.put( "to_string", new LuanJavaFunction(
-					File.class.getMethod( "toString" ), file
-				) );
 				tbl.put( "name", new LuanJavaFunction(
 					File.class.getMethod( "getName" ), file
 				) );
@@ -88,9 +81,6 @@ public final class OsLib {
 				) );
 				tbl.put( "child", new LuanJavaFunction(
 					LuanFile.class.getMethod( "child", String.class ), this
-				) );
-				tbl.put( "io_file", new LuanJavaFunction(
-					LuanFile.class.getMethod( "io_file" ), this
 				) );
 				tbl.put( "children", new LuanJavaFunction(
 					LuanFile.class.getMethod( "children" ), this

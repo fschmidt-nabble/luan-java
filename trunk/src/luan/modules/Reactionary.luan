@@ -3,20 +3,20 @@
 host = "localhost"
 port = 9101
 
-function put(domain,password,dir)
+function put_site(domain,password,dir)
 	local pc = Io.Socket(host,port).Pickle_client()
 	local pickle = pc.pickle
 	pc.call %>
-		Reactionary.do_put(<%=pickle(domain)%>,<%=pickle(password)%>,<%=pickle(dir)%>)
+		Reactionary.do_put_site(<%=pickle(domain)%>,<%=pickle(password)%>,<%=pickle(dir)%>)
 	<%
 	pc.close()
 end
 
-function delete(domain,password)
+function delete_site(domain,password)
 	local pc = Io.Socket(host,port).Pickle_client()
 	local pickle = pc.pickle
 	pc.call %>
-		Reactionary.do_delete(<%=pickle(domain)%>,<%=pickle(password)%>)
+		Reactionary.do_delete_site(<%=pickle(domain)%>,<%=pickle(password)%>)
 	<%
 	pc.close()
 end
