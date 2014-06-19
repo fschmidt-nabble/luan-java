@@ -257,7 +257,7 @@ final class LuanParser {
 			|| (stmt=RepeatStmt()) != null
 			|| (stmt=IfStmt()) != null
 			|| (stmt=SetStmt()) != null
-			|| (stmt=FnCallStmt()) != null
+			|| (stmt=ExpressionsStmt()) != null
 		) {
 			stmts.add(stmt);
 		}
@@ -272,7 +272,7 @@ final class LuanParser {
 		fnExp = new IndexExpr( se(start), fnExp, new ConstExpr("stdout") );
 		fnExp = new IndexExpr( se(start), fnExp, new ConstExpr("write") );
 		FnCall fnCall = new FnCall( se(start), fnExp, exp );
-		return new FnCallStmt(fnCall);
+		return new ExpressionsStmt(fnCall);
 	}
 
 	private Expressions TemplateExpressions(In in) throws ParseException {
@@ -543,13 +543,12 @@ final class LuanParser {
 		return parser.success( new SetStmt( vars.toArray(new Settable[0]), values ) );
 	}
 
-	private Stmt FnCallStmt() throws ParseException {
+	private Stmt ExpressionsStmt() throws ParseException {
 		parser.begin();
-		Expressions exp = VarExp(In.NOTHING);
-		if( !(exp instanceof FnCall) )
-			return parser.failure(null);
-		FnCall fnCall = (FnCall)exp;
-		return parser.success( new FnCallStmt(fnCall) );
+		Expressions exp = Expr(In.NOTHING);
+		if( exp instanceof FnCall || exp instanceof AndExpr || exp instanceof OrExpr )
+			return parser.success( new ExpressionsStmt(exp) );
+		return parser.failure(null);
 	}
 
 	private Settable SettableVar() throws ParseException {
