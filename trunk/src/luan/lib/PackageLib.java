@@ -92,6 +92,7 @@ public final class PackageLib {
 	};
 
 	public static String search_path(String name,String path) {
+		name = name.replace('.','/');
 		for( String s : path.split(";") ) {
 			String file = s.replaceAll("\\?",name);
 			if( Utils.exists(file) )
