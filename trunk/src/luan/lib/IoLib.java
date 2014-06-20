@@ -349,15 +349,57 @@ public final class IoLib {
 			return file.toString();
 		}
 
-		public LuanTable os_file() {
-			return new OsLib.LuanFile(file).table();
+		public LuanTable child(String name) {
+			return new LuanFile(new File(file,name)).table();
+		}
+
+		public LuanTable children() {
+			File[] files = file.listFiles();
+			if( files==null )
+				return null;
+			LuanTable list = new LuanTable();
+			for( File f : files ) {
+				list.add(new LuanFile(f).table());
+			}
+			return list;
+		}
+
+		public boolean exists() {
+			return Utils.exists(file);
 		}
 
 		@Override LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
-				tbl.put( "os_file", new LuanJavaFunction(
-					LuanFile.class.getMethod( "os_file" ), this
+				tbl.put( "name", new LuanJavaFunction(
+					File.class.getMethod( "getName" ), file
+				) );
+				tbl.put( "exists", new LuanJavaFunction(
+					LuanFile.class.getMethod( "exists" ), this
+				) );
+				tbl.put( "is_directory", new LuanJavaFunction(
+					File.class.getMethod( "isDirectory" ), file
+				) );
+				tbl.put( "is_file", new LuanJavaFunction(
+					File.class.getMethod( "isFile" ), file
+				) );
+				tbl.put( "delete", new LuanJavaFunction(
+					File.class.getMethod( "delete" ), file
+				) );
+				tbl.put( "mkdir", new LuanJavaFunction(
+					File.class.getMethod( "mkdir" ), file
+				) );
+				tbl.put( "mkdirs", new LuanJavaFunction(
+					File.class.getMethod( "mkdirs" ), file
+				) );
+				tbl.put( "last_modified", new LuanJavaFunction(
+					File.class.getMethod( "lastModified" ), file
+				) );
+				tbl.put( "child", new LuanJavaFunction(
+					LuanFile.class.getMethod( "child", String.class ), this
+				) );
+				tbl.put( "children", new LuanJavaFunction(
+					LuanFile.class.getMethod( "children" ), this
 				) );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -370,13 +412,14 @@ public final class IoLib {
 		if( Utils.isFile(name) )
 			return new LuanFile(name);
 		String url = Utils.toUrl(name);
-		if( url == null )
-			throw luan.exception( "file '"+name+"' not found" );
-		try {
-			return new LuanUrl(url);
-		} catch(MalformedURLException e) {
-			throw new RuntimeException(e);
+		if( url != null ) {
+			try {
+				return new LuanUrl(url);
+			} catch(MalformedURLException e) {
+				throw new RuntimeException(e);
+			}
 		}
+		throw luan.exception( "file '"+name+"' not found" );
 	}
 
 	public static LuanTable File(LuanState luan,String name) throws LuanException {

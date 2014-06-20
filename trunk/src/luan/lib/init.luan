@@ -55,7 +55,6 @@ Package.global_import("Math","luan.lib.MathLib.LOADER")
 Package.global_import("Html","luan.lib.HtmlLib.LOADER")
 Package.global_import("Thread","luan.lib.ThreadLib.LOADER")
 Package.global_import("Binary","luan.lib.BinaryLib.LOADER")
-Package.global_import("Os","luan.lib.OsLib.LOADER")
 
 
 function Io.print_to(out,...)
