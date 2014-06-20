@@ -20,13 +20,12 @@ public final class PackageLib {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global();
 			module.put("loaded",luan.loaded());
 			module.put("preload",luan.preload());
 			module.put("path","?.luan;java:luan/modules/?.luan");
 			module.put("jpath",jpath);
 			try {
-				add( global, "require", LuanState.class, String.class );
+				add( module, "require", LuanState.class, String.class );
 				add( module, "load_lib", String.class );
 				add( module, "search_path", String.class, String.class );
 				add( module, "search", LuanState.class, String.class );

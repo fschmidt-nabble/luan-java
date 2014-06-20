@@ -72,6 +72,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	protected LuanState() {
 		global = new LuanTable();
 		global.put("_G",global);
+		global.put( "_VERSION", Luan.version );
 		loaded = new LuanTable();
 		preload = new LuanTable();
 		searchers = new LuanTable();
