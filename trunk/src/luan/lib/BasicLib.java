@@ -24,32 +24,30 @@ public final class BasicLib {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global();
 			try {
-				global.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
-				add( global, "assert_boolean", LuanState.class, Boolean.TYPE );
-				add( global, "assert_nil", LuanState.class, Object.class );
-				add( global, "assert_number", LuanState.class, Number.class );
-				add( global, "assert_string", LuanState.class, String.class );
-				add( global, "assert_table", LuanState.class, LuanTable.class );
-				add( global, "do_file", LuanState.class, String.class );
-				add( global, "error", LuanState.class, Object.class );
-				add( global, "get_metatable", LuanState.class, Object.class );
-				add( global, "ipairs", LuanState.class, LuanTable.class );
-				add( global, "load", LuanState.class, String.class, String.class, LuanTable.class, Boolean.class );
-				add( global, "load_file", LuanState.class, String.class );
-				add( global, "pairs", LuanState.class, LuanTable.class );
-				add( global, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
-				add( global, "raw_equal", Object.class, Object.class );
-				add( global, "raw_get", LuanTable.class, Object.class );
-				add( global, "raw_len", LuanState.class, Object.class );
-				add( global, "raw_set", LuanTable.class, Object.class, Object.class );
-				add( global, "repr", LuanState.class, Object.class );
-				add( global, "set_metatable", LuanTable.class, LuanTable.class );
-				add( global, "to_number", Object.class, Integer.class );
-				add( global, "to_string", LuanState.class, Object.class );
-				add( global, "type", Object.class );
-				global.put( "_VERSION", Luan.version );
+				module.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
+				add( module, "assert_boolean", LuanState.class, Boolean.TYPE );
+				add( module, "assert_nil", LuanState.class, Object.class );
+				add( module, "assert_number", LuanState.class, Number.class );
+				add( module, "assert_string", LuanState.class, String.class );
+				add( module, "assert_table", LuanState.class, LuanTable.class );
+				add( module, "do_file", LuanState.class, String.class );
+				add( module, "error", LuanState.class, Object.class );
+				add( module, "get_metatable", LuanState.class, Object.class );
+				add( module, "ipairs", LuanState.class, LuanTable.class );
+				add( module, "load", LuanState.class, String.class, String.class, LuanTable.class, Boolean.class );
+				add( module, "load_file", LuanState.class, String.class );
+				add( module, "pairs", LuanState.class, LuanTable.class );
+				add( module, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
+				add( module, "raw_equal", Object.class, Object.class );
+				add( module, "raw_get", LuanTable.class, Object.class );
+				add( module, "raw_len", LuanState.class, Object.class );
+				add( module, "raw_set", LuanTable.class, Object.class, Object.class );
+				add( module, "repr", LuanState.class, Object.class );
+				add( module, "set_metatable", LuanTable.class, LuanTable.class );
+				add( module, "to_number", Object.class, Integer.class );
+				add( module, "to_string", LuanState.class, Object.class );
+				add( module, "type", Object.class );
 				add( module, "values", new Object[0].getClass() );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);

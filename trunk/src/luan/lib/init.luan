@@ -1,3 +1,13 @@
+function Package.global(module,fn_name)
+	local function fn(...)
+		return module[fn_name](...)
+	end
+	_G[fn_name] = fn
+	return fn
+end
+
+local require = Package.global(Package,"require")
+
 function Package.global_import(name)
 	local mod = require(name)
 	_G[name] = mod
@@ -5,6 +15,30 @@ function Package.global_import(name)
 end
 
 local Basic = Package.global_import("Basic","luan.lib.BasicLib.LOADER")
+Package.global(Basic,"assert")
+Package.global(Basic,"assert_boolean")
+Package.global(Basic,"assert_nil")
+Package.global(Basic,"assert_number")
+Package.global(Basic,"assert_string")
+Package.global(Basic,"assert_table")
+Package.global(Basic,"do_file")
+Package.global(Basic,"error")
+Package.global(Basic,"get_metatable")
+Package.global(Basic,"ipairs")
+local load = Package.global(Basic,"load")
+Package.global(Basic,"load_file")
+Package.global(Basic,"pairs")
+Package.global(Basic,"range")
+Package.global(Basic,"raw_equal")
+Package.global(Basic,"raw_get")
+Package.global(Basic,"raw_len")
+Package.global(Basic,"raw_set")
+Package.global(Basic,"repr")
+Package.global(Basic,"set_metatable")
+Package.global(Basic,"to_number")
+local to_string = Package.global(Basic,"to_string")
+Package.global(Basic,"type")
+
 local String = Package.global_import("String","luan.lib.StringLib.LOADER")
 
 -- improved global_import
@@ -27,7 +61,7 @@ Package.global_import("Os","luan.lib.OsLib.LOADER")
 function Io.print_to(out,...)
 	local list = {}
 	for _,v in Basic.values(...) do
-		list[#list+1] = _G.to_string(v)
+		list[#list+1] = to_string(v)
 		list[#list+1] = '\t'
 	end
 	if #list == 0 then
@@ -38,9 +72,10 @@ function Io.print_to(out,...)
 	end
 end
 
-function _G.print(...)
+function Basic.print(...)
 	Io.print_to(Io.stdout,...)
 end
+local print = Package.global(Basic,"print")
 
 local Debug = {}
 Package.loaded.Debug = Debug
@@ -48,7 +83,7 @@ _G.Debug = Debug
 
 function Debug.print_if_something(...)
 	if Table.pack(...).n > 0 then
-		_G.print(...)
+		print(...)
 	end
 end
 
@@ -60,14 +95,14 @@ function Debug.debug(prompt)
 	local env = {}
 	for line in console do
 		try
-			local fn = _G.load(line,"stdin",env,true)
+			local fn = load(line,"stdin",env,true)
 			Debug.print_if_something( fn() )
 		catch e do
-			_G.print(e)
+			print(e)
 		end
 	end
 end
 
 
 -- import modules
-_G.Reactionary = require "Reactionary"
+Package.global_import("Reactionary")

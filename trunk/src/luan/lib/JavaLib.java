@@ -32,7 +32,6 @@ public final class JavaLib {
 		@Override public Object call(LuanState luan,Object[] args) {
 			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
-			LuanTable global = luan.global();
 			try {
 				module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
 				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );

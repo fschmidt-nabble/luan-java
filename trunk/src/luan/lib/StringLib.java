@@ -60,7 +60,7 @@ public final class StringLib {
 	};
 
 	public static Object __index(LuanState luan,final String s,Object key) throws LuanException {
-		LuanTable mod = (LuanTable)luan.global().get("String");
+		LuanTable mod = (LuanTable)luan.loaded().get("String");
 		if( mod!=null ) {
 			Object obj = mod.get(key);
 			if( obj instanceof LuanFunction ) {
