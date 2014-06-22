@@ -1,4 +1,4 @@
-package luan.lib;
+package luan.modules;
 
 import java.io.File;
 import java.io.InputStreamReader;

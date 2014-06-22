@@ -1,4 +1,4 @@
-package luan.lib;
+package luan.modules;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
