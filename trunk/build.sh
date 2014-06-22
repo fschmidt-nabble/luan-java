@@ -1,15 +1,25 @@
 VERSION=trunk
-echo "_G._VERSION = 'Luan $VERSION'" >`pwd`/core/src/luan/version.luan
+
+cd `dirname $0`
+HOME=`pwd`
 
 rm dist/*.jar
 
-SRC=`pwd`/core/src
-CLASSPATH=$SRC
-javac `find $SRC -name *.java`
-jar cvf dist/luan-core-$VERSION.jar `find $SRC -name *.class -o -name *.luan`
+set -e
 
-SRC=`pwd`/web/src
-CLASSPATH=`pwd`/core/src:$SRC
-for i in `pwd`/web/ext/* ; do CLASSPATH=$CLASSPATH:$i ; done
-javac `find $SRC -name *.java`
-jar cvf dist/luan-web-$VERSION.jar `find $SRC -name *.class -o -name *.luan`
+echo "_G._VERSION = 'Luan $VERSION'" >core/src/luan/version.luan
+
+cd $HOME
+SRC=core/src
+CLASSPATH=$HOME/$SRC
+javac -classpath $CLASSPATH `find $SRC -name *.java`
+cd $SRC
+jar cvf $HOME/dist/luan-core-$VERSION.jar `find . -name *.class -o -name *.luan`
+
+cd $HOME
+SRC=web/src
+CLASSPATH=$HOME/core/src:$HOME/$SRC
+for i in $HOME/web/ext/* ; do CLASSPATH=$CLASSPATH:$i ; done
+javac -classpath $CLASSPATH `find $SRC -name *.java`
+cd $SRC
+jar cvf $HOME/dist/luan-web-$VERSION.jar `find . -name *.class -o -name *.luan`
