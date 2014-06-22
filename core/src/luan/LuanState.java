@@ -122,9 +122,13 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		return t.put(a[a.length-1],value);
 	}
 
-	public final void globalImport(String modName) throws LuanException {
-		Object mod = PackageLuan.require(this,modName);
-		global.put(modName,mod);
+	public final void globalImport(String modName) {
+		try {
+			Object mod = PackageLuan.require(this,modName);
+			global.put(modName,mod);
+		} catch(LuanException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static LuanState newStandard() {

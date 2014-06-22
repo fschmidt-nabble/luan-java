@@ -63,9 +63,9 @@ public final class HttpLuan {
 			}
 		}
 
-		LuanTable module = (LuanTable)luan.loaded().get("Http");
+		LuanTable module = (LuanTable)luan.loaded().get("web.Http");
 		if( module == null )
-			throw luan.exception( "module 'Http' not defined" );
+			throw luan.exception( "module 'web.Http' not defined" );
 		HttpLuan lib = new HttpLuan(request,response);
 		try {
 			module.put( "request", lib.requestTable() );
