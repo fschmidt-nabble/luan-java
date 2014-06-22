@@ -1,9 +1,9 @@
-package luan.parser;
+package luan.interp;
 
 import luan.LuanSource;
 
 
-public final class Parser {
+final class Parser {
 	private final LuanSource src;
 	public final String text;
 	private final int len;
