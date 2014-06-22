@@ -21,7 +21,7 @@ Package.global(Basic,"assert_nil")
 Package.global(Basic,"assert_number")
 Package.global(Basic,"assert_string")
 Package.global(Basic,"assert_table")
-Package.global(Basic,"do_file")
+local do_file = Package.global(Basic,"do_file")
 Package.global(Basic,"error")
 Package.global(Basic,"get_metatable")
 Package.global(Basic,"ipairs")
@@ -38,6 +38,8 @@ Package.global(Basic,"set_metatable")
 Package.global(Basic,"to_number")
 local to_string = Package.global(Basic,"to_string")
 Package.global(Basic,"type")
+
+do_file "java:luan/version.luan"
 
 local String = Package.global_import("String","luan.lib.StringLib.LOADER")
 

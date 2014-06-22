@@ -4,7 +4,6 @@ import luan.modules.BasicLuan;
 
 
 public final class Luan {
-	public static final String version = "Luan 0.1";
 
 	public static void main(String[] args) {
 		LuanState luan = LuanState.newStandard();
