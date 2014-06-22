@@ -1,9 +1,9 @@
-package luan.parser;
+package luan.interp;
 
 import luan.LuanSource;
 
 
-public class ParseException extends Exception {
+public final class ParseException extends Exception {
 	public final LuanSource src;
 	public final int iCurrent;
 	public final int iHigh;
