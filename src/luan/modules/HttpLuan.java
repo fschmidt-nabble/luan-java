@@ -22,7 +22,7 @@ import luan.LuanExitException;
 import luan.DeepCloner;
 
 
-public final class HttpLib {
+public final class HttpLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -35,7 +35,7 @@ public final class HttpLib {
 	{
 		LuanFunction fn;
 		synchronized(luan) {
-			Object mod = PackageLib.require(luan,modName);
+			Object mod = PackageLuan.require(luan,modName);
 			if( !(mod instanceof LuanTable) )
 				throw luan.exception( "module '"+modName+"' must return a table" );
 			LuanTable tbl = (LuanTable)mod;
@@ -49,7 +49,7 @@ public final class HttpLib {
 					luan = cloner.deepClone(luan);
 					session.putValue("luan",luan);
 				}
-				tbl = (LuanTable)PackageLib.require(luan,modName);
+				tbl = (LuanTable)PackageLuan.require(luan,modName);
 				fn = (LuanFunction)tbl.get("page");
 			} else {
 				fn = (LuanFunction)tbl.get("page");
@@ -64,13 +64,13 @@ public final class HttpLib {
 		LuanTable module = (LuanTable)luan.loaded().get("Http");
 		if( module == null )
 			throw luan.exception( "module 'Http' not defined" );
-		HttpLib lib = new HttpLib(request,response);
+		HttpLuan lib = new HttpLuan(request,response);
 		try {
 			module.put( "request", lib.requestTable() );
 			module.put( "response", lib.responseTable() );
 /*
 			module.put( "write", new LuanJavaFunction(
-				HttpLib.class.getMethod( "text_write", LuanState.class, new Object[0].getClass() ), lib
+				HttpLuan.class.getMethod( "text_write", LuanState.class, new Object[0].getClass() ), lib
 			) );
 */
 		} catch(NoSuchMethodException e) {
@@ -87,7 +87,7 @@ public final class HttpLib {
 //	private PrintWriter writer = null;
 //	private ServletOutputStream sos = null;
 
-	private HttpLib(HttpServletRequest request,HttpServletResponse response) {
+	private HttpLuan(HttpServletRequest request,HttpServletResponse response) {
 		this.request = request;
 		this.response = response;
 	}
@@ -126,7 +126,7 @@ public final class HttpLib {
 	}
 
 	private void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(HttpLib.class.getMethod(method,parameterTypes),this) );
+		t.put( method, new LuanJavaFunction(HttpLuan.class.getMethod(method,parameterTypes),this) );
 	}
 /*
 	public void text_write(LuanState luan,Object... args) throws LuanException, IOException {
@@ -138,7 +138,7 @@ public final class HttpLib {
 	}
 */
 	public LuanTable text_writer() throws IOException {
-		return IoLib.textWriter(response.getWriter());
+		return IoLuan.textWriter(response.getWriter());
 	}
 
 	public String get_cookie_value(String name) {

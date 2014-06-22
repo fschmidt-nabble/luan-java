@@ -13,9 +13,9 @@ import luan.LuanElement;
 import luan.LuanException;
 
 
-public final class PackageLib {
+public final class PackageLuan {
 
-	private static final String jpath = "luan.modules.?Lib.LOADER";
+	private static final String jpath = "luan.modules.?Luan.LOADER";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -42,7 +42,7 @@ public final class PackageLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(PackageLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(PackageLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static Object require(LuanState luan,String modName) throws LuanException {
@@ -103,7 +103,7 @@ public final class PackageLib {
 	public static final LuanFunction fileLoader = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			String fileName = (String)args[1];
-			LuanFunction fn = BasicLib.load_file(luan,fileName);
+			LuanFunction fn = BasicLuan.load_file(luan,fileName);
 			return fn.call(luan,args);
 		}
 	};

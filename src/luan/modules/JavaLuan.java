@@ -26,14 +26,14 @@ import luan.LuanJavaFunction;
 import luan.LuanElement;
 
 
-public final class JavaLib {
+public final class JavaLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
 			try {
-				module.put( "class", new LuanJavaFunction(JavaLib.class.getMethod("getClass",LuanState.class,String.class),null) );
+				module.put( "class", new LuanJavaFunction(JavaLuan.class.getMethod("getClass",LuanState.class,String.class),null) );
 				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -46,7 +46,7 @@ public final class JavaLib {
 	public static final LuanFunction javaSearcher = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			String modName = (String)args[0];
-			final Static s = JavaLib.getClass(luan,modName);
+			final Static s = JavaLuan.getClass(luan,modName);
 			if( s==null )
 				return null;
 			LuanFunction loader = new LuanFunction() {
@@ -60,7 +60,7 @@ public final class JavaLib {
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) {
 		try {
-			t.put( method, new LuanJavaFunction(JavaLib.class.getMethod(method,parameterTypes),null) );
+			t.put( method, new LuanJavaFunction(JavaLuan.class.getMethod(method,parameterTypes),null) );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}

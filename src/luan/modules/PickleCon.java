@@ -60,7 +60,7 @@ public final class PickleCon {
 		ioModule.put("_read_binary",_read_binary);
 		try {
 			src = in.readUTF();
-			LuanFunction fn = BasicLib.load(luan,src,"pickle-reader",env,false);
+			LuanFunction fn = BasicLuan.load(luan,src,"pickle-reader",env,false);
 			return luan.call(fn);
 		} finally {
 			ioModule.put("_binaries",null);

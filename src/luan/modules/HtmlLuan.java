@@ -7,7 +7,7 @@ import luan.LuanJavaFunction;
 import luan.LuanException;
 
 
-public final class HtmlLib {
+public final class HtmlLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -22,7 +22,7 @@ public final class HtmlLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(HtmlLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(HtmlLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static String encode(String s) {

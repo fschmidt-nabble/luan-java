@@ -19,13 +19,13 @@ import luan.LuanElement;
 import luan.impl.LuanCompiler;
 
 
-public final class BasicLib {
+public final class BasicLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
 			try {
-				module.put( "assert", new LuanJavaFunction(BasicLib.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
+				module.put( "assert", new LuanJavaFunction(BasicLuan.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
 				add( module, "assert_boolean", LuanState.class, Boolean.TYPE );
 				add( module, "assert_nil", LuanState.class, Object.class );
 				add( module, "assert_number", LuanState.class, Number.class );
@@ -57,7 +57,7 @@ public final class BasicLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(BasicLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(BasicLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static String type(Object obj) {
@@ -74,7 +74,7 @@ public final class BasicLib {
 
 	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
-			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : IoLib.luanIo(luan,fileName).read_text();
+			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : IoLuan.luanIo(luan,fileName).read_text();
 			return load(luan,src,fileName,null,false);
 		} catch(IOException e) {
 			throw luan.exception(e);

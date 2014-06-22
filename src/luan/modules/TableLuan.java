@@ -14,7 +14,7 @@ import luan.LuanException;
 import luan.LuanRuntimeException;
 
 
-public final class TableLib {
+public final class TableLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -35,7 +35,7 @@ public final class TableLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(TableLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(TableLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static String concat(LuanState luan,LuanTable list,String sep,Integer i,Integer j) throws LuanException {
