@@ -12,7 +12,7 @@ import luan.LuanException;
 import luan.MetatableGetter;
 
 
-public final class StringLib {
+public final class StringLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -41,7 +41,7 @@ public final class StringLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(StringLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(StringLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	private static final LuanTable mt = new LuanTable();
@@ -76,7 +76,7 @@ public final class StringLib {
 			}
 		}
 		if( luan.loaded().get("Java") != null )
-			return JavaLib.__index(luan,s,key);
+			return JavaLuan.__index(luan,s,key);
 		return null;
 	}
 

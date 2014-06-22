@@ -31,7 +31,7 @@ import luan.LuanJavaFunction;
 import luan.LuanException;
 
 
-public final class IoLib {
+public final class IoLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -42,16 +42,16 @@ public final class IoLib {
 
 				LuanTable stdin = new LuanTable();
 				stdin.put( "read_text", new LuanJavaFunction(
-					IoLib.class.getMethod( "stdin_read_text" ), null
+					IoLuan.class.getMethod( "stdin_read_text" ), null
 				) );
 				stdin.put( "read_binary", new LuanJavaFunction(
-					IoLib.class.getMethod( "stdin_read_binary" ), null
+					IoLuan.class.getMethod( "stdin_read_binary" ), null
 				) );
 				stdin.put( "read_lines", new LuanJavaFunction(
-					IoLib.class.getMethod( "stdin_read_lines" ), null
+					IoLuan.class.getMethod( "stdin_read_lines" ), null
 				) );
 				stdin.put( "read_blocks", new LuanJavaFunction(
-					IoLib.class.getMethod( "stdin_read_blocks", Integer.class ), null
+					IoLuan.class.getMethod( "stdin_read_blocks", Integer.class ), null
 				) );
 				module.put( "stdin", stdin );
 
@@ -67,7 +67,7 @@ public final class IoLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(IoLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(IoLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 
@@ -500,5 +500,5 @@ public final class IoLib {
 		};
 	}
 
-	private void IoLib() {}  // never
+	private void IoLuan() {}  // never
 }

@@ -1,6 +1,6 @@
 package luan;
 
-import luan.modules.BasicLib;
+import luan.modules.BasicLuan;
 
 
 public final class Luan {
@@ -9,7 +9,7 @@ public final class Luan {
 	public static void main(String[] args) {
 		LuanState luan = LuanState.newStandard();
 		try {
-			LuanFunction standalone = (LuanFunction)BasicLib.load_file(luan,"java:luan/tools/cmd_line.luan");
+			LuanFunction standalone = (LuanFunction)BasicLuan.load_file(luan,"java:luan/tools/cmd_line.luan");
 			luan.call(standalone,args);
 		} catch(LuanException e) {
 			System.err.println(e.getMessage());

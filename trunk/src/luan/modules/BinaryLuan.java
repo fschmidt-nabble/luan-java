@@ -7,7 +7,7 @@ import luan.LuanJavaFunction;
 import luan.LuanException;
 
 
-public final class BinaryLib {
+public final class BinaryLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -22,7 +22,7 @@ public final class BinaryLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(BinaryLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(BinaryLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static String to_string(byte[] bytes) {

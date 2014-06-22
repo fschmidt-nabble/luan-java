@@ -10,7 +10,7 @@ import luan.LuanException;
 import luan.DeepCloner;
 
 
-public final class ThreadLib {
+public final class ThreadLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
@@ -25,7 +25,7 @@ public final class ThreadLib {
 	};
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(ThreadLib.class.getMethod(method,parameterTypes),null) );
+		t.put( method, new LuanJavaFunction(ThreadLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	private static final Executor exec = Executors.newCachedThreadPool();
