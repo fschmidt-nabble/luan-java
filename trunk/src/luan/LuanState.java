@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
-import luan.interp.LuanCompiler;
+import luan.impl.LuanCompiler;
 import luan.lib.BasicLib;
 import luan.lib.PackageLib;
 import luan.lib.JavaLib;

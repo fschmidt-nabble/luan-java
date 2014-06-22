@@ -16,7 +16,7 @@ import luan.LuanJavaFunction;
 import luan.LuanException;
 import luan.LuanSource;
 import luan.LuanElement;
-import luan.interp.LuanCompiler;
+import luan.impl.LuanCompiler;
 
 
 public final class BasicLib {
