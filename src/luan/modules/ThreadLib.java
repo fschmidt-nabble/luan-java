@@ -1,4 +1,4 @@
-package luan.lib;
+package luan.modules;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;

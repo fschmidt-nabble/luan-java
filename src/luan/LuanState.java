@@ -7,17 +7,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import luan.impl.LuanCompiler;
-import luan.lib.BasicLib;
-import luan.lib.PackageLib;
-import luan.lib.JavaLib;
-import luan.lib.MathLib;
-import luan.lib.StringLib;
-import luan.lib.TableLib;
-import luan.lib.HtmlLib;
-import luan.lib.BinaryLib;
-import luan.lib.IoLib;
-import luan.lib.ThreadLib;
-import luan.lib.HttpLib;
+import luan.modules.BasicLib;
+import luan.modules.PackageLib;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
@@ -141,7 +132,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		try {
 			LuanState luan = LuanCompiler.newLuanState();
 			luan.globalImport("Package");
-			BasicLib.do_file(luan,"java:luan/lib/init.luan");
+			BasicLib.do_file(luan,"java:luan/init.luan");
 			return luan;
 		} catch(LuanException e) {
 			throw new RuntimeException(e);

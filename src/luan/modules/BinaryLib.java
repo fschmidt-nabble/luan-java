@@ -1,4 +1,4 @@
-package luan.lib;
+package luan.modules;
 
 import luan.LuanState;
 import luan.LuanTable;

@@ -1,6 +1,6 @@
 package luan;
 
-import luan.lib.BasicLib;
+import luan.modules.BasicLib;
 
 
 public final class Luan {

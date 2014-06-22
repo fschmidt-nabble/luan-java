@@ -1,4 +1,4 @@
-package luan.lib;
+package luan.modules;
 
 import java.io.PrintWriter;
 import java.io.IOException;

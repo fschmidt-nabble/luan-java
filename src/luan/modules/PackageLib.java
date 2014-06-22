@@ -1,4 +1,4 @@
-package luan.lib;
+package luan.modules;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -15,7 +15,7 @@ import luan.LuanException;
 
 public final class PackageLib {
 
-	private static final String jpath = "luan.lib.?Lib.LOADER";
+	private static final String jpath = "luan.modules.?Lib.LOADER";
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
