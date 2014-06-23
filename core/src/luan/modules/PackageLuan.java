@@ -26,6 +26,7 @@ public final class PackageLuan {
 			module.put("jpath",jpath);
 			try {
 				add( module, "require", LuanState.class, String.class );
+				add( module, "load", LuanState.class, String.class );
 				add( module, "load_lib", String.class );
 				add( module, "search_path", String.class, String.class );
 				add( module, "search", LuanState.class, String.class );
@@ -46,12 +47,19 @@ public final class PackageLuan {
 	}
 
 	public static Object require(LuanState luan,String modName) throws LuanException {
+		Object mod = load(luan,modName);
+		if( mod==null )
+			throw luan.exception( "module '"+modName+"' not found" );
+		return mod;
+	}
+
+	public static Object load(LuanState luan,String modName) throws LuanException {
 		LuanTable loaded = luan.loaded();
 		Object mod = loaded.get(modName);
 		if( mod == null ) {
 			Object[] a = search(luan,modName);
 			if( a == null )
-				throw luan.exception( "module '"+modName+"' not found" );
+				return null;
 			LuanFunction loader = (LuanFunction)a[0];
 			a[0] = modName;
 			mod = Luan.first(luan.call(loader,"<require \""+modName+"\">",a));
@@ -59,8 +67,10 @@ public final class PackageLuan {
 				loaded.put(modName,mod);
 			} else {
 				mod = loaded.get(modName);
-				if( mod==null )
-					loaded.put(modName,true);
+				if( mod==null ) {
+					mod = true;
+					loaded.put(modName,mod);
+				}
 			}
 		}
 		return mod;
@@ -91,7 +101,6 @@ public final class PackageLuan {
 	};
 
 	public static String search_path(String name,String path) {
-		name = name.replace('.','/');
 		for( String s : path.split(";") ) {
 			String file = s.replaceAll("\\?",name);
 			if( Utils.exists(file) )
@@ -139,6 +148,7 @@ public final class PackageLuan {
 	public static final LuanFunction javaSearcher = new LuanFunction() {
 		@Override public Object[] call(LuanState luan,Object[] args) {
 			String modName = (String)args[0];
+			modName = modName.replace('/','.');
 			String path = (String)luan.get("Package.jpath");
 			if( path==null )
 				path = jpath;

@@ -4,6 +4,8 @@ import "org.eclipse.jetty.server.Server"
 import "org.eclipse.jetty.server.handler.DefaultHandler"
 import "org.eclipse.jetty.server.handler.HandlerList"
 import "org.eclipse.jetty.server.handler.ResourceHandler"
+import "org.eclipse.jetty.server.session.SessionHandler"
+import "web/Http"
 
 
 port = 8080
@@ -11,11 +13,17 @@ port = 8080
 
 resource_handler = ResourceHandler.new()
 
+session_handler = SessionHandler.new()
+
+luan_handler = Http.new_luan_handler()
+
 handlers = HandlerList.new()
-handlers.setHandlers { resource_handler, DefaultHandler.new() }
+handlers.setHandlers { resource_handler, session_handler, luan_handler, DefaultHandler.new() }
  
 
 function serve(dir)
+	dir = dir.gsub("/$","")  -- remove trailing '/' if any
+	Package.path = dir.."?.luan;java:luan/modules/?.luan"
 	resource_handler.setResourceBase(dir)
 	local server = Server.new(port)
 	server.setHandler(handlers);

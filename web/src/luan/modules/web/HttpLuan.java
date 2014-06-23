@@ -28,16 +28,32 @@ public final class HttpLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			return new LuanTable();  // starts empty
+			LuanTable module = new LuanTable();
+			try {
+				addStatic( module, "new_luan_handler", LuanState.class );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return module;
 		}
 	};
 
-	public static void service(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
+	private static void addStatic(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
+		t.put( method, new LuanJavaFunction(HttpLuan.class.getMethod(method,parameterTypes),null) );
+	}
+
+	public static LuanHandler new_luan_handler(LuanState luan) {
+		return new LuanHandler(luan);
+	}
+
+	public static boolean service(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
 		throws LuanException
 	{
 		LuanFunction fn;
 		synchronized(luan) {
-			Object mod = PackageLuan.require(luan,modName);
+			Object mod = PackageLuan.load(luan,modName);
+			if( mod==null )
+				return false;
 			if( !(mod instanceof LuanTable) )
 				throw luan.exception( "module '"+modName+"' must return a table" );
 			LuanTable tbl = (LuanTable)mod;
@@ -63,9 +79,9 @@ public final class HttpLuan {
 			}
 		}
 
-		LuanTable module = (LuanTable)luan.loaded().get("web.Http");
+		LuanTable module = (LuanTable)luan.loaded().get("web/Http");
 		if( module == null )
-			throw luan.exception( "module 'web.Http' not defined" );
+			throw luan.exception( "module 'web/Http' not defined" );
 		HttpLuan lib = new HttpLuan(request,response);
 		try {
 			module.put( "request", lib.requestTable() );
@@ -80,6 +96,7 @@ public final class HttpLuan {
 		}
 
 		luan.call(fn,"<http>");
+		return true;
 	}
 
 
