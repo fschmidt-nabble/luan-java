@@ -1,0 +1,23 @@
+import "Java"
+
+import "org.eclipse.jetty.server.Server"
+import "org.eclipse.jetty.server.handler.DefaultHandler"
+import "org.eclipse.jetty.server.handler.HandlerList"
+import "org.eclipse.jetty.server.handler.ResourceHandler"
+
+
+port = 8080
+
+
+resource_handler = ResourceHandler.new()
+
+handlers = HandlerList.new()
+handlers.setHandlers { resource_handler, DefaultHandler.new() }
+ 
+
+function serve(dir)
+	resource_handler.setResourceBase(dir)
+	local server = Server.new(port)
+	server.setHandler(handlers);
+	server.start()
+end
