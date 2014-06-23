@@ -25,11 +25,10 @@ public class LuanHandler extends AbstractHandler {
 			if( !HttpLuan.service(luan,request,response,target) )
 				return;
 			response.setStatus(HttpServletResponse.SC_OK);
-			baseRequest.setHandled(true);
 		} catch(LuanException e) {
 //e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,e.toString());
-			baseRequest.setHandled(true);
 		}
+		baseRequest.setHandled(true);
 	}
 }
