@@ -16,7 +16,7 @@ local function print_with_line_numbers(s)
 	end
 end
 
-function page()
+function service()
 	local content_type = Http.request.get_parameter("content_type")
 	if content_type ~= nil then
 		Http.response.set_content_type(content_type)

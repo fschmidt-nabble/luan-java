@@ -104,6 +104,3 @@ function Debug.debug(prompt)
 	end
 end
 
-
--- import modules
-Package.global_import("Reactionary")

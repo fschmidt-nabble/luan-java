@@ -12,7 +12,7 @@ function Io.stdout.write(...)
 	end
 end
 
-function page()
+function service()
 	if Http.request.get_parameter("clear") ~= nil then
 		history = {}
 	else
