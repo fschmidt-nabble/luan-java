@@ -68,11 +68,11 @@ public final class HttpLuan {
 					session.putValue("luan",luan);
 				}
 				tbl = (LuanTable)PackageLuan.require(luan,modName);
-				fn = (LuanFunction)tbl.get("page");
+				fn = (LuanFunction)tbl.get("service");
 			} else {
-				fn = (LuanFunction)tbl.get("page");
+				fn = (LuanFunction)tbl.get("service");
 				if( fn == null )
-					throw luan.exception( "function 'page' is not defined" );
+					throw luan.exception( "function 'service' is not defined" );
 				DeepCloner cloner = new DeepCloner();
 				luan = cloner.deepClone(luan);
 				fn = cloner.get(fn);
