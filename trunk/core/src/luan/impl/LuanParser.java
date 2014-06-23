@@ -349,7 +349,10 @@ final class LuanParser {
 		String modName = StringLiteral(In.NOTHING);
 		if( modName==null )
 			return parser.failure(null);
-		String varName = modName.substring(modName.lastIndexOf('.')+1);
+		int i = modName.lastIndexOf('/');
+		if( i == -1 )
+			i = modName.lastIndexOf('.');
+		String varName = modName.substring(i+1);
 		LuanSource.Element se = se(start);
 		FnCall require = new FnCall( se, importExpr, new ConstExpr(modName) );
 		Settable settable;

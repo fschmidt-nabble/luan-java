@@ -1,4 +1,4 @@
-import "web.Http"
+import "web/Http"
 
 per_session = true
 
