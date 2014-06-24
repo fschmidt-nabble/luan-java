@@ -8,13 +8,16 @@ end
 
 local require = Package.global(Package,"require")
 
-function Package.global_import(name)
-	local mod = require(name)
-	_G[name] = mod
-	return mod
-end
+import "Basic"; _G.Basic = Basic
+import "String"; _G.String = String
+import "Table"; _G.Table = Table
+import "Io"; _G.Io = Io
+import "Math"; _G.Math = Basic
+import "Html"; _G.Html = Html
+import "Thread"; _G.Thread = Thread
+import "Binary"; _G.Binary = Binary
 
-local Basic = Package.global_import("Basic","luan.lib.BasicLib.LOADER")
+
 Package.global(Basic,"assert")
 Package.global(Basic,"assert_boolean")
 Package.global(Basic,"assert_nil")
@@ -41,22 +44,6 @@ Package.global(Basic,"type")
 
 do_file "java:luan/version.luan"
 
-local String = Package.global_import("String","luan.lib.StringLib.LOADER")
-
--- improved global_import
-function Package.global_import(name)
-	local short = name.match("\.([^.]+)$") or name
-	local mod = require(name)
-	_G[short] = mod
-	return mod
-end
-
-local Table = Package.global_import("Table","luan.lib.TableLib.LOADER")
-local Io = Package.global_import("Io","luan.lib.IoLib.LOADER")
-Package.global_import("Math","luan.lib.MathLib.LOADER")
-Package.global_import("Html","luan.lib.HtmlLib.LOADER")
-Package.global_import("Thread","luan.lib.ThreadLib.LOADER")
-Package.global_import("Binary","luan.lib.BinaryLib.LOADER")
 
 
 function Io.print_to(out,...)

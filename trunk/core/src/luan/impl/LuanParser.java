@@ -345,7 +345,21 @@ final class LuanParser {
 		int start = parser.begin();
 		if( !Keyword("import",In.NOTHING) )
 			return parser.failure(null);
-		Expr importExpr = (Expr)nameVar(start,"require").expr();
+		Expr importExpr;
+		{
+			LuanSource.Element se = se(start);
+			int index = stackIndex("require");
+			if( index != -1 ) {
+				importExpr = new GetLocalVar(se,index);
+			} else {
+				index = upValueIndex("require");
+				if( index != -1 ) {
+					importExpr = new GetUpVar(se,index);
+				} else {
+					throw parser.exception("no local 'require' function, needed for import");
+				}
+			}
+		}
 		String modName = StringLiteral(In.NOTHING);
 		if( modName==null )
 			return parser.failure(null);
