@@ -367,6 +367,8 @@ final class LuanParser {
 		if( i == -1 )
 			i = modName.lastIndexOf('.');
 		String varName = modName.substring(i+1);
+		if( !isValidName(varName) )
+			throw parser.exception("invalid variable name '"+varName+"' in import");
 		LuanSource.Element se = se(start);
 		FnCall require = new FnCall( se, importExpr, new ConstExpr(modName) );
 		Settable settable;
@@ -377,6 +379,19 @@ final class LuanParser {
 			settable = new SetLocalVar(symbolsSize()-1);
 		}
 		return parser.success( new SetStmt( settable, expr(require) ) );
+	}
+
+	private boolean isValidName(String s) {
+		if( s.length() == 0 )
+			return false;
+		char c = s.charAt(0);
+		if( !('a'<=c && c<='z' || 'A'<=c && c<='Z' || c=='_') )
+			return false;
+		for( int i=1; i<s.length() ; i++ ) {
+			if( !('a'<=c && c<='z' || 'A'<=c && c<='Z' || c=='_' || '0'<=c && c<='9') )
+				return false;
+		}
+		return true;
 	}
 
 	private Stmt BreakStmt() throws ParseException {
