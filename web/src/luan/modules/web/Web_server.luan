@@ -7,6 +7,9 @@ import "org.eclipse.jetty.server.handler.HandlerList"
 import "org.eclipse.jetty.server.handler.HandlerCollection"
 import "org.eclipse.jetty.server.handler.ResourceHandler"
 import "org.eclipse.jetty.server.handler.RequestLogHandler"
+import "org.eclipse.jetty.server.handler.ContextHandler"
+import "org.eclipse.jetty.server.handler.GzipHandler"
+import "org.eclipse.jetty.server.handler.HandlerWrapper"
 import "org.eclipse.jetty.server.session.SessionHandler"
 import "web/Http"
 
@@ -21,7 +24,25 @@ luan_handler = Http.new_luan_handler()
 resource_handler = ResourceHandler.new()
 
 handlers = HandlerList.new()
-handlers.setHandlers { session_handler, luan_handler, resource_handler, DefaultHandler.new(), log_handler }
+handlers.setHandlers { session_handler, luan_handler, resource_handler }
+
+function add_folder(context,dir)
+	local rh = ResourceHandler.new()
+	rh.setResourceBase(dir)
+	local ch = ContextHandler.new(context)
+	ch.setHandler(rh)
+	handlers.addHandler(ch)
+	return rh
+end
+
+handler_wrapper = HandlerWrapper.new()
+handler_wrapper.setHandler(handlers)
+
+function zip()
+	local h = GzipHandler.new()
+	h.setHandler(handler_wrapper.getHandler())
+	handler_wrapper.setHandler(h)
+end
 
 log = NCSARequestLog.new()
 log.setExtended(false)
@@ -29,7 +50,7 @@ log_handler = RequestLogHandler.new()
 log_handler.setRequestLog(log)
 
 local hc = HandlerCollection.new()
-hc.setHandlers { handlers, log_handler }
+hc.setHandlers { handler_wrapper, DefaultHandler.new(), log_handler }
  
 
 function serve(dir)
