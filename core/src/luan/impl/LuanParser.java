@@ -1023,11 +1023,13 @@ final class LuanParser {
 			builder.add( new ConstExpr(s) );
 			return true;
 		}
+/*
 		Expressions exps = TemplateExpressions(in);
 		if( exps != null ) {
 			builder.add(exps);
 			return true;
 		}
+*/
 		return false;
 	}
 
