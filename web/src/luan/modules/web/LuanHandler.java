@@ -13,6 +13,7 @@ import luan.LuanException;
 
 public class LuanHandler extends AbstractHandler {
 	private final LuanState luan;
+	private String welcomeFile = "index.html";
 
 	LuanHandler(LuanState luan) {
 		this.luan = luan;
@@ -21,6 +22,8 @@ public class LuanHandler extends AbstractHandler {
 	public void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 		throws IOException
 	{
+		if( target.endsWith("/") )
+			target += welcomeFile;
 		try {
 			if( !HttpLuan.service(luan,request,response,target) )
 				return;
@@ -30,5 +33,9 @@ public class LuanHandler extends AbstractHandler {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,e.getMessage());
 		}
 		baseRequest.setHandled(true);
+	}
+
+	public void setWelcomeFile(String welcomeFile) {
+		this.welcomeFile = welcomeFile;
 	}
 }
