@@ -15,7 +15,7 @@ public class LuanHandler extends AbstractHandler {
 	private final LuanState luan;
 	private String welcomeFile = "index.html";
 
-	LuanHandler(LuanState luan) {
+	public LuanHandler(LuanState luan) {
 		this.luan = luan;
 	}
 
