@@ -16,6 +16,8 @@ import "web/Http"
 
 port = 8080
 
+welcome_file = "index.html"
+
 
 session_handler = SessionHandler.new()
 
@@ -57,6 +59,8 @@ function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Package.path = dir.."?.luan;java:luan/modules/?.luan"
 	resource_handler.setResourceBase(dir)
+	resource_handler.setWelcomeFiles {welcome_file}
+	luan_handler.setWelcomeFile(welcome_file)
 	local server = Server.new(port)
 	server.setHandler(hc);
 	server.start()
