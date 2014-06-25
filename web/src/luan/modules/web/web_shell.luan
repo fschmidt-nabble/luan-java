@@ -30,16 +30,16 @@ function service()
 	end
 
 	local write = Http.response.text_writer().write
-	write %>
+	write(%>
 <html>
 <title>Luan Shell</title>
 	<body>
 		<p>This is a command shell.  Enter commands below.
-		<pre><%
+		<pre><%)
 		for _,v in ipairs(history) do
 			write(v)
 		end
-		write %></pre>
+		write(%></pre>
 		<form name='theForm' method='post'>
 			% <input name='cmd' size=60>
 			<input type=submit value=run>
@@ -51,6 +51,6 @@ function service()
 		<p/>
 	</body>
 </html>
-<%
+<%)
 
 end
