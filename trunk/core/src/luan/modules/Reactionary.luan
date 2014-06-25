@@ -6,17 +6,19 @@ port = 9101
 function put_site(domain,password,dir)
 	local pc = Io.Socket(host,port).Pickle_client()
 	local pickle = pc.pickle
-	pc.call %>
+	pc.call(%>
+		import "Reactionary"
 		Reactionary.do_put_site(<%=pickle(domain)%>,<%=pickle(password)%>,<%=pickle(dir)%>)
-	<%
+	<%)
 	pc.close()
 end
 
 function delete_site(domain,password)
 	local pc = Io.Socket(host,port).Pickle_client()
 	local pickle = pc.pickle
-	pc.call %>
+	pc.call(%>
+		import "Reactionary"
 		Reactionary.do_delete_site(<%=pickle(domain)%>,<%=pickle(password)%>)
-	<%
+	<%)
 	pc.close()
 end
