@@ -1,5 +1,7 @@
 -- Reactionary
 
+import "Io"
+
 host = "localhost"
 port = 9101
 
