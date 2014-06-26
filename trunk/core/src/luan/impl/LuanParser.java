@@ -111,7 +111,11 @@ final class LuanParser {
 	}
 
 	private LuanSource.Element se(int start) {
-		return new LuanSource.Element(source,start,parser.currentIndex());
+		return se(start,null);
+	}
+
+	private LuanSource.Element se(int start,String text) {
+		return new LuanSource.Element(source,start,parser.currentIndex(),text);
 	}
 
 	private List<String> symbols() {
@@ -268,8 +272,8 @@ final class LuanParser {
 		if( exp == null )
 			return null;
 		Expr fnExp = (Expr)nameVar(start,"Io").expr();
-		fnExp = new IndexExpr( se(start), fnExp, new ConstExpr("stdout") );
-		fnExp = new IndexExpr( se(start), fnExp, new ConstExpr("write") );
+		fnExp = new IndexExpr( se(start,"stdout"), fnExp, new ConstExpr("stdout") );
+		fnExp = new IndexExpr( se(start,"write"), fnExp, new ConstExpr("write") );
 		FnCall fnCall = new FnCall( se(start), fnExp, exp );
 		return new ExpressionsStmt(fnCall);
 	}
@@ -928,7 +932,7 @@ final class LuanParser {
 	}
 
 	private Var nameVar(final int start,final String name) {
-		return nameVar(se(start),name);
+		return nameVar(se(start,name),name);
 	}
 
 	private Var nameVar(final LuanSource.Element se,final String name) {
