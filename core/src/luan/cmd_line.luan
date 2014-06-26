@@ -1,3 +1,6 @@
+import "String"
+import "Table"
+
 
 local standalone_usage = [=[
 usage: java luan.CmdLine [options] [script [args]]
