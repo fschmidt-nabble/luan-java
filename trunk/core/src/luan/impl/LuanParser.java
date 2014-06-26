@@ -9,6 +9,7 @@ import java.util.Scanner;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanSource;
+import luan.modules.PackageLuan;
 
 
 final class LuanParser {
@@ -345,21 +346,6 @@ final class LuanParser {
 		int start = parser.begin();
 		if( !Keyword("import",In.NOTHING) )
 			return parser.failure(null);
-		Expr importExpr;
-		{
-			LuanSource.Element se = se(start);
-			int index = stackIndex("require");
-			if( index != -1 ) {
-				importExpr = new GetLocalVar(se,index);
-			} else {
-				index = upValueIndex("require");
-				if( index != -1 ) {
-					importExpr = new GetUpVar(se,index);
-				} else {
-					throw parser.exception("no local 'require' function, needed for import");
-				}
-			}
-		}
 		String modName = StringLiteral(In.NOTHING);
 		if( modName==null )
 			return parser.failure(null);
@@ -370,7 +356,7 @@ final class LuanParser {
 		if( !isValidName(varName) )
 			throw parser.exception("invalid variable name '"+varName+"' in import");
 		LuanSource.Element se = se(start);
-		FnCall require = new FnCall( se, importExpr, new ConstExpr(modName) );
+		FnCall require = new FnCall( se, new ConstExpr(se,PackageLuan.requireFn), new ConstExpr(modName) );
 		Settable settable;
 		if( interactive ) {
 			settable = nameVar(se,varName).settable();

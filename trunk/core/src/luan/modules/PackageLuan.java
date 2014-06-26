@@ -25,7 +25,7 @@ public final class PackageLuan {
 			module.put("path","?.luan;java:luan/modules/?.luan");
 			module.put("jpath",jpath);
 			try {
-				add( module, "require", LuanState.class, String.class );
+				module.put("require",requireFn);
 				add( module, "load", LuanState.class, String.class );
 				add( module, "load_lib", String.class );
 				add( module, "search_path", String.class, String.class );
@@ -41,6 +41,15 @@ public final class PackageLuan {
 			return module;
 		}
 	};
+
+	public static final LuanFunction requireFn;
+	static {
+		try {
+			requireFn = new LuanJavaFunction(PackageLuan.class.getMethod("require",LuanState.class,String.class),null);
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(PackageLuan.class.getMethod(method,parameterTypes),null) );

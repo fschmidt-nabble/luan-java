@@ -1,3 +1,8 @@
+import "Package"
+import "Basic"
+import "Table"
+import "Io"
+
 function Package.global(module,fn_name)
 	local function fn(...)
 		return module[fn_name](...)
@@ -7,17 +12,6 @@ function Package.global(module,fn_name)
 end
 
 local require = Package.global(Package,"require")
-
-import "Basic"; _G.Basic = Basic
-import "String"; _G.String = String
-import "Table"; _G.Table = Table
-import "Io"; _G.Io = Io
-import "Math"; _G.Math = Basic
-import "Html"; _G.Html = Html
-import "Thread"; _G.Thread = Thread
-import "Binary"; _G.Binary = Binary
-
-
 Package.global(Basic,"assert")
 Package.global(Basic,"assert_boolean")
 Package.global(Basic,"assert_nil")
