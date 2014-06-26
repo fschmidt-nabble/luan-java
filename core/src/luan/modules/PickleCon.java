@@ -40,6 +40,7 @@ public final class PickleCon {
 			throw new RuntimeException(e);
 		}
 		this.ioModule = (LuanTable)luan.loaded().get("Io");
+		env.put("Io",ioModule);
 
 		this.out = out;
 	}
