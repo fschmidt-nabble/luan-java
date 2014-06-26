@@ -13,21 +13,24 @@ import "org.eclipse.jetty.server.handler.ContextHandler"
 import "org.eclipse.jetty.server.handler.GzipHandler"
 import "org.eclipse.jetty.server.handler.HandlerWrapper"
 import "org.eclipse.jetty.server.session.SessionHandler"
+import "luan.modules.web.AuthenticationHandler"
 
 
 port = 8080
 
+private_password = "password"
+
 welcome_file = "index.html"
 
 
-session_handler = SessionHandler.new()
+authentication_handler = AuthenticationHandler.new("/private/")
 
 luan_handler = Http.new_luan_handler()
 
 resource_handler = ResourceHandler.new()
 
 handlers = HandlerList.new()
-handlers.setHandlers { session_handler, luan_handler, resource_handler }
+handlers.setHandlers { authentication_handler, luan_handler, resource_handler }
 
 function add_folder(context,dir)
 	local rh = ResourceHandler.new()
@@ -53,12 +56,13 @@ log_handler = RequestLogHandler.new()
 log_handler.setRequestLog(log)
 
 local hc = HandlerCollection.new()
-hc.setHandlers { handler_wrapper, DefaultHandler.new(), log_handler }
+hc.setHandlers { SessionHandler.new(), handler_wrapper, DefaultHandler.new(), log_handler }
  
 
 function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Package.path = dir.."?.luan;java:luan/modules/?.luan"
+	authentication_handler.setPassword(private_password)
 	resource_handler.setResourceBase(dir)
 	resource_handler.setWelcomeFiles {welcome_file}
 	luan_handler.setWelcomeFile(welcome_file)
