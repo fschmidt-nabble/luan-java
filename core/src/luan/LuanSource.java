@@ -28,8 +28,13 @@ public final class LuanSource {
 		public final LuanSource source;
 		public final int start;
 		public final int end;
+		private final String text;
 
 		public Element(LuanSource source,int start,int end) {
+			this(source,start,end,null);
+		}
+
+		public Element(LuanSource source,int start,int end,String text) {
 			if( source==null )
 				throw new NullPointerException("source is null");
 			this.source = source;
@@ -38,10 +43,11 @@ public final class LuanSource {
 				end--;
 			}
 			this.end = end;
+			this.text = text;
 		}
 
 		public String text() {
-			return source.text.substring(start,end);
+			return text!=null ? text : source.text.substring(start,end);
 		}
 
 		@Override String location() {

@@ -1,4 +1,5 @@
 import "Java"
+import "Io"
 import "Package"
 import "web/Http"
 
@@ -63,7 +64,7 @@ function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Package.path = dir.."?.luan;java:luan/modules/?.luan"
 	authentication_handler.setPassword(private_password)
-	resource_handler.setResourceBase(dir)
+	resource_handler.setResourceBase(Io.File(dir).to_string())
 	resource_handler.setWelcomeFiles {welcome_file}
 	luan_handler.setWelcomeFile(welcome_file)
 	local server = Server.new(port)
