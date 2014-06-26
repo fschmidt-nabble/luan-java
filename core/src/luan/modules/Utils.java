@@ -61,7 +61,7 @@ public final class Utils {
 	}
 
 	public static boolean isFile(String path) {
-		return exists(new File(path));
+		return !path.contains("//") && exists(new File(path));
 	}
 
 	public static String toUrl(String path) {
@@ -69,6 +69,8 @@ public final class Utils {
 			return null;
 		if( path.startsWith("java:") ) {
 			path = path.substring(5);
+			if( path.contains("//") )
+				return null;
 			URL url = ClassLoader.getSystemResource(path);
 			return url==null ? null : url.toString();
 		}
