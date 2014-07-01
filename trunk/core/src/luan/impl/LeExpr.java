@@ -14,6 +14,10 @@ final class LeExpr extends BinaryOpExpr {
 	}
 
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		return le(luan);
+	}
+
+	private boolean le(LuanStateImpl luan) throws LuanException {
 		Object o1 = op1.eval(luan);
 		Object o2 = op2.eval(luan);
 		if( o1 instanceof Number && o2 instanceof Number ) {
