@@ -18,7 +18,7 @@ final class IfStmt extends CodeImpl implements Stmt {
 	}
 
 	@Override public void eval(LuanStateImpl luan) throws LuanException {
-		if( luan.bit(se).checkBoolean( cnd.eval(luan) ) ) {
+		if( luan.bit(cnd.se()).checkBoolean( cnd.eval(luan) ) ) {
 			thenStmt.eval(luan);
 		} else {
 			elseStmt.eval(luan);
