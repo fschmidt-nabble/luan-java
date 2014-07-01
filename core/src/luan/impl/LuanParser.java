@@ -600,7 +600,8 @@ final class LuanParser {
 		if( exp==null )
 			return parser.failure(null);
 		while( Keyword("or",in) ) {
-			exp = new OrExpr( se(start), expr(exp), required(expr(AndExpr(in))) );
+			Expressions exp2 = AndExpr(in);
+			exp = new OrExpr( se(start), expr(exp), required(expr(exp2)) );
 		}
 		return parser.success(exp);
 	}
@@ -611,7 +612,8 @@ final class LuanParser {
 		if( exp==null )
 			return parser.failure(null);
 		while( Keyword("and",in) ) {
-			exp = new AndExpr( se(start), expr(exp), required(expr(RelExpr(in))) );
+			Expressions exp2 = RelExpr(in);
+			exp = new AndExpr( se(start), expr(exp), required(expr(exp2)) );
 		}
 		return parser.success(exp);
 	}
@@ -624,22 +626,28 @@ final class LuanParser {
 		while(true) {
 			if( parser.match("==") ) {
 				Spaces(in);
-				exp = new EqExpr( se(start), expr(exp), required(expr(ConcatExpr(in))) );
+				Expressions exp2 = ConcatExpr(in);
+				exp = new EqExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else if( parser.match("~=") ) {
 				Spaces(in);
-				exp = new NotExpr( se(start), new EqExpr( se(start), expr(exp), required(expr(ConcatExpr(in))) ) );
+				Expressions exp2 = ConcatExpr(in);
+				exp = new NotExpr( se(start), new EqExpr( se(start), expr(exp), required(expr(exp2)) ) );
 			} else if( parser.match("<=") ) {
 				Spaces(in);
-				exp = new LeExpr( se(start), expr(exp), required(expr(ConcatExpr(in))) );
+				Expressions exp2 = ConcatExpr(in);
+				exp = new LeExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else if( parser.match(">=") ) {
 				Spaces(in);
-				exp = new LeExpr( se(start), required(expr(ConcatExpr(in))), expr(exp) );
+				Expressions exp2 = ConcatExpr(in);
+				exp = new LeExpr( se(start), required(expr(exp2)), expr(exp) );
 			} else if( parser.match("<") ) {
 				Spaces(in);
-				exp = new LtExpr( se(start), expr(exp), required(expr(ConcatExpr(in))) );
+				Expressions exp2 = ConcatExpr(in);
+				exp = new LtExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else if( parser.match(">") ) {
 				Spaces(in);
-				exp = new LtExpr( se(start), required(expr(ConcatExpr(in))), expr(exp) );
+				Expressions exp2 = ConcatExpr(in);
+				exp = new LtExpr( se(start), required(expr(exp2)), expr(exp) );
 			} else
 				break;
 		}
@@ -653,7 +661,8 @@ final class LuanParser {
 			return parser.failure(null);
 		if( parser.match("..") ) {
 			Spaces(in);
-			exp = new ConcatExpr( se(start), expr(exp), required(expr(ConcatExpr(in))) );
+			Expressions exp2 = ConcatExpr(in);
+			exp = new ConcatExpr( se(start), expr(exp), required(expr(exp2)) );
 		}
 		return parser.success(exp);
 	}
@@ -666,10 +675,12 @@ final class LuanParser {
 		while(true) {
 			if( parser.match('+') ) {
 				Spaces(in);
-				exp = new AddExpr( se(start), expr(exp), required(expr(TermExpr(in))) );
+				Expressions exp2 = TermExpr(in);
+				exp = new AddExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else if( Minus() ) {
 				Spaces(in);
-				exp = new SubExpr( se(start), expr(exp), required(expr(TermExpr(in))) );
+				Expressions exp2 = TermExpr(in);
+				exp = new SubExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else
 				break;
 		}
@@ -689,13 +700,16 @@ final class LuanParser {
 		while(true) {
 			if( parser.match('*') ) {
 				Spaces(in);
-				exp = new MulExpr( se(start), expr(exp), required(expr(UnaryExpr(in))) );
+				Expressions exp2 = UnaryExpr(in);
+				exp = new MulExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else if( parser.match('/') ) {
 				Spaces(in);
-				exp = new DivExpr( se(start), expr(exp), required(expr(UnaryExpr(in))) );
+				Expressions exp2 = UnaryExpr(in);
+				exp = new DivExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else if( Mod() ) {
 				Spaces(in);
-				exp = new ModExpr( se(start), expr(exp), required(expr(UnaryExpr(in))) );
+				Expressions exp2 = UnaryExpr(in);
+				exp = new ModExpr( se(start), expr(exp), required(expr(exp2)) );
 			} else
 				break;
 		}
@@ -711,15 +725,18 @@ final class LuanParser {
 		int start = parser.begin();
 		if( parser.match('#') ) {
 			Spaces(in);
-			return parser.success( new LenExpr( se(start), required(expr(UnaryExpr(in))) ) );
+			Expressions exp = UnaryExpr(in);
+			return parser.success( new LenExpr( se(start), required(expr(exp)) ) );
 		}
 		if( Minus() ) {
 			Spaces(in);
-			return parser.success( new UnmExpr( se(start), required(expr(UnaryExpr(in))) ) );
+			Expressions exp = UnaryExpr(in);
+			return parser.success( new UnmExpr( se(start), required(expr(exp)) ) );
 		}
 		if( Keyword("not",in) ) {
 			Spaces(in);
-			return parser.success( new NotExpr( se(start), required(expr(UnaryExpr(in))) ) );
+			Expressions exp = UnaryExpr(in);
+			return parser.success( new NotExpr( se(start), required(expr(exp)) ) );
 		}
 		Expressions exp = PowExpr(in);
 		if( exp==null )
@@ -734,7 +751,8 @@ final class LuanParser {
 			return parser.failure(null);
 		if( parser.match('^') ) {
 			Spaces(in);
-			exp = new ConcatExpr( se(start), expr(exp), required(expr(PowExpr(in))) );
+			Expressions exp2 = PowExpr(in);
+			exp = new ConcatExpr( se(start), expr(exp), required(expr(exp2)) );
 		}
 		return parser.success(exp);
 	}

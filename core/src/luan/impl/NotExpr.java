@@ -14,4 +14,8 @@ final class NotExpr extends UnaryOpExpr {
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
 		return !Luan.toBoolean(op.eval(luan));
 	}
+
+	@Override public String toString() {
+		return "(NotExpr "+op+")";
+	}
 }

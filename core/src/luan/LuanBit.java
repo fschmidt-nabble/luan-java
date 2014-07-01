@@ -43,28 +43,48 @@ public final class LuanBit {
 
 	public String checkString(Object obj) throws LuanException {
 		String s = Luan.asString(obj);
-		if( s == null )
+		if( s != null )
+			return s;
+		if( el instanceof LuanSource.Element ) {
+			LuanSource.Element se = (LuanSource.Element)el;
+			throw exception( "attempt to use '"+se.text()+"' (a " + Luan.type(obj) + " value) as a string" );
+		} else {
 			throw exception( "attempt to use a " + Luan.type(obj) + " as a string" );
-		return s;
+		}
 	}
 
 	public Number checkNumber(Object obj) throws LuanException {
 		Number n = Luan.toNumber(obj);
-		if( n == null )
+		if( n != null )
+			return n;
+		if( el instanceof LuanSource.Element ) {
+			LuanSource.Element se = (LuanSource.Element)el;
+			throw exception( "attempt to perform arithmetic on '"+se.text()+"' (a " + Luan.type(obj) + " value)" );
+		} else {
 			throw exception( "attempt to perform arithmetic on a " + Luan.type(obj) + " value" );
-		return n;
+		}
 	}
 
 	public LuanFunction checkFunction(Object obj) throws LuanException {
 		if( obj instanceof LuanFunction )
 			return (LuanFunction)obj;
-		throw exception( "attempt to call a " + Luan.type(obj) + " value" );
+		if( el instanceof LuanSource.Element ) {
+			LuanSource.Element se = (LuanSource.Element)el;
+			throw exception( "attempt to call '"+se.text()+"' (a " + Luan.type(obj) + " value)" );
+		} else {
+			throw exception( "attempt to call a " + Luan.type(obj) + " value" );
+		}
 	}
 
 	public Boolean checkBoolean(Object obj) throws LuanException {
 		if( obj instanceof Boolean )
 			return (Boolean)obj;
-		throw exception( "attempt to use a " + Luan.type(obj) + " as a boolean" );
+		if( el instanceof LuanSource.Element ) {
+			LuanSource.Element se = (LuanSource.Element)el;
+			throw exception( "attempt to use '"+se.text()+"' (a " + Luan.type(obj) + " value) as a boolean" );
+		} else {
+			throw exception( "attempt to use a " + Luan.type(obj) + " as a boolean" );
+		}
 	}
 
 	public String toString(Object obj) throws LuanException {

@@ -15,6 +15,10 @@ final class EqExpr extends BinaryOpExpr {
 	}
 
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
+		return eq(luan);
+	}
+
+	private boolean eq(LuanStateImpl luan) throws LuanException {
 		Object o1 = op1.eval(luan);
 		Object o2 = op2.eval(luan);
 		if( o1 == o2 || o1 != null && o1.equals(o2) )
@@ -32,9 +36,13 @@ final class EqExpr extends BinaryOpExpr {
 			return false;
 		Object f = mt1.get("__eq");
 		if( f == null || !f.equals(mt2.get("__eq")) )
-			return null;
+			return false;
 		LuanBit bit = luan.bit(se);
 		LuanFunction fn = bit.checkFunction(f);
 		return Luan.toBoolean( Luan.first(bit.call(fn,"__eq",new Object[]{o1,o2})) );
+	}
+
+	@Override public String toString() {
+		return "(EqExpr "+op1+" "+op2+")";
 	}
 }
