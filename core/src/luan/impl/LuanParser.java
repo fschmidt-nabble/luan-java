@@ -763,15 +763,19 @@ final class LuanParser {
 		exp = FunctionExpr(in);
 		if( exp != null )
 			return parser.success(exp);
+/*
 		exp = TableExpr(in);
 		if( exp != null )
 			return parser.success(exp);
+*/
 		exp = VarExp(in);
 		if( exp != null )
 			return parser.success(exp);
+/*
 		exp = Literal(in);
 		if( exp != null )
 			return parser.success(exp);
+*/
 		return parser.failure(null);
 	}
 
@@ -931,6 +935,13 @@ final class LuanParser {
 		String name = Name(in);
 		if( name != null )
 			return parser.success(nameVar(start,name));
+		Expressions exp;
+		exp = TableExpr(in);
+		if( exp != null )
+			return parser.success(exprVar(exp));
+		exp = Literal(in);
+		if( exp != null )
+			return parser.success(exprVar(exp));
 		return parser.failure(null);
 	}
 
