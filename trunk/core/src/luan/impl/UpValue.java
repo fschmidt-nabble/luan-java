@@ -83,13 +83,6 @@ final class UpValue implements DeepCloneable<UpValue> {
 		}
 	}
 
-	static final class EnvGetter implements Getter {
-
-		public UpValue get(LuanStateImpl luan) throws LuanException {
-			return luan.getUpValue(this);
-		}
-	}
-
 	static final class ValueGetter implements Getter {
 		private final UpValue upValue;
 
