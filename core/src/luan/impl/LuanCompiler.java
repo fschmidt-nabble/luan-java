@@ -13,7 +13,10 @@ public final class LuanCompiler {
 	private LuanCompiler() {}  // never
 
 	public static LuanFunction compile(LuanState luan,LuanSource src,LuanTable env,boolean allowExpr) throws LuanException {
-		UpValue.Getter envGetter = env!=null ? new UpValue.ValueGetter(env) : new UpValue.EnvGetter();
+		boolean passedEnv = env != null;
+		if( !passedEnv )
+			env = new LuanTable();
+		UpValue.Getter envGetter = new UpValue.ValueGetter(env);
 		LuanParser parser = new LuanParser(src,envGetter);
 		for( Map.Entry<Object,Object> entry : luan.global() ) {
 			Object key = entry.getKey();
@@ -21,7 +24,7 @@ public final class LuanCompiler {
 				parser.addVar( (String)key, entry.getValue() );
 		}
 		FnDef fnDef = parse(luan,parser,allowExpr);
-		if( env != null )
+		if( passedEnv )
 			return new Closure((LuanStateImpl)luan,fnDef);
 		final Closure c = new Closure((LuanStateImpl)luan,fnDef);
 		return new LuanFunction() {
