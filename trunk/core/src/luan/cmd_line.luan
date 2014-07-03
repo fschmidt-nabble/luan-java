@@ -65,8 +65,12 @@ if i <= #args then
 	for j,v in ipairs(args) do
 		_G.arg[j-i] = v
 	end
-	local main_file = load_file(file)
-	main_file( Table.unpack(_G.arg) )
+	try
+		local main_file = load_file(file)
+		main_file( Table.unpack(_G.arg) )
+	catch e do
+		print(e)
+	end
 end
 if interactive then
 	Debug.debug("> ")

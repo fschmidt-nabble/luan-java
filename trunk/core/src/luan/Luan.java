@@ -111,7 +111,7 @@ public final class Luan {
 			return Luan.toString((Number)obj);
 		if( obj instanceof LuanException ) {
 			LuanException le = (LuanException)obj;
-			return le.getMessage();
+			return le.getFullMessage();
 		}
 		if( obj instanceof byte[] )
 			return "binary: " + Integer.toHexString(obj.hashCode());
