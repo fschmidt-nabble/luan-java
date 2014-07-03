@@ -11,6 +11,7 @@ import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
+import luan.MetatableGetter;
 
 
 public final class PackageLuan {
@@ -84,8 +85,9 @@ public final class PackageLuan {
 		}
 		if( mod instanceof LuanTable ) {
 			LuanTable modTbl = (LuanTable)mod;
-			if( modTbl.metatableGetter != null )
-				luan.addMetatableGetter(modTbl.metatableGetter);
+			MetatableGetter mg = (MetatableGetter)modTbl.get(MetatableGetter.KEY);
+			if( mg != null )
+				luan.addMetatableGetter(mg);
 		}
 		return mod;
 	}
