@@ -18,7 +18,9 @@ public final class StringLuan {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			module.put( MetatableGetter.KEY, new MyMetatableGetter(module) );
+			MyMetatableGetter mmg = new MyMetatableGetter();
+			mmg.init(module);
+			module.put( MetatableGetter.KEY, mmg );
 			try {
 				add( module, "to_binary", String.class );
 				add( module, "to_integers", String.class );
@@ -51,9 +53,26 @@ public final class StringLuan {
 
 		private MyMetatableGetter() {}
 
-		MyMetatableGetter(LuanTable module) {
+		private void init(LuanTable module) {
 			this.module = module;
-			this.metatable = table();
+			this.metatable = new LuanTable();
+			try {
+				metatable.put( "__index", new LuanJavaFunction(
+					MyMetatableGetter.class.getMethod( "__index", LuanState.class, String.class, Object.class ), this
+				) );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override public MetatableGetter shallowClone() {
+			return new MyMetatableGetter();
+		}
+
+		@Override public void deepenClone(MetatableGetter c,DeepCloner cloner) {
+			MyMetatableGetter clone = (MyMetatableGetter)c;
+			clone.module = cloner.deepClone(module);
+			clone.metatable = cloner.deepClone(metatable);
 		}
 
 		@Override public LuanTable getMetatable(Object obj) {
@@ -81,28 +100,6 @@ public final class StringLuan {
 				return null;
 			LuanFunction fn = (LuanFunction)h;
 			return luan.call(fn,new Object[]{s,key});
-		}
-
-		LuanTable table() {
-			LuanTable tbl = new LuanTable();
-			try {
-				tbl.put( "__index", new LuanJavaFunction(
-					MyMetatableGetter.class.getMethod( "__index", LuanState.class, String.class, Object.class ), this
-				) );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return tbl;
-		}
-
-		@Override public MetatableGetter shallowClone() {
-			return new MyMetatableGetter();
-		}
-
-		@Override public void deepenClone(MetatableGetter c,DeepCloner cloner) {
-			MyMetatableGetter clone = (MyMetatableGetter)c;
-			clone.module = cloner.deepClone(module);
-			clone.metatable = clone.table();
 		}
 	}
 
