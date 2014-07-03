@@ -18,7 +18,7 @@ public final class StringLuan {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			module.metatableGetter = new MyMetatableGetter(module);
+			module.put( MetatableGetter.KEY, new MyMetatableGetter(module) );
 			try {
 				add( module, "to_binary", String.class );
 				add( module, "to_integers", String.class );

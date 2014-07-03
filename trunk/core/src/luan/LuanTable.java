@@ -18,7 +18,6 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
 	private LuanTable metatable = null;
-	public MetatableGetter metatableGetter = null;  // used for modules
 
 	public LuanTable() {}
 
@@ -63,7 +62,6 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 	}
 
 	@Override public void deepenClone(LuanTable clone,DeepCloner cloner) {
-		clone.metatableGetter = this.metatableGetter;
 		if( map != null ) {
 			clone.map = new HashMap<Object,Object>();
 			for( Map.Entry<Object,Object> entry : map.entrySet() ) {
