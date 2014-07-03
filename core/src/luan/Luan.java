@@ -11,7 +11,7 @@ public final class Luan {
 			LuanFunction standalone = (LuanFunction)BasicLuan.load_file(luan,"java:luan/cmd_line.luan");
 			luan.call(standalone,args);
 		} catch(LuanException e) {
-			System.err.println(e.getMessage());
+			System.err.println(e.getFullMessage());
 //			e.printStackTrace();
 			System.exit(-1);
 		}

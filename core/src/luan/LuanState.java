@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.HashSet;
 import luan.impl.LuanCompiler;
 import luan.modules.BasicLuan;
 import luan.modules.PackageLuan;
@@ -19,6 +21,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	private LuanTable loaded;
 	private LuanTable preload;
 	private LuanTable searchers;
+	public final Set<String> blocked;
 
 	protected LuanState() {
 		global = new LuanTable();
@@ -26,6 +29,11 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		loaded = new LuanTable();
 		preload = new LuanTable();
 		searchers = new LuanTable();
+		blocked = new HashSet<String>();
+	}
+
+	protected LuanState(LuanState luan) {
+		blocked = new HashSet<String>(luan.blocked);
 	}
 
 	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {

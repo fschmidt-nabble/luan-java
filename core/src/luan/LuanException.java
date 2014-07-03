@@ -1,7 +1,10 @@
 package luan;
 
+import java.io.StringWriter;
+import java.io.PrintWriter;
 
-public class LuanException extends Exception {
+
+public final class LuanException extends Exception {
 	private final String stackTrace;
 
 	LuanException(LuanBit bit,Object msg) {
@@ -11,6 +14,18 @@ public class LuanException extends Exception {
 
 	@Override public String getMessage() {
 		return super.getMessage() + stackTrace;
+	}
+
+	public String getFullMessage() {
+		String msg = getMessage();
+		Throwable cause = getCause();
+		if( cause != null ) {
+			msg += "\nCaused by: ";
+			StringWriter sw = new StringWriter();
+			cause.printStackTrace(new PrintWriter(sw));
+			msg += sw;
+		}
+		return msg;
 	}
 
 	private String message() {

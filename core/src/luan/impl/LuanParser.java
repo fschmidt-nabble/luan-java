@@ -174,6 +174,8 @@ final class LuanParser {
 	}
 
 	private static Expr expr(Expressions exprs) {
+		if( exprs==null )
+			return null;
 		if( exprs instanceof Expr )
 			return (Expr)exprs; 
 		return new ExpressionsExpr(exprs);

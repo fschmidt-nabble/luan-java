@@ -68,10 +68,14 @@ final class LuanStateImpl extends LuanState {
 
 	LuanStateImpl() {}
 
+	private LuanStateImpl(LuanStateImpl luan) {
+		super(luan);
+	}
+
 	@Override public LuanState shallowClone() {
 //		if( frame != null )
 //			throw new IllegalStateException("frame isn't null");
-		return new LuanStateImpl();
+		return new LuanStateImpl(this);
 	}
 
 	// returns stack
