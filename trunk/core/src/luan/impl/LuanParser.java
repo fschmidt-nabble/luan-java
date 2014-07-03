@@ -272,8 +272,10 @@ final class LuanParser {
 		if( exp == null )
 			return null;
 		Expr fnExp = (Expr)nameVar(start,"Io").expr();
-		fnExp = new IndexExpr( se(start,"stdout"), fnExp, new ConstExpr("stdout") );
-		fnExp = new IndexExpr( se(start,"write"), fnExp, new ConstExpr("write") );
+		LuanSource.Element se = se(start,"stdout");
+		fnExp = new IndexExpr( se, fnExp, new ConstExpr(se,"stdout") );
+		se = se(start,"write");
+		fnExp = new IndexExpr( se, fnExp, new ConstExpr(se,"write") );
 		FnCall fnCall = new FnCall( se(start), fnExp, exp );
 		return new ExpressionsStmt(fnCall);
 	}
@@ -304,7 +306,7 @@ final class LuanParser {
 						throw parser.exception("Unclosed template expression");
 				} while( !parser.test( "<%" ) );
 				String match = parser.textFrom(i);
-				builder.add( new ConstExpr(match) );
+				builder.add( new ConstExpr(se(i),match) );
 			}
 		}
 	}
@@ -360,7 +362,7 @@ final class LuanParser {
 		if( !isValidName(varName) )
 			throw parser.exception("invalid variable name '"+varName+"' in import");
 		LuanSource.Element se = se(start);
-		FnCall require = new FnCall( se, new ConstExpr(se,PackageLuan.requireFn), new ConstExpr(modName) );
+		FnCall require = new FnCall( se, new ConstExpr(se,PackageLuan.requireFn), new ConstExpr(se(start,modName),modName) );
 		Settable settable;
 		if( interactive ) {
 			settable = nameVar(se,varName).settable();
@@ -974,7 +976,7 @@ final class LuanParser {
 				index = upValueIndex(name);
 				if( index != -1 )
 					return new GetUpVar(se,index);
-				return new IndexExpr( se, env(), new ConstExpr(name) );
+				return new IndexExpr( se, env(), new ConstExpr(se,name) );
 			}
 
 			public Settable settable() {
@@ -984,7 +986,7 @@ final class LuanParser {
 				index = upValueIndex(name);
 				if( index != -1 )
 					return new SetUpVar(index);
-				return new SetTableEntry( se, env(), new ConstExpr(name) );
+				return new SetTableEntry( se, env(), new ConstExpr(se,name) );
 			}
 		};
 	}
@@ -1023,6 +1025,7 @@ final class LuanParser {
 	}
 
 	private boolean args(In in,List<Expressions> builder) throws ParseException {
+		int start = parser.begin();
 		if( parser.match('(') ) {
 			In inParens = in.parens();
 			Spaces(inParens);
@@ -1030,26 +1033,26 @@ final class LuanParser {
 			if( !parser.match(')') )
 				throw parser.exception("Expression or ')' expected");
 			Spaces(in);
-			return true;
+			return parser.success();
 		}
 		Expr exp = TableExpr(in);
 		if( exp != null ) {
 			builder.add(exp);
-			return true;
+			return parser.success();
 		}
 		String s = StringLiteral(in);
 		if( s != null ) {
-			builder.add( new ConstExpr(s) );
-			return true;
+			builder.add( new ConstExpr(se(start),s) );
+			return parser.success();
 		}
 /*
 		Expressions exps = TemplateExpressions(in);
 		if( exps != null ) {
 			builder.add(exps);
-			return true;
+			return parser.success();
 		}
 */
-		return false;
+		return parser.failure();
 	}
 
 	private Expressions ExpList(In in) throws ParseException {
@@ -1093,8 +1096,11 @@ final class LuanParser {
 	}
 
 	private Expr NameExpr(In in) throws ParseException {
+		int start = parser.begin();
 		String name = Name(in);
-		return name==null ? null : new ConstExpr(name);
+		if( name==null )
+			return parser.failure(null);
+		return parser.success(new ConstExpr(se(start),name));
 	}
 
 	private String RequiredName(In in) throws ParseException {
@@ -1177,18 +1183,19 @@ final class LuanParser {
 	));
 
 	private Expr Literal(In in) throws ParseException {
+		int start = parser.begin();
 		if( NilLiteral(in) )
-			return new ConstExpr(null);
+			return parser.success(new ConstExpr(se(start),null));
 		Boolean b = BooleanLiteral(in);
 		if( b != null )
-			return new ConstExpr(b);
+			return parser.success(new ConstExpr(se(start),b));
 		Number n = NumberLiteral(in);
 		if( n != null )
-			return new ConstExpr(n);
+			return parser.success(new ConstExpr(se(start),n));
 		String s = StringLiteral(in);
 		if( s != null )
-			return new ConstExpr(s);
-		return null;
+			return parser.success(new ConstExpr(se(start),s));
+		return parser.failure(null);
 	}
 
 	private boolean NilLiteral(In in) throws ParseException {

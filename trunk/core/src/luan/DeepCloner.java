@@ -8,6 +8,8 @@ public final class DeepCloner {
 	private final Map<Object,Object> cloned = new IdentityHashMap<Object,Object>();
 
 	public <T extends DeepCloneable<T>> T deepClone(T obj) {
+		if( obj==null )
+			return null;
 		@SuppressWarnings("unchecked")
 		T rtn = (T)cloned.get(obj);
 		if( rtn == null ) {

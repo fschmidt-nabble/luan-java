@@ -36,7 +36,7 @@ final class FnDef extends CodeImpl implements Expr {
 	}
 
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
-		return new Closure(luan,this);
+		return new Closure(luan,this,luan.mtGetterLink());
 	}
 
 }

@@ -82,6 +82,11 @@ public final class PackageLuan {
 				}
 			}
 		}
+		if( mod instanceof LuanTable ) {
+			LuanTable modTbl = (LuanTable)mod;
+			if( modTbl.metatableGetter != null )
+				luan.addMetatableGetter(modTbl.metatableGetter);
+		}
 		return mod;
 	}
 

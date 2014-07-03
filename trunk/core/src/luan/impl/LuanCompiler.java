@@ -24,17 +24,28 @@ public final class LuanCompiler {
 				parser.addVar( (String)key, entry.getValue() );
 		}
 		FnDef fnDef = parse(luan,parser,allowExpr);
-		if( passedEnv )
-			return new Closure((LuanStateImpl)luan,fnDef);
-		final Closure c = new Closure((LuanStateImpl)luan,fnDef);
-		return new LuanFunction() {
-			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-				Object rtn = c.call(luan,args);
-				if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
-					rtn = c.upValues()[0].get();
-				return rtn;
-			}
-		};
+		final LuanStateImpl luanImpl = (LuanStateImpl)luan;
+		MtGetterLink mtGetterLink = (MtGetterLink)env.get("_MTG");
+		final Closure c = new Closure(luanImpl,fnDef,mtGetterLink);
+		final LuanTable ENV = env;
+		if( passedEnv ) {
+			return new LuanFunction() {
+				@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+					Object rtn = c.call(luan,args);
+					ENV.put("_MTG",luanImpl.mtGetterLink);
+					return rtn;
+				}
+			};
+		} else {
+			return new LuanFunction() {
+				@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+					Object rtn = c.call(luan,args);
+					if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
+						rtn = ENV;
+					return rtn;
+				}
+			};
+		}
 	}
 
 	private static FnDef parse(LuanState luan,LuanParser parser,boolean allowExpr) throws LuanException {

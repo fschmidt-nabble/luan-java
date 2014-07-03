@@ -11,12 +11,14 @@ import luan.DeepCloneable;
 
 final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 	private final FnDef fnDef;
+	private MtGetterLink mtGetterLink;
 	private UpValue[] upValues;
 
-	Closure(LuanStateImpl luan,FnDef fnDef) throws LuanException {
+	Closure(LuanStateImpl luan,FnDef fnDef,MtGetterLink mtGetterLink) throws LuanException {
 		this.fnDef = fnDef;
+		this.mtGetterLink = mtGetterLink;
 		UpValue.Getter[] upValueGetters = fnDef.upValueGetters;
-		upValues = new UpValue[upValueGetters.length];
+		this.upValues = new UpValue[upValueGetters.length];
 		for( int i=0; i<upValues.length; i++ ) {
 			upValues[i] = upValueGetters[i].get(luan);
 		}
@@ -31,7 +33,12 @@ final class Closure extends LuanFunction implements DeepCloneable<Closure> {
 	}
 
 	@Override public void deepenClone(Closure clone,DeepCloner cloner) {
+		clone.mtGetterLink = cloner.deepClone(mtGetterLink);
 		clone.upValues = cloner.deepClone(upValues);
+	}
+
+	MtGetterLink mtGetterLink() {
+		return mtGetterLink;
 	}
 
 	UpValue[] upValues() {
