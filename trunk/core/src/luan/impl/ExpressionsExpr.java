@@ -10,6 +10,8 @@ final class ExpressionsExpr implements Expr {
 	private final Expressions expressions;
 
 	ExpressionsExpr(Expressions expressions) {
+		if( expressions==null )
+			throw new NullPointerException();
 		this.expressions = expressions;
 	}
 

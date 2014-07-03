@@ -27,8 +27,9 @@ public final class PackageLuan {
 			module.put("jpath",jpath);
 			try {
 				module.put("require",requireFn);
+				add( module, "block_lib", LuanState.class, String.class );
 				add( module, "load", LuanState.class, String.class );
-				add( module, "load_lib", String.class );
+				add( module, "load_lib", LuanState.class, String.class );
 				add( module, "search_path", String.class, String.class );
 				add( module, "search", LuanState.class, String.class );
 			} catch(NoSuchMethodException e) {
@@ -149,7 +150,7 @@ public final class PackageLuan {
 		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 			try {
 				String objName = (String)args[1];
-				LuanFunction fn = load_lib(objName);
+				LuanFunction fn = load_lib(luan,objName);
 				return fn.call(luan,args);
 			} catch(ClassNotFoundException e) {
 				throw new RuntimeException(e);
@@ -162,7 +163,9 @@ public final class PackageLuan {
 	};
 
 	public static final LuanFunction javaSearcher = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object[] call(LuanState luan,Object[] args)
+			throws LuanException
+		{
 			String modName = (String)args[0];
 			modName = modName.replace('/','.');
 			String path = (String)luan.get("Package.jpath");
@@ -171,7 +174,7 @@ public final class PackageLuan {
 			for( String s : path.split(";") ) {
 				String objName = s.replaceAll("\\?",modName);
 				try {
-					load_lib(objName);  // throws exception if not found
+					load_lib(luan,objName);  // throws exception if not found
 					return new Object[]{javaLoader,objName};
 				} catch(ClassNotFoundException e) {
 				} catch(NoSuchFieldException e) {
@@ -183,9 +186,15 @@ public final class PackageLuan {
 	};
 
 
-	public static LuanFunction load_lib(String path)
-		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException
+	public static void block_lib(LuanState luan,String path) {
+		luan.blocked.add(path);
+	}
+
+	public static LuanFunction load_lib(LuanState luan,String path)
+		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, LuanException
 	{
+		if( luan.blocked.contains(path) )
+			throw luan.exception(path+" is blocked");
 		int i = path.lastIndexOf('.');
 		String clsPath = path.substring(0,i);
 		String fld = path.substring(i+1);
