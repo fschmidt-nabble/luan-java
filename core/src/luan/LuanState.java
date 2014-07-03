@@ -57,7 +57,6 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	private LuanTable preload;
 	private LuanTable searchers;
 
-	private final List<MetatableGetter> mtGetters;
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
 	protected LuanState() {
@@ -66,11 +65,6 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		loaded = new LuanTable();
 		preload = new LuanTable();
 		searchers = new LuanTable();
-		mtGetters = new ArrayList<MetatableGetter>();
-	}
-
-	protected LuanState(LuanState luan) {
-		mtGetters = new ArrayList<MetatableGetter>(luan.mtGetters);
 	}
 
 	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
@@ -146,21 +140,12 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	}
 
 	public final LuanTable getMetatable(Object obj) {
-		if( obj instanceof LuanTable ) {
-			LuanTable table = (LuanTable)obj;
-			return table.getMetatable();
-		}
-		for( MetatableGetter mg : mtGetters ) {
-			LuanTable table = mg.getMetatable(obj);
-			if( table != null )
-				return table;
-		}
-		return null;
+		return getMetatable(obj,null);
 	}
 
-	public final void addMetatableGetter(MetatableGetter mg) {
-		mtGetters.add(mg);
-	}
+	public abstract LuanTable getMetatable(Object obj,MetatableGetter beforeThis);
+
+	public abstract void addMetatableGetter(MetatableGetter mg);
 
 	public final LuanBit bit(LuanElement el) {
 		return new LuanBit(this,el);

@@ -24,14 +24,15 @@ import luan.LuanException;
 import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
+import luan.DeepCloner;
 
 
 public final class JavaLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			luan.addMetatableGetter(mg);
 			LuanTable module = new LuanTable();
+			module.metatableGetter = mg;
 			try {
 				module.put( "class", new LuanJavaFunction(JavaLuan.class.getMethod("getClass",LuanState.class,String.class),null) );
 				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
@@ -73,14 +74,30 @@ public final class JavaLuan {
 	}
 
 	private static final MetatableGetter mg = new MetatableGetter() {
+
 		public LuanTable getMetatable(Object obj) {
 			if( obj==null )
 				return null;
 			return mt;
 		}
+
+		@Override public MetatableGetter shallowClone() {
+			return this;
+		}
+		@Override public void deepenClone(MetatableGetter clone,DeepCloner cloner) {}
 	};
 
 	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
+		LuanTable mt = luan.getMetatable(obj,mg);
+		if( mt != null ) {
+			Object h = mt.get("__index");
+			if( h instanceof LuanFunction ) {
+				LuanFunction fn = (LuanFunction)h;
+				Object rtn = Luan.first(luan.call(fn,new Object[]{obj,key}));
+				if( rtn != null )
+					return rtn;
+			}
+		}
 		if( obj instanceof Static ) {
 			if( key instanceof String ) {
 				String name = (String)key;
