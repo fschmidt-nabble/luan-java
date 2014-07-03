@@ -30,6 +30,7 @@ authentication_handler = AuthenticationHandler.new("/private/")
 luan_handler = Http.new_luan_handler()
 
 resource_handler = ResourceHandler.new()
+resource_handler.setDirectoriesListed(true)
 
 handlers = HandlerList.new()
 handlers.setHandlers { authentication_handler, luan_handler, resource_handler }
