@@ -32,22 +32,25 @@ public final class JavaLuan {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			MyMetatableGetter mmg = new MyMetatableGetter();
-			mmg.init();
-			module.put( MetatableGetter.KEY, mmg );
+			module.put( MetatableGetter.KEY, new MyMetatableGetter() );
 			try {
 				module.put( "class", new LuanJavaFunction(JavaLuan.class.getMethod("getClass",LuanState.class,String.class),null) );
 				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			luan.searchers().add(javaSearcher);
 			return module;
 		}
 	};
 
+	private static boolean isLoaded(LuanState luan) {
+		return PackageLuan.loaded(luan).get("Java") != null;
+	}
+
 	public static final LuanFunction javaSearcher = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+			if( !isLoaded(luan) )
+				return LuanFunction.NOTHING;
 			String modName = (String)args[0];
 			final Static s = JavaLuan.getClass(luan,modName);
 			if( s==null )
@@ -72,9 +75,7 @@ public final class JavaLuan {
 	public static class MyMetatableGetter implements MetatableGetter {
 		private LuanTable metatable;
 
-		private MyMetatableGetter() {}
-
-		private void init() {
+		private MyMetatableGetter() {
 			this.metatable = new LuanTable();
 			try {
 				metatable.put( "__index", new LuanJavaFunction(
@@ -86,8 +87,10 @@ public final class JavaLuan {
 			add( metatable, "__newindex", LuanState.class, Object.class, Object.class, Object.class );
 		}
 
+		private MyMetatableGetter(MyMetatableGetter mmg) {}
+
 		@Override public MetatableGetter shallowClone() {
-			return new MyMetatableGetter();
+			return new MyMetatableGetter(this);
 		}
 
 		@Override public void deepenClone(MetatableGetter c,DeepCloner cloner) {

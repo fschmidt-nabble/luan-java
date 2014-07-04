@@ -39,11 +39,11 @@ public final class PickleClient {
 	public Object call(Object... args) throws LuanException, IOException {
 		con.write(args);
 		Object[] result;
-		con.ioModule.put("_reversed_pickle",_reversed_pickle);
+		con.env.put("_reversed_pickle",_reversed_pickle);
 		try {
 			result = Luan.array(con.read());
 		} finally {
-			con.ioModule.put("_reversed_pickle",null);
+			con.env.put("_reversed_pickle",null);
 		}
 		boolean ok = (boolean)result[0];
 		if( ok ) {

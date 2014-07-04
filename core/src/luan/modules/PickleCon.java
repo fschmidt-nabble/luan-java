@@ -23,11 +23,10 @@ public final class PickleCon {
 	final LuanState luan;
 	private final DataInputStream in;
 	private final LuanFunction _read_binary;
-	final LuanTable ioModule;
 	private final DataOutputStream out;
 	private final List<byte[]> binaries = new ArrayList<byte[]>();
 	String src;
-	private final LuanTable env = new LuanTable();
+	final LuanTable env = new LuanTable();
 
 	PickleCon(LuanState luan,DataInputStream in,DataOutputStream out) {
 		this.in = in;
@@ -39,8 +38,6 @@ public final class PickleCon {
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
-		this.ioModule = (LuanTable)luan.loaded().get("Io");
-		env.put("Io",ioModule);
 
 		this.out = out;
 	}
@@ -58,14 +55,14 @@ public final class PickleCon {
 	}
 
 	public Object read() throws IOException, LuanException {
-		ioModule.put("_read_binary",_read_binary);
+		env.put("_read_binary",_read_binary);
 		try {
 			src = in.readUTF();
 			LuanFunction fn = BasicLuan.load(luan,src,"pickle-reader",env,false);
 			return luan.call(fn);
 		} finally {
-			ioModule.put("_binaries",null);
-			ioModule.put("_read_binary",null);
+			env.put("_binaries",null);
+			env.put("_read_binary",null);
 		}
 	}
 
@@ -83,7 +80,7 @@ public final class PickleCon {
 		if( obj instanceof byte[] ) {
 			byte[] a = (byte[])obj;
 			binaries.add(a);
-			return "Io._binaries[" + binaries.size() + "]";
+			return "_binaries[" + binaries.size() + "]";
 		}
 		throw luan.exception( "invalid type: " + obj.getClass() );
 	}
@@ -112,9 +109,9 @@ public final class PickleCon {
 	public void write(Object... args) throws LuanException, IOException {
 		StringBuilder sb = new StringBuilder();
 		if( !binaries.isEmpty() ) {
-			sb.append( "Io._binaries = {}\n" );
+			sb.append( "_binaries = {}\n" );
 			for( byte[] a : binaries ) {
-				sb.append( "Io._binaries[#Io._binaries+1] = Io._read_binary(" + a.length + ")\n" );
+				sb.append( "_binaries[#_binaries+1] = _read_binary(" + a.length + ")\n" );
 			}
 		}
 		for( Object obj : args ) {

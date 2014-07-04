@@ -21,10 +21,10 @@ public final class PackageLuan {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			module.put("loaded",luan.loaded());
-			module.put("preload",luan.preload());
-			module.put("path","?.luan;java:luan/modules/?.luan");
-			module.put("jpath",jpath);
+			module.put( "loaded", loaded(luan) );
+			module.put( "preload", new LuanTable() );
+			module.put( "path", "?.luan;java:luan/modules/?.luan" );
+			module.put( "jpath", jpath );
 			try {
 				module.put("require",requireFn);
 				add( module, "block_lib", LuanState.class, String.class );
@@ -35,11 +35,7 @@ public final class PackageLuan {
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			LuanTable searchers = luan.searchers();
-			searchers.add(preloadSearcher);
-			searchers.add(fileSearcher);
-			searchers.add(javaSearcher);
-			module.put("searchers",searchers);
+			module.put( "searchers", searchers(luan) );
 			return module;
 		}
 	};
@@ -57,6 +53,33 @@ public final class PackageLuan {
 		t.put( method, new LuanJavaFunction(PackageLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
+	public static LuanTable loaded(LuanState luan) {
+		return luan.registryTable("Package.loaded");
+	}
+
+	private static LuanTable blocked(LuanState luan) {
+		return luan.registryTable("Package.blocked");
+	}
+
+	private static Object pkg(LuanState luan,String key) {
+		LuanTable t = (LuanTable)loaded(luan).get("Package");
+		return t==null ? null : t.get(key);
+	}
+
+	private static LuanTable searchers(LuanState luan) {
+		String key = "Package.searchers";
+		LuanTable tbl = (LuanTable)luan.registry().get(key);
+		if( tbl == null ) {
+			tbl = new LuanTable();
+			tbl.add(preloadSearcher);
+			tbl.add(fileSearcher);
+			tbl.add(javaSearcher);
+			tbl.add(JavaLuan.javaSearcher);
+			luan.registry().put(key,tbl);
+		}
+		return tbl;
+	}
+
 	public static Object require(LuanState luan,String modName) throws LuanException {
 		Object mod = load(luan,modName);
 		if( mod==null )
@@ -65,7 +88,7 @@ public final class PackageLuan {
 	}
 
 	public static Object load(LuanState luan,String modName) throws LuanException {
-		LuanTable loaded = luan.loaded();
+		LuanTable loaded = loaded(luan);
 		Object mod = loaded.get(modName);
 		if( mod == null ) {
 			Object[] a = search(luan,modName);
@@ -94,14 +117,7 @@ public final class PackageLuan {
 	}
 
 	public static Object[] search(LuanState luan,String modName) throws LuanException {
-		List<Object> list = null;
-		LuanTable searchers = (LuanTable)luan.get("Package.searchers");
-		if( searchers == null ) {
-			list = Collections.<Object>singletonList(javaSearcher);
-		} else {
-			list = searchers.asList();
-		}
-		for( Object s : list ) {
+		for( Object s : searchers(luan).asList() ) {
 			LuanFunction searcher = (LuanFunction)s;
 			Object[] a = Luan.array(luan.call(searcher,"<searcher>",new Object[]{modName}));
 			if( a.length >= 1 && a[0] instanceof LuanFunction )
@@ -113,7 +129,8 @@ public final class PackageLuan {
 	public static final LuanFunction preloadSearcher = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			String modName = (String)args[0];
-			return luan.preload().get(modName);
+			LuanTable preload = (LuanTable)pkg(luan,"preload");
+			return preload==null ? LuanFunction.NOTHING : preload.get(modName);
 		}
 	};
 
@@ -137,7 +154,7 @@ public final class PackageLuan {
 	public static final LuanFunction fileSearcher = new LuanFunction() {
 		@Override public Object[] call(LuanState luan,Object[] args) {
 			String modName = (String)args[0];
-			String path = (String)luan.get("Package.path");
+			String path = (String)pkg(luan,"path");
 			if( path==null )
 				return LuanFunction.NOTHING;
 			String file = search_path(modName,path);
@@ -168,7 +185,7 @@ public final class PackageLuan {
 		{
 			String modName = (String)args[0];
 			modName = modName.replace('/','.');
-			String path = (String)luan.get("Package.jpath");
+			String path = (String)pkg(luan,"jpath");
 			if( path==null )
 				path = jpath;
 			for( String s : path.split(";") ) {
@@ -187,13 +204,13 @@ public final class PackageLuan {
 
 
 	public static void block_lib(LuanState luan,String path) {
-		luan.blocked.add(path);
+		blocked(luan).put(path,true);
 	}
 
 	public static LuanFunction load_lib(LuanState luan,String path)
 		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, LuanException
 	{
-		if( luan.blocked.contains(path) )
+		if( blocked(luan).get(path) != null )
 			throw luan.exception(path+" is blocked");
 		int i = path.lastIndexOf('.');
 		String clsPath = path.substring(0,i);

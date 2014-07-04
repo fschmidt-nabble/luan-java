@@ -53,15 +53,16 @@ public final class PickleServer {
 	}
 
 	public void run() {
-		LuanTable ioModule = con.ioModule;
-		Object old_reverse_pickle = ioModule.get("reverse_pickle");
-		Object old_unreverse_pickle = ioModule.get("_unreverse_pickle");
+		LuanTable io = (LuanTable)PackageLuan.loaded(con.luan).get("Io");
+		LuanTable env = con.env;
+		Object old_reverse_pickle = io.get("reverse_pickle");
+		Object old_unreverse_pickle = env.get("_unreverse_pickle");
 		try {
 			try {
-				ioModule.put("reverse_pickle", new LuanJavaFunction(
+				io.put("reverse_pickle", new LuanJavaFunction(
 					PickleServer.class.getMethod( "reverse_pickle", LuanFunction.class ), this
 				) );
-				ioModule.put("_unreverse_pickle", new LuanJavaFunction(
+				env.put("_unreverse_pickle", new LuanJavaFunction(
 					PickleServer.class.getMethod( "_unreverse_pickle" ), this
 				) );
 			} catch(NoSuchMethodException e) {
@@ -85,14 +86,14 @@ public final class PickleServer {
 				}
 			}
 		} finally {
-			ioModule.put("reverse_pickle",old_reverse_pickle);
-			ioModule.put("_unreverse_pickle",old_unreverse_pickle);
+			io.put("reverse_pickle",old_reverse_pickle);
+			env.put("_unreverse_pickle",old_unreverse_pickle);
 		}
 	}
 
 	public void reverse_pickle(LuanFunction fn) throws IOException, LuanException {
 		try {
-			con.write( "return Io._reversed_pickle()\n" );
+			con.write( "return _reversed_pickle()\n" );
 		} catch(LuanException e) {
 			throw new RuntimeException(e);
 		}
@@ -101,7 +102,7 @@ public final class PickleServer {
 			con.luan.call(fn,new Object[]{pc.table()});
 		} finally {
 			try {
-				pc.call( "Io._unreverse_pickle()\n" );
+				pc.call( "_unreverse_pickle()\n" );
 			} catch(LuanException e) {
 				throw new RuntimeException(e);
 			}

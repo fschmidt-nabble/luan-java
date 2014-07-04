@@ -385,4 +385,8 @@ public final class LuanTable implements DeepCloneable<LuanTable>, Iterable<Map.E
 			throw new UnsupportedOperationException();
 		}
 	}
+
+	public boolean isEmpty() {
+		return (list==null || list.isEmpty()) && (map==null || map.isEmpty());
+	}
 }

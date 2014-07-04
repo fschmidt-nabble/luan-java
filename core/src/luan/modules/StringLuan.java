@@ -18,9 +18,7 @@ public final class StringLuan {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			MyMetatableGetter mmg = new MyMetatableGetter();
-			mmg.init(module);
-			module.put( MetatableGetter.KEY, mmg );
+			module.put( MetatableGetter.KEY, new MyMetatableGetter(module) );
 			try {
 				add( module, "to_binary", String.class );
 				add( module, "to_integers", String.class );
@@ -51,9 +49,7 @@ public final class StringLuan {
 		private LuanTable module;
 		private LuanTable metatable;
 
-		private MyMetatableGetter() {}
-
-		private void init(LuanTable module) {
+		private MyMetatableGetter(LuanTable module) {
 			this.module = module;
 			this.metatable = new LuanTable();
 			try {
@@ -65,8 +61,10 @@ public final class StringLuan {
 			}
 		}
 
+		private MyMetatableGetter(MyMetatableGetter mmg) {}
+
 		@Override public MetatableGetter shallowClone() {
-			return new MyMetatableGetter();
+			return new MyMetatableGetter(this);
 		}
 
 		@Override public void deepenClone(MetatableGetter c,DeepCloner cloner) {
