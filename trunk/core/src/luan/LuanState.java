@@ -17,72 +17,39 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
+	private LuanTable registry;
 	private LuanTable global;
-	private LuanTable loaded;
-	private LuanTable preload;
-	private LuanTable searchers;
-	public final Set<String> blocked;
 
 	protected LuanState() {
+		registry = new LuanTable();
 		global = new LuanTable();
 		global.put("_G",global);
-		loaded = new LuanTable();
-		preload = new LuanTable();
-		searchers = new LuanTable();
-		blocked = new HashSet<String>();
 	}
 
-	protected LuanState(LuanState luan) {
-		blocked = new HashSet<String>(luan.blocked);
-	}
+	protected LuanState(LuanState luan) {}
 
 	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
+		clone.registry = cloner.deepClone(registry);
 		clone.global = cloner.deepClone(global);
-		clone.loaded = cloner.deepClone(loaded);
-		clone.preload = cloner.deepClone(preload);
-		clone.searchers = cloner.deepClone(searchers);
 	}
 
 	public abstract LuanTable currentEnvironment();
 
+	public final LuanTable registry() {
+		return registry;
+	}
+
+	public final LuanTable registryTable(Object key) {
+		LuanTable tbl = (LuanTable)registry.get(key);
+		if( tbl == null ) {
+			tbl = new LuanTable();
+			registry.put(key,tbl);
+		}
+		return tbl;
+	}
+
 	public final LuanTable global() {
 		return global;
-	}
-
-	public final LuanTable loaded() {
-		return loaded;
-	}
-
-	public final LuanTable preload() {
-		return preload;
-	}
-
-	public final LuanTable searchers() {
-		return searchers;
-	}
-
-	public final Object get(String name) {
-		String[] a = name.split("\\.");
-		LuanTable t = loaded;
-		for( int i=0; i<a.length-1; i++ ) {
-			Object obj = t.get(a[i]);
-			if( !(obj instanceof LuanTable) )
-				return null;
-			t = (LuanTable)obj;
-		}
-		return t.get(a[a.length-1]);
-	}
-
-	public final Object set(String name,Object value) {
-		String[] a = name.split("\\.");
-		LuanTable t = loaded;
-		for( int i=0; i<a.length-1; i++ ) {
-			Object obj = t.get(a[i]);
-			if( !(obj instanceof LuanTable) )
-				return null;
-			t = (LuanTable)obj;
-		}
-		return t.put(a[a.length-1],value);
 	}
 
 	public static LuanState newStandard() {

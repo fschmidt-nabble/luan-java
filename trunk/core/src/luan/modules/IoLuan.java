@@ -5,8 +5,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.BufferedInputStream;
@@ -313,7 +311,7 @@ public final class IoLuan {
 	public static final class LuanUrl extends LuanIn {
 		private final URL url;
 
-		public LuanUrl(String s) throws MalformedURLException {
+		private LuanUrl(String s) throws MalformedURLException {
 			this.url = new URL(s);
 		}
 
@@ -329,11 +327,11 @@ public final class IoLuan {
 	public static final class LuanFile extends LuanIO {
 		private final File file;
 
-		public LuanFile(String name) {
+		private LuanFile(String name) {
 			this(new File(name));
 		}
 
-		public LuanFile(File file) {
+		private LuanFile(File file) {
 			this.file = file;
 		}
 
@@ -429,11 +427,11 @@ public final class IoLuan {
 	public static final class LuanSocket extends LuanIO {
 		private final Socket socket;
 
-		public LuanSocket(String host,int port) throws IOException {
+		private LuanSocket(String host,int port) throws IOException {
 			this(new Socket(host,port));
 		}
 
-		public LuanSocket(Socket socket) throws IOException {
+		private LuanSocket(Socket socket) throws IOException {
 			this.socket = socket;
 		}
 

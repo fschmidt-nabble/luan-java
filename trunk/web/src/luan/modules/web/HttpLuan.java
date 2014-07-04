@@ -79,7 +79,7 @@ public final class HttpLuan {
 			}
 		}
 
-		LuanTable module = (LuanTable)luan.loaded().get("web/Http");
+		LuanTable module = (LuanTable)PackageLuan.loaded(luan).get("web/Http");
 		if( module == null )
 			throw luan.exception( "module 'web/Http' not defined" );
 		HttpLuan lib = new HttpLuan(request,response);
