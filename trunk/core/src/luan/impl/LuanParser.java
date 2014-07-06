@@ -834,9 +834,9 @@ final class LuanParser {
 		List<TableExpr.Field> fields = new ArrayList<TableExpr.Field>();
 		List<Expressions> builder = new ArrayList<Expressions>();
 		while( Field(fields,builder,in) && FieldSep(inParens) );
-		Spaces(inParens);
 		if( !parser.match('}') )
 			throw parser.exception("Expected table element or '}'");
+		Spaces(in);
 		return parser.success( new TableExpr( se(start), fields.toArray(new TableExpr.Field[0]), ExpList.build(builder) ) );
 	}
 

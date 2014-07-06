@@ -22,6 +22,8 @@ import java.net.URL;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.net.MalformedURLException;
+import java.util.List;
+import java.util.ArrayList;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
@@ -311,8 +313,8 @@ public final class IoLuan {
 	public static final class LuanUrl extends LuanIn {
 		private final URL url;
 
-		private LuanUrl(String s) throws MalformedURLException {
-			this.url = new URL(s);
+		private LuanUrl(URL url) throws LuanException {
+			this.url = url;
 		}
 
 		@Override InputStream inputStream() throws IOException {
@@ -327,8 +329,9 @@ public final class IoLuan {
 	public static final class LuanFile extends LuanIO {
 		private final File file;
 
-		private LuanFile(String name) {
-			this(new File(name));
+		private LuanFile(LuanState luan,File file) throws LuanException {
+			this(file);
+			check(luan,file.toString());
 		}
 
 		private LuanFile(File file) {
@@ -347,17 +350,17 @@ public final class IoLuan {
 			return file.toString();
 		}
 
-		public LuanTable child(String name) {
-			return new LuanFile(new File(file,name)).table();
+		public LuanTable child(LuanState luan,String name) throws LuanException {
+			return new LuanFile(luan,new File(file,name)).table();
 		}
 
-		public LuanTable children() {
+		public LuanTable children(LuanState luan) throws LuanException {
 			File[] files = file.listFiles();
 			if( files==null )
 				return null;
 			LuanTable list = new LuanTable();
 			for( File f : files ) {
-				list.add(new LuanFile(f).table());
+				list.add(new LuanFile(luan,f).table());
 			}
 			return list;
 		}
@@ -394,10 +397,10 @@ public final class IoLuan {
 					File.class.getMethod( "lastModified" ), file
 				) );
 				tbl.put( "child", new LuanJavaFunction(
-					LuanFile.class.getMethod( "child", String.class ), this
+					LuanFile.class.getMethod( "child", LuanState.class, String.class ), this
 				) );
 				tbl.put( "children", new LuanJavaFunction(
-					LuanFile.class.getMethod( "children" ), this
+					LuanFile.class.getMethod( "children", LuanState.class ), this
 				) );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -407,15 +410,13 @@ public final class IoLuan {
 	}
 
 	public static LuanIn luanIo(LuanState luan,String name) throws LuanException {
-		if( Utils.isFile(name) )
-			return new LuanFile(name);
-		String url = Utils.toUrl(name);
+		check(luan,name);
+		File file = Utils.toFile(name);
+		if( file != null )
+			return new LuanFile(file);
+		URL url = Utils.toUrl(name);
 		if( url != null ) {
-			try {
-				return new LuanUrl(url);
-			} catch(MalformedURLException e) {
-				throw new RuntimeException(e);
-			}
+			return new LuanUrl(url);
 		}
 		throw luan.exception( "file '"+name+"' not found" );
 	}
@@ -497,6 +498,52 @@ public final class IoLuan {
 			}
 		};
 	}
+
+
+	// security
+
+	public interface Security {
+		public void check(LuanState luan,String name) throws LuanException;
+	}
+
+	private static String SECURITY_KEY = "Io.Security";
+
+	private static void check(LuanState luan,String name) throws LuanException {
+		@SuppressWarnings("unchecked")
+		List<Security> list = (List<Security>)luan.registry().get(SECURITY_KEY);
+		if( list==null )
+			return;
+		for( Security s : list ) {
+			s.check(luan,name);
+		}
+	}
+
+	public static void addSecurity(LuanState luan,Security s) {
+		@SuppressWarnings("unchecked")
+		List<Security> list = (List<Security>)luan.registry().get(SECURITY_KEY);
+		if( list==null ) {
+			list = new ArrayList<Security>();
+			luan.registry().put(SECURITY_KEY,list);
+		}
+		list.add(s);
+	}
+
+	public static class DirSecurity implements Security {
+		private final String[] dirs;
+
+		public DirSecurity(LuanState luan,String[] dirs) {
+			this.dirs = dirs;
+		}
+
+		@Override public void check(LuanState luan,String name) throws LuanException {
+			for( String dir : dirs ) {
+				if( name.startsWith(dir) )
+					return;
+			}
+			throw luan.exception("Security violation - '"+name+"' not in allowed directory");
+		}
+	}
+
 
 	private void IoLuan() {}  // never
 }

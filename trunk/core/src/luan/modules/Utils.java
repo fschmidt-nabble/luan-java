@@ -60,11 +60,14 @@ public final class Utils {
 		}
 	}
 
-	public static boolean isFile(String path) {
-		return !path.contains("//") && exists(new File(path));
+	public static File toFile(String path) {
+		if( path.contains("//") )
+			return null;
+		File file = new File(path);
+		return exists(file) ? file : null;
 	}
 
-	public static String toUrl(String path) {
+	public static URL toUrl(String path) {
 		if( path.indexOf(':') == -1 )
 			return null;
 		if( path.startsWith("java:") ) {
@@ -72,16 +75,15 @@ public final class Utils {
 			if( path.contains("//") )
 				return null;
 			URL url = ClassLoader.getSystemResource(path);
-			return url==null ? null : url.toString();
+			return url==null ? null : url;
 		}
 		try {
-			new URL(path);
-			return path;
+			return new URL(path);
 		} catch(MalformedURLException e) {}
 		return null;
 	}
 
 	public static boolean exists(String path) {
-		return isFile(path) || toUrl(path)!=null;
+		return toFile(path)!=null || toUrl(path)!=null;
 	}
 }
