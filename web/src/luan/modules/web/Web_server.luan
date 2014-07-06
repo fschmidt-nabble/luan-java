@@ -64,6 +64,7 @@ hc.setHandlers { SessionHandler.new(), handler_wrapper, DefaultHandler.new(), lo
 
 function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
+	Http.dir = dir
 	Package.path = dir.."?.luan;java:luan/modules/?.luan"
 	authentication_handler.setPassword(private_password)
 	resource_handler.setResourceBase(Io.File(dir).to_string())
