@@ -509,23 +509,13 @@ public final class IoLuan {
 	private static String SECURITY_KEY = "Io.Security";
 
 	private static void check(LuanState luan,String name) throws LuanException {
-		@SuppressWarnings("unchecked")
-		List<Security> list = (List<Security>)luan.registry().get(SECURITY_KEY);
-		if( list==null )
-			return;
-		for( Security s : list ) {
+		Security s = (Security)luan.registry().get(SECURITY_KEY);
+		if( s!=null )
 			s.check(luan,name);
-		}
 	}
 
-	public static void addSecurity(LuanState luan,Security s) {
-		@SuppressWarnings("unchecked")
-		List<Security> list = (List<Security>)luan.registry().get(SECURITY_KEY);
-		if( list==null ) {
-			list = new ArrayList<Security>();
-			luan.registry().put(SECURITY_KEY,list);
-		}
-		list.add(s);
+	public static void setSecurity(LuanState luan,Security s) {
+		luan.registry().put(SECURITY_KEY,s);
 	}
 
 	public static class DirSecurity implements Security {
