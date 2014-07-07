@@ -873,7 +873,7 @@ final class LuanParser {
 
 	private Var VarZ(In in) throws ParseException {
 		int start = parser.begin();
-		Var var = VarStart(in);
+		Var var = VarStart(in,start);
 		if( var==null )
 			return parser.failure(null);
 		Var var2;
@@ -883,36 +883,29 @@ final class LuanParser {
 		return parser.success(var);
 	}
 
-	private Var Var2(In in,int start,Expressions exp1) throws ParseException {
-		parser.begin();
-		Var var = VarExt(in,start,exp1);
-		if( var != null )
-			return parser.success(var);
-		if( parser.match("->") ) {
+	private Var VarStart(In in,int start) throws ParseException {
+		if( parser.match('(') ) {
+			In inParens = in.parens();
+			Spaces(inParens);
+			Expr exp = expr(RequiredExpr(inParens));
+			RequiredMatch(')');
 			Spaces(in);
-			List<Expressions> builder = new ArrayList<Expressions>();
-			builder.add(exp1);
-			Expr exp2 = expr(RequiredVarExpB(in));
-			FnCall fnCall = required(Args( in, start, exp2, builder ));
-			return parser.success(exprVar(fnCall));
+			return exprVar(exp);
 		}
-		FnCall fnCall = Args( in, start, expr(exp1), new ArrayList<Expressions>() );
-		if( fnCall != null )
-			return parser.success(exprVar(fnCall));
-		return parser.failure(null);
+		String name = Name(in);
+		if( name != null )
+			return nameVar(start,name);
+		Expressions exp;
+		exp = TableExpr(in);
+		if( exp != null )
+			return exprVar(exp);
+		exp = Literal(in);
+		if( exp != null )
+			return exprVar(exp);
+		return null;
 	}
 
-	private Expressions RequiredVarExpB(In in) throws ParseException {
-		int start = parser.begin();
-		Var var = required(VarStart(in));
-		Var var2;
-		while( (var2=VarExt(in,start,var.expr())) != null ) {
-			var = var2;
-		}
-		return parser.success(var.expr());
-	}
-
-	private Var VarExt(In in,int start,Expressions exp1) throws ParseException {
+	private Var Var2(In in,int start,Expressions exp1) throws ParseException {
 		parser.begin();
 		Expr exp2 = SubExpr(in);
 		if( exp2 != null )
@@ -923,29 +916,9 @@ final class LuanParser {
 			if( exp2!=null )
 				return parser.success(indexVar(start,expr(exp1),exp2));
 		}
-		return parser.failure(null);
-	}
-
-	private Var VarStart(In in) throws ParseException {
-		int start = parser.begin();
-		if( parser.match('(') ) {
-			In inParens = in.parens();
-			Spaces(inParens);
-			Expr exp = expr(RequiredExpr(inParens));
-			RequiredMatch(')');
-			Spaces(in);
-			return parser.success(exprVar(exp));
-		}
-		String name = Name(in);
-		if( name != null )
-			return parser.success(nameVar(start,name));
-		Expressions exp;
-		exp = TableExpr(in);
-		if( exp != null )
-			return parser.success(exprVar(exp));
-		exp = Literal(in);
-		if( exp != null )
-			return parser.success(exprVar(exp));
+		FnCall fnCall = Args( in, start, expr(exp1), new ArrayList<Expressions>() );
+		if( fnCall != null )
+			return parser.success(exprVar(fnCall));
 		return parser.failure(null);
 	}
 
