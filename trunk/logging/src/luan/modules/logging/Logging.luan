@@ -1,0 +1,98 @@
+import "Java"
+import "org.apache.log4j.Logger"
+import "org.apache.log4j.EnhancedPatternLayout"
+import "org.apache.log4j.ConsoleAppender"
+import "org.apache.log4j.Level"
+import "org.apache.log4j.RollingFileAppender"
+
+
+layout = "%d %-5p %c - %m%n"
+
+level = "INFO"
+
+console = "System.err"  -- or "System.out" or set to nil for no console
+
+file = nil  -- set to file name if you want logging to a file
+
+max_file_size = "10MB"
+
+
+log4j_root_logger = Logger.getRootLogger()
+
+local function to_level(level)
+	return level and Level.toLevel(level)
+end
+
+function log_to_file(file)
+	local appender = RollingFileAppender.new(ptn_layout, file)
+	appender.setMaxFileSize(max_file_size)
+	print("getMaximumFileSize",appender.getMaximumFileSize())
+	log4j_root_logger.addAppender(appender)
+	return appender
+end
+
+function init()
+	log4j_root_logger.removeAllAppenders()
+	log4j_root_logger.setLevel( to_level(level) )
+	ptn_layout = EnhancedPatternLayout.new(layout)
+
+	if console ~= nil then
+		console_appender = ConsoleAppender.new(ptn_layout,console)
+		log4j_root_logger.addAppender(console_appender)
+	else
+		console_appender = nil
+	end
+
+	if file ~= nil then
+		file_appender = log_to_file(file)
+	else
+		file_appender = nil
+	end
+end
+
+init()
+
+
+local function to_luan_logger(log4j_logger)
+	local tbl = {}
+
+	function tbl.error(obj)
+		log4j_logger.error( to_string(obj) )
+	end
+
+	function tbl.warn(obj)
+		log4j_logger.warn( to_string(obj) )
+	end
+
+	function tbl.info(obj)
+		log4j_logger.info( to_string(obj) )
+	end
+
+	function tbl.debug(obj)
+		log4j_logger.debug( to_string(obj) )
+	end
+
+	function tbl.get_level()
+		local level = log4j_logger.getLevel()
+		return level and level.toString()
+	end
+
+	function tbl.get_effective_level()
+		local level = log4j_logger.getEffectiveLevel()
+		return level and level.toString()
+	end
+
+	function tbl.set_level(level)
+		log4j_logger.setLevel( to_level(level) )
+	end
+
+	return tbl
+end
+
+function logger(name)
+	return to_luan_logger( Logger.getLogger(name) )
+end
+
+function root_logger()
+	return to_luan_logger( Logger.getRootLogger() )
+end
