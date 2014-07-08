@@ -188,7 +188,7 @@ final class LuanParser {
 	FnDef Expression() throws ParseException {
 		Spaces(In.NOTHING);
 		int start = parser.begin();
-		Expressions expr = Expr(In.NOTHING);
+		Expressions expr = ExprZ(In.NOTHING);
 		if( expr != null && parser.endOfInput() ) {
 			Stmt stmt = new ReturnStmt( se(start), expr );
 			return parser.success(newFnDef(start,stmt));
@@ -569,7 +569,7 @@ final class LuanParser {
 
 	private Stmt ExpressionsStmt() throws ParseException {
 		parser.begin();
-		Expressions exp = Expr(In.NOTHING);
+		Expressions exp = ExprZ(In.NOTHING);
 		if( exp instanceof FnCall || exp instanceof AndExpr || exp instanceof OrExpr )
 			return parser.success( new ExpressionsStmt(exp) );
 		return parser.failure(null);
@@ -585,10 +585,10 @@ final class LuanParser {
 
 	private Expressions RequiredExpr(In in) throws ParseException {
 		parser.begin();
-		return parser.success(required(Expr(in),"Bad expression"));
+		return parser.success(required(ExprZ(in),"Bad expression"));
 	}
 
-	private Expressions Expr(In in) throws ParseException {
+	private Expressions ExprZ(In in) throws ParseException {
 		parser.begin();
 		Expressions exp;
 		return (exp = VarArgs(in)) != null
@@ -833,7 +833,7 @@ final class LuanParser {
 		Spaces(inParens);
 		List<TableExpr.Field> fields = new ArrayList<TableExpr.Field>();
 		List<Expressions> builder = new ArrayList<Expressions>();
-		while( Field(fields,builder,in) && FieldSep(inParens) );
+		while( Field(fields,builder,inParens) && FieldSep(inParens) );
 		if( !parser.match('}') )
 			throw parser.exception("Expected table element or '}'");
 		Spaces(in);
@@ -854,11 +854,11 @@ final class LuanParser {
 			exp = NameExpr(in);
 		if( exp!=null && parser.match('=') ) {
 			Spaces(in);
-			fields.add( new TableExpr.Field( exp, required(expr(Expr(in))) ) );
+			fields.add( new TableExpr.Field( exp, required(expr(ExprZ(in))) ) );
 			return parser.success();
 		}
 		parser.rollback();
-		Expressions exprs = Expr(in);
+		Expressions exprs = ExprZ(in);
 		if( exprs != null ) {
 			builder.add(exprs);
 			return parser.success();
@@ -1042,7 +1042,7 @@ final class LuanParser {
 			builder.add(exp);
 			return parser.success();
 		}
-		exp = Expr(in);
+		exp = ExprZ(in);
 		if( exp==null )
 			return parser.failure();
 		builder.add(exp);
