@@ -11,6 +11,8 @@ import java.util.HashSet;
 import luan.impl.LuanCompiler;
 import luan.modules.BasicLuan;
 import luan.modules.PackageLuan;
+import luan.modules.JavaLuan;
+import luan.modules.StringLuan;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
@@ -19,11 +21,13 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	private LuanTable registry;
 	private LuanTable global;
+	private LuanTable metatable;  // generic metatable
 
 	protected LuanState() {
 		registry = new LuanTable();
 		global = new LuanTable();
 		global.put("_G",global);
+		metatable = newMetatable();
 	}
 
 	protected LuanState(LuanState luan) {}
@@ -31,6 +35,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
 		clone.registry = cloner.deepClone(registry);
 		clone.global = cloner.deepClone(global);
+		clone.metatable = cloner.deepClone(metatable);
 	}
 
 	public abstract LuanTable currentEnvironment();
@@ -76,12 +81,14 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	}
 
 	public final LuanTable getMetatable(Object obj) {
-		return getMetatable(obj,null);
+		if( obj==null )
+			return null;
+		if( obj instanceof LuanTable ) {
+			LuanTable table = (LuanTable)obj;
+			return table.getMetatable();
+		}
+		return metatable;
 	}
-
-	public abstract LuanTable getMetatable(Object obj,MetatableGetter beforeThis);
-
-	public abstract void addMetatableGetter(MetatableGetter mg);
 
 	public final LuanBit bit(LuanElement el) {
 		return new LuanBit(this,el);
@@ -92,6 +99,33 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		return t==null ? null : t.get(op);
 	}
 
+	private static LuanTable newMetatable() {
+		LuanTable metatable = new LuanTable();
+		try {
+			metatable.put( "__index", new LuanJavaFunction(
+				LuanState.class.getMethod("__index",LuanState.class,Object.class,Object.class), null
+			) );
+			metatable.put( "__newindex", new LuanJavaFunction(
+				LuanState.class.getMethod("__newindex",LuanState.class,Object.class,Object.class,Object.class), null
+			) );
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		return metatable;
+	}
+
+	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
+		if( obj instanceof String ) {
+			Object rtn = StringLuan.__index(luan,(String)obj,key);
+			if( rtn != null )
+				return rtn;
+		}
+		return JavaLuan.__index(luan,obj,key);
+	}
+
+	public static void __newindex(LuanState luan,Object obj,Object key,Object value) throws LuanException {
+		JavaLuan.__newindex(luan,obj,key,value);
+	}
 
 	// convenience methods
 

@@ -25,27 +25,18 @@ public final class LuanCompiler {
 		}
 		FnDef fnDef = parse(luan,parser,allowExpr);
 		final LuanStateImpl luanImpl = (LuanStateImpl)luan;
-		MtGetterLink mtGetterLink = (MtGetterLink)env.get("_MTG");
-		final Closure c = new Closure(luanImpl,fnDef,mtGetterLink);
+		final Closure c = new Closure(luanImpl,fnDef);
+		if( passedEnv )
+			return c;
 		final LuanTable ENV = env;
-		if( passedEnv ) {
-			return new LuanFunction() {
-				@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-					Object rtn = c.call(luan,args);
-					ENV.put("_MTG",luanImpl.mtGetterLink);
-					return rtn;
-				}
-			};
-		} else {
-			return new LuanFunction() {
-				@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-					Object rtn = c.call(luan,args);
-					if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
-						rtn = ENV;
-					return rtn;
-				}
-			};
-		}
+		return new LuanFunction() {
+			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
+				Object rtn = c.call(luan,args);
+				if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
+					rtn = ENV;
+				return rtn;
+			}
+		};
 	}
 
 	private static FnDef parse(LuanState luan,LuanParser parser,boolean allowExpr) throws LuanException {

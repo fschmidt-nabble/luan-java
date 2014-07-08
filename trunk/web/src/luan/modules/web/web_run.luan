@@ -1,5 +1,6 @@
 import "Io"
 import "web/Http"
+import "String"
 
 local function lines(s)
 	local matcher = String.gmatch(s,"([^\n]*)\n|([^\n])+$")

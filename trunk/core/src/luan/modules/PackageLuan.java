@@ -11,7 +11,6 @@ import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
-import luan.MetatableGetter;
 
 
 public final class PackageLuan {
@@ -107,12 +106,6 @@ public final class PackageLuan {
 					loaded.put(modName,mod);
 				}
 			}
-		}
-		if( mod instanceof LuanTable ) {
-			LuanTable modTbl = (LuanTable)mod;
-			MetatableGetter mg = (MetatableGetter)modTbl.get(MetatableGetter.KEY);
-			if( mg != null )
-				luan.addMetatableGetter(mg);
 		}
 		return mod;
 	}

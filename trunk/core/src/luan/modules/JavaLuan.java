@@ -19,12 +19,10 @@ import java.util.Arrays;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
-import luan.MetatableGetter;
 import luan.LuanException;
 import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
-import luan.DeepCloner;
 
 
 public final class JavaLuan {
@@ -32,7 +30,6 @@ public final class JavaLuan {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			module.put( MetatableGetter.KEY, new MyMetatableGetter() );
 			try {
 				module.put( "class", new LuanJavaFunction(JavaLuan.class.getMethod("getClass",LuanState.class,String.class),null) );
 				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
@@ -72,104 +69,64 @@ public final class JavaLuan {
 		}
 	}
 
-	public static class MyMetatableGetter implements MetatableGetter {
-		private LuanTable metatable;
-
-		private MyMetatableGetter() {
-			this.metatable = new LuanTable();
-			try {
-				metatable.put( "__index", new LuanJavaFunction(
-					MyMetatableGetter.class.getMethod( "__index", LuanState.class, Object.class, Object.class ), this
-				) );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			add( metatable, "__newindex", LuanState.class, Object.class, Object.class, Object.class );
-		}
-
-		private MyMetatableGetter(MyMetatableGetter mmg) {}
-
-		@Override public MetatableGetter shallowClone() {
-			return new MyMetatableGetter(this);
-		}
-
-		@Override public void deepenClone(MetatableGetter c,DeepCloner cloner) {
-			MyMetatableGetter clone = (MyMetatableGetter)c;
-			clone.metatable = cloner.deepClone(metatable);
-		}
-
-		@Override public LuanTable getMetatable(Object obj) {
-			if( obj==null )
-				return null;
-			return metatable;
-		}
-
-		public Object __index(LuanState luan,Object obj,Object key) throws LuanException {
-			LuanTable mt = luan.getMetatable(obj,this);
-			if( mt != null ) {
-				Object h = mt.get("__index");
-				if( h instanceof LuanFunction ) {
-					LuanFunction fn = (LuanFunction)h;
-					Object rtn = Luan.first(luan.call(fn,new Object[]{obj,key}));
-					if( rtn != null )
-						return rtn;
-				}
-			}
-			if( obj instanceof Static ) {
-				if( key instanceof String ) {
-					String name = (String)key;
-					Static st = (Static)obj;
-					Class cls = st.cls;
-					if( "class".equals(name) ) {
-						return cls;
-					} else if( "new".equals(name) ) {
-						Constructor<?>[] constructors = cls.getConstructors();
-						if( constructors.length > 0 ) {
-							if( constructors.length==1 ) {
-								return new LuanJavaFunction(constructors[0],null);
-							} else {
-								List<LuanJavaFunction> fns = new ArrayList<LuanJavaFunction>();
-								for( Constructor constructor : constructors ) {
-									fns.add(new LuanJavaFunction(constructor,null));
-								}
-								return new AmbiguousJavaFunction(fns);
-							}
-						}
-					} else if( "assert".equals(name) ) {
-						return new LuanJavaFunction(assertClass,new AssertClass(cls));
-					} else {
-						List<Member> members = getStaticMembers(cls,name);
-						if( !members.isEmpty() ) {
-							return member(null,members);
-						}
-					}
-				}
-				throw luan.exception("invalid member '"+key+"' for: "+obj);
-			}
-			Class cls = obj.getClass();
-			if( cls.isArray() ) {
-				if( "length".equals(key) ) {
-					return Array.getLength(obj);
-				}
-				Integer i = Luan.asInteger(key);
-				if( i != null ) {
-					return Array.get(obj,i);
-				}
-				throw luan.exception("invalid member '"+key+"' for java array: "+obj);
-			}
+	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
+		if( obj instanceof Static ) {
 			if( key instanceof String ) {
 				String name = (String)key;
-				if( "instanceof".equals(name) ) {
-					return new LuanJavaFunction(instanceOf,new InstanceOf(obj));
+				Static st = (Static)obj;
+				Class cls = st.cls;
+				if( "class".equals(name) ) {
+					return cls;
+				} else if( "new".equals(name) ) {
+					Constructor<?>[] constructors = cls.getConstructors();
+					if( constructors.length > 0 ) {
+						if( constructors.length==1 ) {
+							return new LuanJavaFunction(constructors[0],null);
+						} else {
+							List<LuanJavaFunction> fns = new ArrayList<LuanJavaFunction>();
+							for( Constructor constructor : constructors ) {
+								fns.add(new LuanJavaFunction(constructor,null));
+							}
+							return new AmbiguousJavaFunction(fns);
+						}
+					}
+				} else if( "assert".equals(name) ) {
+					return new LuanJavaFunction(assertClass,new AssertClass(cls));
 				} else {
-					List<Member> members = getMembers(cls,name);
+					List<Member> members = getStaticMembers(cls,name);
 					if( !members.isEmpty() ) {
-						return member(obj,members);
+						return member(null,members);
 					}
 				}
 			}
-			return null;
+			throw luan.exception("invalid member '"+key+"' for: "+obj);
 		}
+		Class cls = obj.getClass();
+		if( cls.isArray() ) {
+			if( "length".equals(key) ) {
+				return Array.getLength(obj);
+			}
+			Integer i = Luan.asInteger(key);
+			if( i != null ) {
+				return Array.get(obj,i);
+			}
+			throw luan.exception("invalid member '"+key+"' for java array: "+obj);
+		}
+		if( key instanceof String ) {
+			String name = (String)key;
+			if( "instanceof".equals(name) ) {
+				return new LuanJavaFunction(instanceOf,new InstanceOf(obj));
+			} else {
+				List<Member> members = getMembers(cls,name);
+				if( !members.isEmpty() ) {
+					if( name.equals("getClass") && !isLoaded(luan) )
+						return null;  // security
+					return member(obj,members);
+				}
+			}
+		}
+//		throw luan.exception("invalid member '"+key+"' for java object: "+obj);
+		return null;
 	}
 
 	private static Object member(Object obj,List<Member> members) throws LuanException {
