@@ -71,8 +71,8 @@ public final class LuanJavaFunction extends LuanFunction implements DeepCloneabl
 	}
 
 	@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-		args = fixArgs(luan,args);
 		try {
+			args = fixArgs(luan,args);
 			return doCall(luan,args);
 		} catch(IllegalArgumentException e) {
 			checkArgs(luan,args);
@@ -128,6 +128,8 @@ public final class LuanJavaFunction extends LuanFunction implements DeepCloneabl
 			Object arg = args[i];
 			if( !type.isInstance(arg) ) {
 				String expected = paramType.getSimpleName();
+				if( i==a.length-1 && method.isVarArgs() )
+					expected = paramType.getComponentType().getSimpleName()+"...";
 				if( arg==null ) {
 					if( paramType.isPrimitive() )
 						throw luan.exception("bad argument #"+(i+1-start)+" ("+expected+" expected, got nil)");
