@@ -210,7 +210,7 @@ public final class LuanJavaFunction extends LuanFunction implements DeepCloneabl
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_NOTHING;
-		if( convertArray && rtnType.isArray() )
+		if( convertArray && rtnType.isArray() && !rtnType.getComponentType().isPrimitive() )
 			return RTN_ARRAY;
 		return RTN_SAME;
 	}
