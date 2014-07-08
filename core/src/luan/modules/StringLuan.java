@@ -9,8 +9,6 @@ import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
-import luan.MetatableGetter;
-import luan.DeepCloner;
 
 
 public final class StringLuan {
@@ -18,7 +16,6 @@ public final class StringLuan {
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = new LuanTable();
-			module.put( MetatableGetter.KEY, new MyMetatableGetter(module) );
 			try {
 				add( module, "to_binary", String.class );
 				add( module, "to_integers", String.class );
@@ -45,40 +42,10 @@ public final class StringLuan {
 		t.put( method, new LuanJavaFunction(StringLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
-	public static class MyMetatableGetter implements MetatableGetter {
-		private LuanTable module;
-		private LuanTable metatable;
-
-		private MyMetatableGetter(LuanTable module) {
-			this.module = module;
-			this.metatable = new LuanTable();
-			try {
-				metatable.put( "__index", new LuanJavaFunction(
-					MyMetatableGetter.class.getMethod( "__index", LuanState.class, String.class, Object.class ), this
-				) );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		private MyMetatableGetter(MyMetatableGetter mmg) {}
-
-		@Override public MetatableGetter shallowClone() {
-			return new MyMetatableGetter(this);
-		}
-
-		@Override public void deepenClone(MetatableGetter c,DeepCloner cloner) {
-			MyMetatableGetter clone = (MyMetatableGetter)c;
-			clone.module = cloner.deepClone(module);
-			clone.metatable = cloner.deepClone(metatable);
-		}
-
-		@Override public LuanTable getMetatable(Object obj) {
-			return obj instanceof String ? metatable : null;
-		}
-
-		public Object __index(LuanState luan,final String s,Object key) throws LuanException {
-			Object obj = module.get(key);
+	public static Object __index(LuanState luan,final String s,Object key) throws LuanException {
+		LuanTable mod = (LuanTable)PackageLuan.loaded(luan).get("String");
+		if( mod!=null ) {
+			Object obj = mod.get(key);
 			if( obj instanceof LuanFunction ) {
 				final LuanFunction fn = (LuanFunction)obj;
 				return new LuanFunction() {
@@ -90,15 +57,8 @@ public final class StringLuan {
 					}
 				};
 			}
-			LuanTable mt = luan.getMetatable(s,this);
-			if( mt == null )
-				return null;
-			Object h = mt.get("__index");
-			if( !(h instanceof LuanFunction) )
-				return null;
-			LuanFunction fn = (LuanFunction)h;
-			return luan.call(fn,new Object[]{s,key});
 		}
+		return null;
 	}
 
 	static int start(String s,int i) {

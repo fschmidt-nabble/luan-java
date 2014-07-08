@@ -8,7 +8,6 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
-import luan.MetatableGetter;
 import luan.LuanException;
 import luan.LuanElement;
 import luan.DeepCloner;
@@ -21,7 +20,6 @@ final class LuanStateImpl extends LuanState {
 		final Closure closure;
 		final Object[] stack;
 		final Object[] varArgs;
-		MtGetterLink mtGetterLink;
 		UpValue[] downValues = null;
 
 		Frame( Frame previousFrame, Closure closure, int stackSize, Object[] varArgs) {
@@ -29,7 +27,6 @@ final class LuanStateImpl extends LuanState {
 			this.closure = closure;
 			this.stack = new Object[stackSize];
 			this.varArgs = varArgs;
-			this.mtGetterLink = closure.mtGetterLink();
 		}
 
 		void stackClear(int start,int end) {
@@ -54,17 +51,11 @@ final class LuanStateImpl extends LuanState {
 				downValues[index] = new UpValue(stack,index);
 			return downValues[index];
 		}
-
-		void addMetatableGetter(MetatableGetter mg) {
-			if( mtGetterLink==null || !mtGetterLink.contains(mg) )
-				mtGetterLink = new MtGetterLink(mg,mtGetterLink);
-		}
 	}
 
 	private Frame frame = null;
 	Object returnValues;
 	Closure tailFn;
-	MtGetterLink mtGetterLink = null;
 
 	LuanStateImpl() {}
 
@@ -89,7 +80,6 @@ final class LuanStateImpl extends LuanState {
 	void popFrame() {
 		returnValues = LuanFunction.NOTHING;
 		tailFn = null;
-		mtGetterLink = frame.mtGetterLink;
 		frame = frame.previousFrame;
 	}
 
@@ -121,23 +111,6 @@ final class LuanStateImpl extends LuanState {
 		if( frame==null )
 			return null;
 		return (LuanTable)frame.closure.upValues()[0].get();
-	}
-
-	MtGetterLink mtGetterLink() {
-		return frame==null ? null : frame.mtGetterLink;
-	}
-
-	@Override public LuanTable getMetatable(Object obj,MetatableGetter beforeThis) {
-		if( obj instanceof LuanTable ) {
-			LuanTable table = (LuanTable)obj;
-			return table.getMetatable();
-		}
-		MtGetterLink mtGetterLink = mtGetterLink();
-		return mtGetterLink==null ? null : mtGetterLink.getMetatable(obj,beforeThis);
-	}
-
-	@Override public void addMetatableGetter(MetatableGetter mg) {
-		frame.addMetatableGetter(mg);
 	}
 
 }
