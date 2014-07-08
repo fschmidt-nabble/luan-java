@@ -38,6 +38,7 @@ handlers.setHandlers { authentication_handler, luan_handler, resource_handler }
 function add_folder(context,dir)
 	local rh = ResourceHandler.new()
 	rh.setResourceBase(dir)
+	rh.setDirectoriesListed(true)
 	local ch = ContextHandler.new(context)
 	ch.setHandler(rh)
 	handlers.addHandler(ch)
@@ -57,6 +58,10 @@ log = NCSARequestLog.new()
 log.setExtended(false)
 log_handler = RequestLogHandler.new()
 log_handler.setRequestLog(log)
+
+function set_log_file(file_name)
+	log.setFilename(file_name)
+end
 
 local hc = HandlerCollection.new()
 hc.setHandlers { SessionHandler.new(), handler_wrapper, DefaultHandler.new(), log_handler }

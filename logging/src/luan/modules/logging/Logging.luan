@@ -1,3 +1,10 @@
+import "Package"
+
+if Package.is_blocked "logging/Logging" then
+	error "Logging is blocked"
+end
+
+
 import "Java"
 import "org.apache.log4j.Logger"
 import "org.apache.log4j.EnhancedPatternLayout"
@@ -14,7 +21,7 @@ console = "System.err"  -- or "System.out" or set to nil for no console
 
 file = nil  -- set to file name if you want logging to a file
 
-max_file_size = "10MB"
+max_file_size = nil  -- by default is "10MB"
 
 
 log4j_root_logger = Logger.getRootLogger()
@@ -23,11 +30,11 @@ local function to_level(level)
 	return level and Level.toLevel(level)
 end
 
-function log_to_file(file)
+function log_to_file(file,logger_name)  -- logger_name is optional, defaults to root logger
 	local appender = RollingFileAppender.new(ptn_layout, file)
 	appender.setMaxFileSize(max_file_size)
-	print("getMaximumFileSize",appender.getMaximumFileSize())
-	log4j_root_logger.addAppender(appender)
+	local logger = logger_name and Logger.getLogger(logger_name) or log4j_root_logger
+	logger.addAppender(appender)
 	return appender
 end
 
