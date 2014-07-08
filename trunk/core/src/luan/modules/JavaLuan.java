@@ -141,13 +141,13 @@ public final class JavaLuan {
 					return rtn instanceof Object[] ? Arrays.asList((Object[])rtn) : rtn;
 				} else {
 					Method method = (Method)member;
-					return new LuanJavaFunction(method,obj);
+					return new LuanJavaFunction(method,obj,true);
 				}
 			} else {
 				List<LuanJavaFunction> fns = new ArrayList<LuanJavaFunction>();
 				for( Member member : members ) {
 					Method method = (Method)member;
-					fns.add(new LuanJavaFunction(method,obj));
+					fns.add(new LuanJavaFunction(method,obj,true));
 				}
 				return new AmbiguousJavaFunction(fns);
 			}

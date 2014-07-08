@@ -1060,7 +1060,7 @@ final class LuanParser {
 
 	private Expr SubExpr(In in) throws ParseException {
 		parser.begin();
-		if( !parser.match('[') )
+		if( !parser.match('[') || parser.test("[") || parser.test("=") )
 			return parser.failure(null);
 		In inParens = in.parens();
 		Spaces(inParens);

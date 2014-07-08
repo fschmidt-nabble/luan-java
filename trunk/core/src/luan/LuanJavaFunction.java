@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
@@ -20,17 +21,21 @@ public final class LuanJavaFunction extends LuanFunction implements DeepCloneabl
 	private final Class<?> varArgCls;
 
 	public LuanJavaFunction(Method method,Object obj) {
-		this( JavaMethod.of(method), obj );
+		this(method,obj,false);
+	}
+
+	public LuanJavaFunction(Method method,Object obj,boolean convertArray) {
+		this( JavaMethod.of(method), obj, convertArray );
 	}
 
 	public LuanJavaFunction(Constructor constr,Object obj) {
-		this( JavaMethod.of(constr), obj );
+		this( JavaMethod.of(constr), obj, false );
 	}
 
-	LuanJavaFunction(JavaMethod method,Object obj) {
+	private LuanJavaFunction(JavaMethod method,Object obj,boolean convertArray) {
 		this.method = method;
 		this.obj = obj;
-		this.rtnConverter = getRtnConverter(method);
+		this.rtnConverter = getRtnConverter(method,convertArray);
 		this.takesLuaState = takesLuaState(method);
 		this.argConverters = getArgConverters(takesLuaState,method);
 		if( method.isVarArgs() ) {
@@ -187,10 +192,24 @@ public final class LuanJavaFunction extends LuanFunction implements DeepCloneabl
 		}
 	};
 
-	private static RtnConverter getRtnConverter(JavaMethod m) {
+	private static final RtnConverter RTN_ARRAY = new RtnConverter() {
+		@Override public Object convert(Object obj) {
+			if( obj == null )
+				return null;
+			Object[] a = new Object[Array.getLength(obj)];
+			for( int i=0; i<a.length; i++ ) {
+				a[i] = Array.get(obj,i);
+			}
+			return new LuanTable(new ArrayList<Object>(Arrays.asList(a)));
+		}
+	};
+
+	private static RtnConverter getRtnConverter(JavaMethod m,boolean convertArray) {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_NOTHING;
+		if( convertArray && rtnType.isArray() )
+			return RTN_ARRAY;
 		return RTN_SAME;
 	}
 
