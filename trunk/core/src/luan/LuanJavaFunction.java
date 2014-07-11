@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.Arrays;
 
 
-public final class LuanJavaFunction extends LuanFunction implements DeepCloneable<LuanJavaFunction> {
+public final class LuanJavaFunction extends LuanFunction {
 	private final JavaMethod method;
 	private Object obj;
 	private final RtnConverter rtnConverter;
@@ -45,7 +45,7 @@ public final class LuanJavaFunction extends LuanFunction implements DeepCloneabl
 			this.varArgCls = null;
 		}
 	}
-
+/*
 	private LuanJavaFunction(LuanJavaFunction f) {
 		this.method = f.method;
 		this.rtnConverter = f.rtnConverter;
@@ -61,7 +61,7 @@ public final class LuanJavaFunction extends LuanFunction implements DeepCloneabl
 	@Override public void deepenClone(LuanJavaFunction clone,DeepCloner cloner) {
 		clone.obj = cloner.get(obj);
 	}
-
+*/
 	@Override public String toString() {
 		return "java-function: " + method;
 	}
