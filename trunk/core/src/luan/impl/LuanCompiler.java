@@ -28,12 +28,11 @@ public final class LuanCompiler {
 		final Closure c = new Closure(luanImpl,fnDef);
 		if( passedEnv )
 			return c;
-		final LuanTable ENV = env;
 		return new LuanFunction() {
 			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
 				Object rtn = c.call(luan,args);
 				if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
-					rtn = ENV;
+					rtn = c.upValues()[0].get();
 				return rtn;
 			}
 		};
