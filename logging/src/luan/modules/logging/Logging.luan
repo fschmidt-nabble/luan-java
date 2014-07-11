@@ -11,6 +11,7 @@ import "org.apache.log4j.EnhancedPatternLayout"
 import "org.apache.log4j.ConsoleAppender"
 import "org.apache.log4j.Level"
 import "org.apache.log4j.RollingFileAppender"
+import "luan.modules.logging.LuanLogger"
 
 
 layout = "%d %-5p %c - %m%n"
@@ -61,23 +62,7 @@ init()
 
 
 local function to_luan_logger(log4j_logger)
-	local tbl = {}
-
-	function tbl.error(obj)
-		log4j_logger.error( to_string(obj) )
-	end
-
-	function tbl.warn(obj)
-		log4j_logger.warn( to_string(obj) )
-	end
-
-	function tbl.info(obj)
-		log4j_logger.info( to_string(obj) )
-	end
-
-	function tbl.debug(obj)
-		log4j_logger.debug( to_string(obj) )
-	end
+	local tbl = LuanLogger.new(log4j_logger).table()
 
 	function tbl.get_level()
 		local level = log4j_logger.getLevel()
