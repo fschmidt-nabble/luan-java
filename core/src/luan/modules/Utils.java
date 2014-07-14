@@ -75,6 +75,18 @@ public final class Utils {
 			if( path.contains("//") )
 				return null;
 			URL url = ClassLoader.getSystemResource(path);
+			if( url==null && path.endsWith("/") ) {
+				url = ClassLoader.getSystemResource(path+"index.html");
+				if( url==null )
+					url = ClassLoader.getSystemResource(path+"index.html.luan");
+				if( url != null ) {
+					try {
+						url = new URL(url,".");
+					} catch(MalformedURLException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
 			return url==null ? null : url;
 		}
 		try {
