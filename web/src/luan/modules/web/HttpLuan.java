@@ -87,7 +87,7 @@ public final class HttpLuan {
 			module.put( "request", lib.requestTable() );
 			module.put( "response", lib.responseTable() );
 			module.put( "cookie", lib.cookieTable() );
-			module.put( "session_attribute", lib.sessionTable() );
+			module.put( "session", lib.sessionTable() );
 /*
 			module.put( "write", new LuanJavaFunction(
 				HttpLuan.class.getMethod( "text_write", LuanState.class, new Object[0].getClass() ), lib
@@ -173,10 +173,10 @@ public final class HttpLuan {
 
 	private LuanTable sessionTable() throws NoSuchMethodException {
 		LuanTable tbl = new LuanTable();
-		tbl.put( "get", new LuanJavaFunction(
+		tbl.put( "get_attribute", new LuanJavaFunction(
 			HttpLuan.class.getMethod("get_session_attribute",String.class), this
 		) );
-		tbl.put( "set", new LuanJavaFunction(
+		tbl.put( "set_attribute", new LuanJavaFunction(
 			HttpLuan.class.getMethod("set_session_attribute",String.class, Object.class), this
 		) );
 		return tbl;
