@@ -86,6 +86,8 @@ public final class HttpLuan {
 		try {
 			module.put( "request", lib.requestTable() );
 			module.put( "response", lib.responseTable() );
+			module.put( "cookie", lib.cookieTable() );
+			module.put( "session_attribute", lib.sessionTable() );
 /*
 			module.put( "write", new LuanJavaFunction(
 				HttpLuan.class.getMethod( "text_write", LuanState.class, new Object[0].getClass() ), lib
@@ -112,36 +114,72 @@ public final class HttpLuan {
 	}
 
 	private LuanTable requestTable() throws NoSuchMethodException {
-		LuanTable req = new LuanTable();
-		req.put("java",request);
-		req.put( "get_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("getAttribute",String.class),request) );
-		req.put( "set_attribute", new LuanJavaFunction(HttpServletRequest.class.getMethod("setAttribute",String.class,Object.class),request) );
-		req.put( "get_parameter", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameter",String.class),request) );
-		req.put( "get_parameter_values", new LuanJavaFunction(HttpServletRequest.class.getMethod("getParameterValues",String.class),request) );
-		req.put( "get_header", new LuanJavaFunction(HttpServletRequest.class.getMethod("getHeader",String.class),request) );
-		add( req, "get_cookie_value", String.class );
-		req.put( "method", new LuanJavaFunction(HttpServletRequest.class.getMethod("getMethod"),request) );
-		req.put( "servlet_path", new LuanJavaFunction(HttpServletRequest.class.getMethod("getServletPath"),request) );
-		req.put( "server_name", new LuanJavaFunction(HttpServletRequest.class.getMethod("getServerName"),request) );
-		add( req, "current_url" );
-		req.put( "remote_address", new LuanJavaFunction(HttpServletRequest.class.getMethod("getRemoteAddr"),request) );
-		add( req, "get_session_attribute", String.class );
-		add( req, "set_session_attribute", String.class, Object.class );
-		return req;
+		LuanTable tbl = new LuanTable();
+		tbl.put("java",request);
+		add( tbl, "get_parameter", String.class );
+		tbl.put( "get_header", new LuanJavaFunction(
+			HttpServletRequest.class.getMethod("getHeader",String.class), request
+		) );
+		tbl.put( "get_method", new LuanJavaFunction(
+			HttpServletRequest.class.getMethod("getMethod"), request
+		) );
+		tbl.put( "get_servlet_path", new LuanJavaFunction(
+			HttpServletRequest.class.getMethod("getServletPath"), request
+		) );
+		tbl.put( "get_server_name", new LuanJavaFunction(
+			HttpServletRequest.class.getMethod("getServerName"), request
+		) );
+		add( tbl, "get_current_url" );
+		tbl.put( "get_remote_address", new LuanJavaFunction(
+			HttpServletRequest.class.getMethod("getRemoteAddr"), request
+		) );
+		return tbl;
 	}
 
 	private LuanTable responseTable() throws NoSuchMethodException {
-		LuanTable resp = new LuanTable();
-		resp.put("java",response);
-		add( resp, "send_redirect", String.class );
-		add( resp, "send_error", Integer.TYPE, String.class );
-		resp.put( "contains_header", new LuanJavaFunction(HttpServletResponse.class.getMethod("containsHeader",String.class),response) );
-		resp.put( "set_header", new LuanJavaFunction(HttpServletResponse.class.getMethod("setHeader",String.class,String.class),response) );
-		add( resp, "set_cookie", String.class, String.class, Boolean.TYPE, String.class );
-		add( resp, "remove_cookie", String.class, String.class );
-		resp.put( "set_content_type", new LuanJavaFunction(HttpServletResponse.class.getMethod("setContentType",String.class),response) );
-		add( resp, "text_writer" );
-		return resp;
+		LuanTable tbl = new LuanTable();
+		tbl.put("java",response);
+		add( tbl, "send_redirect", String.class );
+		add( tbl, "send_error", Integer.TYPE, String.class );
+		tbl.put( "contains_header", new LuanJavaFunction(
+			HttpServletResponse.class.getMethod("containsHeader",String.class), response
+		) );
+		tbl.put( "set_header", new LuanJavaFunction(
+			HttpServletResponse.class.getMethod("setHeader",String.class,String.class), response
+		) );
+		tbl.put( "set_content_type", new LuanJavaFunction(
+			HttpServletResponse.class.getMethod("setContentType",String.class), response
+		) );
+		tbl.put( "set_character_encoding", new LuanJavaFunction(
+			HttpServletResponse.class.getMethod("setCharacterEncoding",String.class), response
+		) );
+		add( tbl, "text_writer" );
+		return tbl;
+	}
+
+	private LuanTable cookieTable() throws NoSuchMethodException {
+		LuanTable tbl = new LuanTable();
+		tbl.put( "get", new LuanJavaFunction(
+			HttpLuan.class.getMethod("get_cookie",String.class), this
+		) );
+		tbl.put( "set", new LuanJavaFunction(
+			HttpLuan.class.getMethod("set_cookie", String.class, String.class, Boolean.TYPE, String.class), this
+		) );
+		tbl.put( "remove", new LuanJavaFunction(
+			HttpLuan.class.getMethod("remove_cookie", String.class, String.class), this
+		) );
+		return tbl;
+	}
+
+	private LuanTable sessionTable() throws NoSuchMethodException {
+		LuanTable tbl = new LuanTable();
+		tbl.put( "get", new LuanJavaFunction(
+			HttpLuan.class.getMethod("get_session_attribute",String.class), this
+		) );
+		tbl.put( "set", new LuanJavaFunction(
+			HttpLuan.class.getMethod("set_session_attribute",String.class, Object.class), this
+		) );
+		return tbl;
 	}
 
 	private void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
@@ -160,11 +198,16 @@ public final class HttpLuan {
 		return IoLuan.textWriter(response.getWriter());
 	}
 
-	public String get_cookie_value(String name) {
+	public Object get_parameter(String name) {
+		String[] a = request.getParameterValues(name);
+		return a==null ? null : a.length==1 ? a[0] : a;
+	}
+
+	public String get_cookie(String name) {
 		return getCookieValue(request, name);
 	}
 
-	public String current_url() {
+	public String get_current_url() {
 		return getCurrentURL(request);
 	}
 
