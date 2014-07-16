@@ -526,6 +526,8 @@ public final class IoLuan {
 		}
 
 		@Override public void check(LuanState luan,String name) throws LuanException {
+			if( name.contains("..") )
+				throw luan.exception("Security violation - '"+name+"' contains '..'");
 			for( String dir : dirs ) {
 				if( name.startsWith(dir) )
 					return;
