@@ -74,16 +74,23 @@ public final class Utils {
 			path = path.substring(5);
 			if( path.contains("//") )
 				return null;
-			URL url = ClassLoader.getSystemResource(path);
-			if( url==null && path.endsWith("/") ) {
-				url = ClassLoader.getSystemResource(path+"index.html");
-				if( url==null )
-					url = ClassLoader.getSystemResource(path+"index.html.luan");
-				if( url != null ) {
-					try {
-						url = new URL(url,".");
-					} catch(MalformedURLException e) {
-						throw new RuntimeException(e);
+			URL url;
+			if( !path.contains("#") ) {
+				url = ClassLoader.getSystemResource(path);
+			} else {
+				String[] a = path.split("#");
+				url = ClassLoader.getSystemResource(a[0]);
+				if( url==null ) {
+					for( int i=1; i<a.length; i++ ) {
+						url = ClassLoader.getSystemResource(a[0]+"/"+a[i]);
+						if( url != null ) {
+							try {
+								url = new URL(url,".");
+							} catch(MalformedURLException e) {
+								throw new RuntimeException(e);
+							}
+							break;
+						}
 					}
 				}
 			}
