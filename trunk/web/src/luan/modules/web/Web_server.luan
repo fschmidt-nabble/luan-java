@@ -72,7 +72,11 @@ function serve(dir)
 	Http.dir = dir
 	Package.path = dir.."?.luan;java:luan/modules/?.luan"
 	authentication_handler.setPassword(private_password)
-	resource_handler.setResourceBase(Io.File(dir.."/").to_string())
+	local base = dir
+	if base.match("^java:") ~= nil then
+		base = dir.."#"..welcome_file.."#"..welcome_file..".luan"
+	end
+	resource_handler.setResourceBase(Io.File(base).to_string())
 	resource_handler.setWelcomeFiles {welcome_file}
 	luan_handler.setWelcomeFile(welcome_file)
 	local server = Server.new(port)
