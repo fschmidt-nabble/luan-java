@@ -19,13 +19,13 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
-	private LuanTable registry;
-	private LuanTable global;
-	private LuanTable metatable;  // generic metatable
+	private LuanTableImpl registry;
+	private LuanTableImpl global;
+	private LuanTableImpl metatable;  // generic metatable
 
 	protected LuanState() {
-		registry = new LuanTable();
-		global = new LuanTable();
+		registry = new LuanTableImpl();
+		global = new LuanTableImpl();
 		global.put("_G",global);
 		metatable = newMetatable();
 	}
@@ -47,7 +47,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	public final LuanTable registryTable(Object key) {
 		LuanTable tbl = (LuanTable)registry.get(key);
 		if( tbl == null ) {
-			tbl = new LuanTable();
+			tbl = new LuanTableImpl();
 			registry.put(key,tbl);
 		}
 		return tbl;
@@ -68,7 +68,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	}
 
 	public final Object eval(String cmd) {
-		return eval(cmd,new LuanTable());
+		return eval(cmd,new LuanTableImpl());
 	}
 
 	public final Object eval(String cmd,LuanTable env) {
@@ -99,8 +99,8 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		return t==null ? null : t.get(op);
 	}
 
-	private static LuanTable newMetatable() {
-		LuanTable metatable = new LuanTable();
+	private static LuanTableImpl newMetatable() {
+		LuanTableImpl metatable = new LuanTableImpl();
 		try {
 			metatable.put( "__index", new LuanJavaFunction(
 				LuanState.class.getMethod("__index",LuanState.class,Object.class,Object.class), null

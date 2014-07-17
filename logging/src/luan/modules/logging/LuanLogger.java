@@ -1,6 +1,7 @@
 package luan.modules.logging;
 
 import org.apache.log4j.Logger;
+import luan.Luan;
 import luan.LuanState;
 import luan.LuanException;
 import luan.LuanTable;
@@ -31,7 +32,7 @@ public final class LuanLogger {
 	}
 
 	public LuanTable table() {
-		LuanTable tbl = new LuanTable();
+		LuanTable tbl = Luan.newTable();
 		try {
 			tbl.put( "error", new LuanJavaFunction(
 				LuanLogger.class.getMethod( "error", LuanState.class, Object.class ), this

@@ -22,7 +22,7 @@ public final class BasicLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			try {
 				module.put( "assert", new LuanJavaFunction(BasicLuan.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
 				add( module, "assert_boolean", LuanState.class, Boolean.TYPE );
@@ -85,8 +85,11 @@ public final class BasicLuan {
 		return luan.call(fn);
 	}
 
-	private static LuanFunction pairs(final Iterator<Map.Entry<Object,Object>> iter) {
+	public static LuanFunction pairs(LuanState luan,final LuanTable t) throws LuanException {
+		Utils.checkNotNull(luan,t,"table");
 		return new LuanFunction() {
+			Iterator<Map.Entry<Object,Object>> iter = t.iterator();
+
 			@Override public Object[] call(LuanState luan,Object[] args) {
 				if( !iter.hasNext() )
 					return LuanFunction.NOTHING;
@@ -96,14 +99,20 @@ public final class BasicLuan {
 		};
 	}
 
-	public static LuanFunction pairs(LuanState luan,LuanTable t) throws LuanException {
+	public static LuanFunction ipairs(LuanState luan,final LuanTable t) throws LuanException {
 		Utils.checkNotNull(luan,t,"table");
-		return pairs( t.iterator() );
-	}
+		return new LuanFunction() {
+			List<Object> list = t.asList();
+			int i = 0;
+			final int size = list.size();
 
-	public static LuanFunction ipairs(LuanState luan,LuanTable t) throws LuanException {
-		Utils.checkNotNull(luan,t,"table");
-		return pairs( t.listIterator() );
+			@Override public Object[] call(LuanState luan,Object[] args) {
+				if( i >= size )
+					return LuanFunction.NOTHING;
+				Object val = list.get(i++);
+				return new Object[]{i,val};
+			}
+		};
 	}
 
 	public static LuanTable get_metatable(LuanState luan,Object obj) {

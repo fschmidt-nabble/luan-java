@@ -26,7 +26,7 @@ public final class PickleCon {
 	private final DataOutputStream out;
 	private final List<byte[]> binaries = new ArrayList<byte[]>();
 	String src;
-	final LuanTable env = new LuanTable();
+	final LuanTable env = Luan.newTable();
 
 	PickleCon(LuanState luan,DataInputStream in,DataOutputStream out) {
 		this.in = in;

@@ -2,6 +2,7 @@ package luan.modules;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import luan.Luan;
 import luan.LuanState;
 import luan.LuanFunction;
 import luan.LuanTable;
@@ -14,7 +15,7 @@ public final class ThreadLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			try {
 				add( module, "fork", LuanState.class, LuanFunction.class, new Object[0].getClass() );
 			} catch(NoSuchMethodException e) {

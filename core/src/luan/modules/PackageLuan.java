@@ -19,9 +19,9 @@ public final class PackageLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			module.put( "loaded", loaded(luan) );
-			module.put( "preload", new LuanTable() );
+			module.put( "preload", Luan.newTable() );
 			module.put( "path", "?.luan;java:luan/modules/?.luan" );
 			module.put( "jpath", jpath );
 			try {
@@ -70,7 +70,7 @@ public final class PackageLuan {
 		String key = "Package.searchers";
 		LuanTable tbl = (LuanTable)luan.registry().get(key);
 		if( tbl == null ) {
-			tbl = new LuanTable();
+			tbl = Luan.newTable();
 			tbl.add(preloadSearcher);
 			tbl.add(fileSearcher);
 			tbl.add(javaSearcher);

@@ -145,5 +145,9 @@ public final class Luan {
 		return null;
 	}
 
+	public static LuanTable newTable() {
+		return new LuanTableImpl();
+	}
+
 	private Luan() {}  // never
 }

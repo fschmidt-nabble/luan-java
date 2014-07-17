@@ -64,7 +64,7 @@ public final class PickleClient {
 	}
 
 	LuanTable table() {
-		LuanTable tbl = new LuanTable();
+		LuanTable tbl = Luan.newTable();
 		try {
 			tbl.put( "pickle", new LuanJavaFunction(
 				PickleCon.class.getMethod( "pickle", Object.class ), con

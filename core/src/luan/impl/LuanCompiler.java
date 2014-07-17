@@ -6,6 +6,7 @@ import luan.LuanException;
 import luan.LuanSource;
 import luan.LuanElement;
 import luan.LuanTable;
+import luan.Luan;
 import java.util.Map;
 
 
@@ -15,7 +16,7 @@ public final class LuanCompiler {
 	public static LuanFunction compile(LuanState luan,LuanSource src,LuanTable env,boolean allowExpr) throws LuanException {
 		boolean passedEnv = env != null;
 		if( !passedEnv )
-			env = new LuanTable();
+			env = Luan.newTable();
 		UpValue.Getter envGetter = new UpValue.ValueGetter(env);
 		LuanParser parser = new LuanParser(src,envGetter);
 		for( Map.Entry<Object,Object> entry : luan.global() ) {

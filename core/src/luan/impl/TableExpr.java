@@ -3,6 +3,7 @@ package luan.impl;
 import luan.LuanException;
 import luan.LuanTable;
 import luan.LuanSource;
+import luan.Luan;
 
 
 final class TableExpr extends CodeImpl implements Expr {
@@ -27,7 +28,7 @@ final class TableExpr extends CodeImpl implements Expr {
 	}
 
 	@Override public Object eval(LuanStateImpl luan) throws LuanException {
-		LuanTable table = new LuanTable();
+		LuanTable table = Luan.newTable();
 		for( Field field : fields ) {
 			table.put( field.key.eval(luan), field.value.eval(luan) );
 		}
