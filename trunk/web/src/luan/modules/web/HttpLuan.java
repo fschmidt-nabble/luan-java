@@ -28,7 +28,7 @@ public final class HttpLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			try {
 				addStatic( module, "new_luan_handler", LuanState.class );
 			} catch(NoSuchMethodException e) {
@@ -114,7 +114,7 @@ public final class HttpLuan {
 	}
 
 	private LuanTable requestTable() throws NoSuchMethodException {
-		LuanTable tbl = new LuanTable();
+		LuanTable tbl = Luan.newTable();
 		tbl.put("java",request);
 		add( tbl, "get_parameter", String.class );
 		tbl.put( "get_header", new LuanJavaFunction(
@@ -137,7 +137,7 @@ public final class HttpLuan {
 	}
 
 	private LuanTable responseTable() throws NoSuchMethodException {
-		LuanTable tbl = new LuanTable();
+		LuanTable tbl = Luan.newTable();
 		tbl.put("java",response);
 		add( tbl, "send_redirect", String.class );
 		add( tbl, "send_error", Integer.TYPE, String.class );
@@ -158,7 +158,7 @@ public final class HttpLuan {
 	}
 
 	private LuanTable cookieTable() throws NoSuchMethodException {
-		LuanTable tbl = new LuanTable();
+		LuanTable tbl = Luan.newTable();
 		tbl.put( "get", new LuanJavaFunction(
 			HttpLuan.class.getMethod("get_cookie",String.class), this
 		) );
@@ -172,7 +172,7 @@ public final class HttpLuan {
 	}
 
 	private LuanTable sessionTable() throws NoSuchMethodException {
-		LuanTable tbl = new LuanTable();
+		LuanTable tbl = Luan.newTable();
 		tbl.put( "get_attribute", new LuanJavaFunction(
 			HttpLuan.class.getMethod("get_session_attribute",String.class), this
 		) );

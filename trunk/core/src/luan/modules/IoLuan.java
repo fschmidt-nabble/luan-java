@@ -24,6 +24,7 @@ import java.net.ServerSocket;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.ArrayList;
+import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
@@ -35,12 +36,12 @@ public final class IoLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			try {
 				add( module, "File", LuanState.class, String.class );
 				add( module, "read_console_line", String.class );
 
-				LuanTable stdin = new LuanTable();
+				LuanTable stdin = Luan.newTable();
 				stdin.put( "read_text", new LuanJavaFunction(
 					IoLuan.class.getMethod( "stdin_read_text" ), null
 				) );
@@ -133,7 +134,7 @@ public final class IoLuan {
 	}
 
 	private static LuanTable writer(LuanWriter luanWriter) {
-		LuanTable writer = new LuanTable();
+		LuanTable writer = Luan.newTable();
 		try {
 			writer.put( "write", new LuanJavaFunction(
 				LuanWriter.class.getMethod( "write", LuanState.class, new Object[0].getClass() ), luanWriter
@@ -149,7 +150,7 @@ public final class IoLuan {
 
 
 	public static LuanTable binaryWriter(final OutputStream out) {
-		LuanTable writer = new LuanTable();
+		LuanTable writer = Luan.newTable();
 		try {
 			writer.put( "write", new LuanJavaFunction(
 				OutputStream.class.getMethod( "write", new byte[0].getClass() ), out
@@ -238,7 +239,7 @@ public final class IoLuan {
 		}
 
 		LuanTable table() {
-			LuanTable tbl = new LuanTable();
+			LuanTable tbl = Luan.newTable();
 			try {
 				tbl.put( "to_string", new LuanJavaFunction(
 					LuanIn.class.getMethod( "to_string" ), this
@@ -358,7 +359,7 @@ public final class IoLuan {
 			File[] files = file.listFiles();
 			if( files==null )
 				return null;
-			LuanTable list = new LuanTable();
+			LuanTable list = Luan.newTable();
 			for( File f : files ) {
 				list.add(new LuanFile(luan,f).table());
 			}

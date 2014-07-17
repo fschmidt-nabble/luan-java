@@ -15,7 +15,7 @@ public final class StringLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			try {
 				add( module, "to_binary", String.class );
 				add( module, "to_integers", String.class );

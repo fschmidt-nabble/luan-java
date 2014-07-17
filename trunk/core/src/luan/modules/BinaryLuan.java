@@ -1,5 +1,6 @@
 package luan.modules;
 
+import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
@@ -11,7 +12,7 @@ public final class BinaryLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			try {
 				add( module, "to_string", new byte[0].getClass() );
 			} catch(NoSuchMethodException e) {

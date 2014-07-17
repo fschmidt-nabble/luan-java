@@ -202,7 +202,7 @@ public final class LuanJavaFunction extends LuanFunction {
 			for( int i=0; i<a.length; i++ ) {
 				a[i] = Array.get(obj,i);
 			}
-			return new LuanTable(new ArrayList<Object>(Arrays.asList(a)));
+			return new LuanTableImpl(new ArrayList<Object>(Arrays.asList(a)));
 		}
 	};
 
@@ -369,22 +369,22 @@ public final class LuanJavaFunction extends LuanFunction {
 			if( obj instanceof List ) {
 				@SuppressWarnings("unchecked")
 				List<Object> list = (List<Object>)obj;
-				return new LuanTable(list);
+				return new LuanTableImpl(list);
 			}
 			if( obj instanceof Map ) {
 				@SuppressWarnings("unchecked")
 				Map<Object,Object> map = (Map<Object,Object>)obj;
-				return new LuanTable(map);
+				return new LuanTableImpl(map);
 			}
 			if( obj instanceof Set ) {
 				@SuppressWarnings("unchecked")
 				Set<Object> set = (Set<Object>)obj;
-				return new LuanTable(set);
+				return new LuanTableImpl(set);
 			}
 			Class cls = obj.getClass();
 			if( cls.isArray() && !cls.getComponentType().isPrimitive() ) {
 				Object[] a = (Object[])obj;
-				return new LuanTable(Arrays.asList(a));
+				return new LuanTableImpl(Arrays.asList(a));
 			}
 			return obj;
 		}
@@ -392,8 +392,8 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	private static final ArgConverter ARG_MAP = new ArgConverter() {
 		public Object convert(Object obj) {
-			if( obj instanceof LuanTable ) {
-				LuanTable t = (LuanTable)obj;
+			if( obj instanceof LuanTableImpl ) {
+				LuanTableImpl t = (LuanTableImpl)obj;
 				return t.asMap();
 			}
 			return obj;
@@ -402,8 +402,8 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	private static final ArgConverter ARG_LIST = new ArgConverter() {
 		public Object convert(Object obj) {
-			if( obj instanceof LuanTable ) {
-				LuanTable t = (LuanTable)obj;
+			if( obj instanceof LuanTableImpl ) {
+				LuanTableImpl t = (LuanTableImpl)obj;
 				if( t.isList() )
 					return t.asList();
 			}
@@ -413,8 +413,8 @@ public final class LuanJavaFunction extends LuanFunction {
 
 	private static final ArgConverter ARG_SET = new ArgConverter() {
 		public Object convert(Object obj) {
-			if( obj instanceof LuanTable ) {
-				LuanTable t = (LuanTable)obj;
+			if( obj instanceof LuanTableImpl ) {
+				LuanTableImpl t = (LuanTableImpl)obj;
 				if( t.isSet() )
 					return t.asSet();
 			}
@@ -430,8 +430,8 @@ public final class LuanJavaFunction extends LuanFunction {
 		}
 
 		public Object convert(Object obj) {
-			if( obj instanceof LuanTable ) {
-				LuanTable t = (LuanTable)obj;
+			if( obj instanceof LuanTableImpl ) {
+				LuanTableImpl t = (LuanTableImpl)obj;
 				if( t.isList() ) {
 					try {
 						return t.asList().toArray(a);

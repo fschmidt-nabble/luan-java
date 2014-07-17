@@ -18,7 +18,7 @@ public final class TableLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = new LuanTable();
+			LuanTable module = Luan.newTable();
 			try {
 				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
 				add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );
@@ -111,7 +111,20 @@ public final class TableLuan {
 	}
 
 	public static LuanTable pack(Object... args) {
-		return new LuanTable(new ArrayList<Object>(Arrays.asList(args)));
+		LuanTable tbl = Luan.newTable();
+		boolean hasNull = false;
+		for( int i=0; i<args.length; i++ ) {
+			Object v = args[i];
+			if( v==null ) {
+				hasNull = true;
+			} else if( !hasNull ) {
+				tbl.add(v);
+			} else {
+				tbl.put(i+1,v);
+			}
+		}
+		tbl.put( "n", args.length );
+		return tbl;
 	}
 
 	public static Object[] unpack(LuanTable tbl,Integer iFrom,Integer iTo) {
