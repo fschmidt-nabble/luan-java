@@ -208,7 +208,7 @@ final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCl
 		return map.get(key);
 	}
 
-	@Override public Object put(Object key,Object val) {
+	@Override public void put(Object key,Object val) {
 		Integer iT = Luan.asInteger(key);
 		if( iT != null ) {
 			int i = iT - 1;
@@ -218,14 +218,13 @@ final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCl
 						list.add(val);
 						mapToList();
 					}
-					return null;
+					return;
 				} else if( i>=0 && i<list.size() ) {
-					Object old = list.get(i);
 					list.set(i,val);
 					if( val == null ) {
 						listToMap(i);
 					}
-					return old;
+					return;
 				}
 			}
 		}
@@ -237,9 +236,9 @@ final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCl
 			key = Double.valueOf(n.doubleValue());
 		}
 		if( val == null ) {
-			return map.remove(key);
+			map.remove(key);
 		} else {
-			return map.put(key,val);
+			map.put(key,val);
 		}
 	}
 

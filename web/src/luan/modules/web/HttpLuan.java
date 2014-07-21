@@ -182,18 +182,18 @@ public final class HttpLuan {
 				return response.getHeaderNames().iterator();
 			}
 
-			@Override public Object put(Object key,Object val) {
+			@Override public void put(Object key,Object val) {
 				if( !(key instanceof String) )
 					throw new IllegalArgumentException("key must be string for headers table");
 				String name = (String)key;
 				if( val instanceof String ) {
 					response.setHeader(name,(String)val);
-					return null;
+					return;
 				}
 				Integer i = Luan.asInteger(val);
 				if( i != null ) {
 					response.setIntHeader(name,i);
-					return null;
+					return;
 				}
 				throw new IllegalArgumentException("value must be string or integer for headers table");
 			}
@@ -239,12 +239,11 @@ public final class HttpLuan {
 				return new EnumerationIterator(request.getSession().getAttributeNames());
 			}
 
-			@Override public Object put(Object key,Object val) {
+			@Override public void put(Object key,Object val) {
 				if( !(key instanceof String) )
 					throw new IllegalArgumentException("key must be string for session attributes table");
 				String name = (String)key;
 				request.getSession().setAttribute(name,val);
-				return null;
 			}
 
 			@Override protected String type() {

@@ -99,6 +99,11 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		return t==null ? null : t.get(op);
 	}
 
+	public final Object getHandler(String op,LuanTable table) {
+		LuanTable t = table.getMetatable();
+		return t==null ? null : t.get(op);
+	}
+
 	private static LuanTableImpl newMetatable() {
 		LuanTableImpl metatable = new LuanTableImpl();
 		try {
