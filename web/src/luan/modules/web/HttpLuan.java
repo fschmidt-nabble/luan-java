@@ -3,8 +3,10 @@ package luan.modules.web;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Map;
+import java.util.AbstractMap;
 import java.util.Set;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Enumeration;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -17,11 +19,13 @@ import luan.LuanFunction;
 import luan.LuanElement;
 import luan.LuanException;
 import luan.LuanTable;
+import luan.AbstractLuanTable;
 import luan.LuanJavaFunction;
 import luan.LuanExitException;
 import luan.DeepCloner;
 import luan.modules.PackageLuan;
 import luan.modules.IoLuan;
+import luan.modules.TableLuan;
 
 
 public final class HttpLuan {
@@ -116,10 +120,37 @@ public final class HttpLuan {
 	private LuanTable requestTable() throws NoSuchMethodException {
 		LuanTable tbl = Luan.newTable();
 		tbl.put("java",request);
-		add( tbl, "get_parameter", String.class );
-		tbl.put( "get_header", new LuanJavaFunction(
-			HttpServletRequest.class.getMethod("getHeader",String.class), request
-		) );
+		LuanTable parameters = new NameTable() {
+
+			@Override Object get(String name) {
+				return request.getParameter(name);
+			}
+
+			@Override Iterator<String> names() {
+				return new EnumerationIterator(request.getParameterNames());
+			}
+
+			@Override protected String type() {
+				return "request.parameters-table";
+			}
+		};
+		tbl.put( "parameters", parameters );
+		add( tbl, "get_parameter_values", String.class );
+		LuanTable headers = new NameTable() {
+
+			@Override Object get(String name) {
+				return request.getHeader(name);
+			}
+
+			@Override Iterator<String> names() {
+				return new EnumerationIterator(request.getHeaderNames());
+			}
+
+			@Override protected String type() {
+				return "request.headers-table";
+			}
+		};
+		tbl.put( "headers", headers );
 		tbl.put( "get_method", new LuanJavaFunction(
 			HttpServletRequest.class.getMethod("getMethod"), request
 		) );
@@ -147,6 +178,23 @@ public final class HttpLuan {
 		tbl.put( "set_header", new LuanJavaFunction(
 			HttpServletResponse.class.getMethod("setHeader",String.class,String.class), response
 		) );
+/*
+		LuanTable headers = new NameTable() {
+
+			@Override Object get(String name) {
+				return response.getHeader(name);
+			}
+
+			@Override Iterator<String> names() {
+				return response.getHeaderNames().iterator();
+			}
+
+			@Override protected String type() {
+				return "response.headers-table";
+			}
+		};
+		tbl.put( "headers", headers );
+*/
 		tbl.put( "set_content_type", new LuanJavaFunction(
 			HttpServletResponse.class.getMethod("setContentType",String.class), response
 		) );
@@ -173,12 +221,29 @@ public final class HttpLuan {
 
 	private LuanTable sessionTable() throws NoSuchMethodException {
 		LuanTable tbl = Luan.newTable();
-		tbl.put( "get_attribute", new LuanJavaFunction(
-			HttpLuan.class.getMethod("get_session_attribute",String.class), this
-		) );
-		tbl.put( "set_attribute", new LuanJavaFunction(
-			HttpLuan.class.getMethod("set_session_attribute",String.class, Object.class), this
-		) );
+		LuanTable attributes = new NameTable() {
+
+			@Override Object get(String name) {
+				return request.getSession().getAttribute(name);
+			}
+
+			@Override Iterator<String> names() {
+				return new EnumerationIterator(request.getSession().getAttributeNames());
+			}
+
+			@Override public Object put(Object key,Object val) {
+				if( !(key instanceof String) )
+					throw new IllegalArgumentException("key must be string for session attributes table");
+				String name = (String)key;
+				request.getSession().setAttribute(name,val);
+				return null;
+			}
+
+			@Override protected String type() {
+				return "session.attributes-table";
+			}
+		};
+		tbl.put( "attributes", attributes );
 		return tbl;
 	}
 
@@ -198,9 +263,9 @@ public final class HttpLuan {
 		return IoLuan.textWriter(response.getWriter());
 	}
 
-	public Object get_parameter(String name) {
-		String[] a = request.getParameterValues(name);
-		return a==null ? null : a.length==1 ? a[0] : a;
+	public LuanTable get_parameter_values(String name) {
+		Object[] a = request.getParameterValues(name);
+		return a==null ? null : TableLuan.pack(a);
 	}
 
 	public String get_cookie(String name) {
@@ -231,14 +296,6 @@ public final class HttpLuan {
 
 	public void remove_cookie(String name, String domain) {
 		removeCookie(request,response,name,domain);
-	}
-
-	public Object get_session_attribute(String name) {
-		return request.getSession().getAttribute(name);
-	}
-
-	public void set_session_attribute(String name,Object value) {
-		request.getSession().setAttribute(name,value);
 	}
 
 
@@ -343,5 +400,60 @@ public final class HttpLuan {
 			response.addCookie(delCookie);
 		}
 	}
+
+
+
+	// util classes
+
+	static final class EnumerationIterator<E> implements Iterator<E> {
+		private final Enumeration<E> en;
+
+		EnumerationIterator(Enumeration<E> en) {
+			this.en = en;
+		}
+
+		@Override public boolean hasNext() {
+			return en.hasMoreElements();
+		}
+
+		@Override public E next() {
+			return en.nextElement();
+		}
+
+		@Override public void remove() {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	private static abstract class NameTable extends AbstractLuanTable {
+		abstract Object get(String name);
+		abstract Iterator<String> names();
+
+		@Override public final Object get(Object key) {
+			if( !(key instanceof String) )
+				return null;
+			String name = (String)key;
+			return get(name);
+		}
+
+		@Override public final Iterator<Map.Entry<Object,Object>> iterator() {
+			return new Iterator<Map.Entry<Object,Object>>() {
+				Iterator<String> names = names();
+
+				@Override public boolean hasNext() {
+					return names.hasNext();
+				}
+				@Override public Map.Entry<Object,Object> next() {
+					String name = names.next();
+					Object val = get(name);
+					return new AbstractMap.SimpleEntry<Object,Object>(name,val);
+				}
+				@Override public void remove() {
+					throw new UnsupportedOperationException();
+				}
+			};
+		}
+	};
+
 
 }

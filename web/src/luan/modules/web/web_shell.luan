@@ -15,10 +15,10 @@ function Io.stdout.write(...)
 end
 
 function service()
-	if Http.request.get_parameter("clear") ~= nil then
+	if Http.request.parameters.clear ~= nil then
 		history = {}
 	else
-		local cmd = Http.request.get_parameter("cmd")
+		local cmd = Http.request.parameters.cmd
 		if cmd ~= nil then
 			print( "% "..cmd )
 			try
