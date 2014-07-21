@@ -172,13 +172,6 @@ public final class HttpLuan {
 		tbl.put("java",response);
 		add( tbl, "send_redirect", String.class );
 		add( tbl, "send_error", Integer.TYPE, String.class );
-		tbl.put( "contains_header", new LuanJavaFunction(
-			HttpServletResponse.class.getMethod("containsHeader",String.class), response
-		) );
-		tbl.put( "set_header", new LuanJavaFunction(
-			HttpServletResponse.class.getMethod("setHeader",String.class,String.class), response
-		) );
-/*
 		LuanTable headers = new NameTable() {
 
 			@Override Object get(String name) {
@@ -189,12 +182,27 @@ public final class HttpLuan {
 				return response.getHeaderNames().iterator();
 			}
 
+			@Override public Object put(Object key,Object val) {
+				if( !(key instanceof String) )
+					throw new IllegalArgumentException("key must be string for headers table");
+				String name = (String)key;
+				if( val instanceof String ) {
+					response.setHeader(name,(String)val);
+					return null;
+				}
+				Integer i = Luan.asInteger(val);
+				if( i != null ) {
+					response.setIntHeader(name,i);
+					return null;
+				}
+				throw new IllegalArgumentException("value must be string or integer for headers table");
+			}
+
 			@Override protected String type() {
 				return "response.headers-table";
 			}
 		};
 		tbl.put( "headers", headers );
-*/
 		tbl.put( "set_content_type", new LuanJavaFunction(
 			HttpServletResponse.class.getMethod("setContentType",String.class), response
 		) );
