@@ -30,7 +30,7 @@ public abstract class AbstractLuanTable implements LuanTable {
 		return type() + ": " + Integer.toHexString(hashCode());
 	}
 
-	@Override public Object put(Object key,Object val) {
+	@Override public void put(Object key,Object val) {
 		throw new UnsupportedOperationException("can't put into a "+type());
 	}
 

@@ -25,20 +25,17 @@ final class SetTableEntry extends CodeImpl implements Settable {
 		Object h;
 		if( t instanceof LuanTable ) {
 			LuanTable table = (LuanTable)t;
-			Object old;
-			try {
-				old = table.put(key,value);
-			} catch(IllegalArgumentException e) {
-				throw luan.bit(se).exception(e);
-			} catch(UnsupportedOperationException e) {
-				throw luan.bit(se).exception(e);
+			h = luan.getHandler("__newindex",table);
+			if( h==null || table.get(key)!=null ) {
+				try {
+					table.put(key,value);
+				} catch(IllegalArgumentException e) {
+					throw luan.bit(se).exception(e);
+				} catch(UnsupportedOperationException e) {
+					throw luan.bit(se).exception(e);
+				}
+				return;
 			}
-			if( old != null )
-				return;
-			h = luan.getHandler("__newindex",t);
-			if( h==null )
-				return;
-			table.put(key,old);
 		} else {
 			h = luan.getHandler("__newindex",t);
 			if( h==null )
