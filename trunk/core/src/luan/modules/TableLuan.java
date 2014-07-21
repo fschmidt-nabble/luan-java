@@ -21,9 +21,9 @@ public final class TableLuan {
 			LuanTable module = Luan.newTable();
 			try {
 				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
-				add( module, "insert", LuanState.class, LuanTable.class, Integer.TYPE, Object.class );
+				add( module, "insert", LuanTable.class, Integer.TYPE, Object.class );
 				add( module, "pack", new Object[0].getClass() );
-				add( module, "remove", LuanState.class, LuanTable.class, Integer.TYPE );
+				add( module, "remove", LuanTable.class, Integer.TYPE );
 				add( module, "sort", LuanState.class, LuanTable.class, LuanFunction.class );
 				add( module, "sub_list", LuanTable.class, Integer.TYPE, Integer.TYPE );
 				add( module, "unpack", LuanTable.class, Integer.class, Integer.class );
@@ -56,20 +56,12 @@ public final class TableLuan {
 		return buf.toString();
 	}
 
-	public static void insert(LuanState luan,LuanTable list,int pos,Object value) throws LuanException {
-		try {
-			list.insert(pos,value);
-		} catch(IndexOutOfBoundsException e) {
-			throw luan.exception(e);
-		}
+	public static void insert(LuanTable list,int pos,Object value){
+		list.insert(pos,value);
 	}
 
-	public static Object remove(LuanState luan,LuanTable list,int pos) throws LuanException {
-		try {
-			return list.remove(pos);
-		} catch(IndexOutOfBoundsException e) {
-			throw luan.exception(e);
-		}
+	public static Object remove(LuanTable list,int pos) {
+		return list.remove(pos);
 	}
 
 	private static interface LessThan {

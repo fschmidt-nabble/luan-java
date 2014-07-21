@@ -3,6 +3,7 @@ package luan;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.IdentityHashMap;
 import java.util.regex.Pattern;
 
 
-public final class LuanTableImpl implements LuanTable, DeepCloneable<LuanTableImpl>, LuanRepr {
+final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneable<LuanTableImpl>, LuanRepr {
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
 	private LuanTable metatable = null;
@@ -123,8 +124,8 @@ public final class LuanTableImpl implements LuanTable, DeepCloneable<LuanTableIm
 		return rtn;
 	}
 
-	@Override public String toString() {
-		return "table: " + Integer.toHexString(hashCode());
+	@Override protected String type() {
+		return "table";
 	}
 
 	@Override public String repr() {
@@ -277,14 +278,14 @@ public final class LuanTableImpl implements LuanTable, DeepCloneable<LuanTableIm
 
 	@Override public void insert(int pos,Object value) {
 		if( value==null )
-			throw new UnsupportedOperationException();
+			throw new IllegalArgumentException("can't insert a nil value");
 		list().add(pos-1,value);
 		mapToList();
 	}
 
 	@Override public void add(Object value) {
 		if( value==null )
-			throw new UnsupportedOperationException();
+			throw new IllegalArgumentException("can't add a nil value");
 		list().add(value);
 		mapToList();
 	}
@@ -340,7 +341,7 @@ public final class LuanTableImpl implements LuanTable, DeepCloneable<LuanTableIm
 			}
 			public Map.Entry<Object,Object> next() {
 				Double key = Double.valueOf(iter.nextIndex()+1);
-				return new MapEntry(key,iter.next());
+				return new AbstractMap.SimpleEntry<Object,Object>(key,iter.next());
 			}
 			public void remove() {
 				throw new UnsupportedOperationException();
@@ -360,28 +361,6 @@ public final class LuanTableImpl implements LuanTable, DeepCloneable<LuanTableIm
 
 	@Override public void setMetatable(LuanTable metatable) {
 		this.metatable = metatable;
-	}
-
-	private static final class MapEntry implements Map.Entry<Object,Object> {
-		private final Object key;
-		private final Object value;
-
-		MapEntry(Object key,Object value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override public Object getKey() {
-			return key;
-		}
-
-		@Override public Object getValue() {
-			return value;
-		}
-
-		@Override public Object setValue(Object value) {
-			throw new UnsupportedOperationException();
-		}
 	}
 
 	public boolean isEmpty() {
