@@ -22,6 +22,7 @@ import luan.LuanTable;
 import luan.AbstractLuanTable;
 import luan.LuanJavaFunction;
 import luan.LuanExitException;
+import luan.LuanProperty;
 import luan.DeepCloner;
 import luan.modules.PackageLuan;
 import luan.modules.IoLuan;
@@ -117,7 +118,7 @@ public final class HttpLuan {
 	}
 
 	private LuanTable requestTable() throws NoSuchMethodException {
-		LuanTable tbl = Luan.newTable();
+		LuanTable tbl = Luan.newPropertyTable();
 		tbl.put("java",request);
 		LuanTable parameters = new NameTable() {
 
@@ -150,19 +151,21 @@ public final class HttpLuan {
 			}
 		};
 		tbl.put( "headers", headers );
-		tbl.put( "get_method", new LuanJavaFunction(
-			HttpServletRequest.class.getMethod("getMethod"), request
-		) );
-		tbl.put( "get_servlet_path", new LuanJavaFunction(
-			HttpServletRequest.class.getMethod("getServletPath"), request
-		) );
-		tbl.put( "get_server_name", new LuanJavaFunction(
-			HttpServletRequest.class.getMethod("getServerName"), request
-		) );
-		add( tbl, "get_current_url" );
-		tbl.put( "get_remote_address", new LuanJavaFunction(
-			HttpServletRequest.class.getMethod("getRemoteAddr"), request
-		) );
+		tbl.put( "method", new LuanProperty(){ public Object get() {
+			return request.getMethod();
+		} } );
+		tbl.put( "servlet_path", new LuanProperty(){ public Object get() {
+			return request.getServletPath();
+		} } );
+		tbl.put( "server_name", new LuanProperty(){ public Object get() {
+			return request.getServerName();
+		} } );
+		tbl.put( "current_url", new LuanProperty(){ public Object get() {
+			return getCurrentURL(request);
+		} } );
+		tbl.put( "remote_address", new LuanProperty(){ public Object get() {
+			return request.getRemoteAddr();
+		} } );
 		LuanTable cookies = new AbstractLuanTable() {
 
 			@Override public final Object get(Object key) {
@@ -201,7 +204,7 @@ public final class HttpLuan {
 	}
 
 	private LuanTable responseTable() throws NoSuchMethodException {
-		LuanTable tbl = Luan.newTable();
+		LuanTable tbl = Luan.newPropertyTable();
 		tbl.put("java",response);
 		add( tbl, "send_redirect", String.class );
 		add( tbl, "send_error", Integer.TYPE, String.class );
@@ -236,12 +239,22 @@ public final class HttpLuan {
 			}
 		};
 		tbl.put( "headers", headers );
-		tbl.put( "set_content_type", new LuanJavaFunction(
-			HttpServletResponse.class.getMethod("setContentType",String.class), response
-		) );
-		tbl.put( "set_character_encoding", new LuanJavaFunction(
-			HttpServletResponse.class.getMethod("setCharacterEncoding",String.class), response
-		) );
+		tbl.put( "content_type", new LuanProperty(){
+			@Override public Object get() {
+				return response.getContentType();
+			}
+			@Override public boolean set(Object value) {
+				response.setContentType(string(value));  return true;
+			}
+		} );
+		tbl.put( "character_encoding", new LuanProperty(){
+			@Override public Object get() {
+				return response.getCharacterEncoding();
+			}
+			@Override public boolean set(Object value) {
+				response.setCharacterEncoding(string(value));  return true;
+			}
+		} );
 		add( tbl, "text_writer" );
 		add( tbl, "set_cookie", String.class, String.class, Boolean.TYPE, String.class );
 		add( tbl, "remove_cookie", String.class, String.class );
@@ -294,10 +307,6 @@ public final class HttpLuan {
 	public LuanTable get_parameter_values(String name) {
 		Object[] a = request.getParameterValues(name);
 		return a==null ? null : TableLuan.pack(a);
-	}
-
-	public String get_current_url() {
-		return getCurrentURL(request);
 	}
 
 	public void send_redirect(String redirectUrl)
@@ -478,5 +487,9 @@ public final class HttpLuan {
 		}
 	};
 
-
+	private static String string(Object value) {
+		if( !(value instanceof String) )
+			throw new IllegalArgumentException("value must be string");
+		return (String)value;
+	}
 }

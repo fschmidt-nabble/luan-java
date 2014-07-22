@@ -15,7 +15,7 @@ import java.util.IdentityHashMap;
 import java.util.regex.Pattern;
 
 
-final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneable<LuanTableImpl>, LuanRepr {
+class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneable<LuanTableImpl>, LuanRepr {
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
 	private LuanTable metatable = null;
@@ -140,21 +140,14 @@ final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCl
 		sb.append('{');
 		boolean isFirst = true;
 		if( list != null ) {
-			boolean gotNull = false;
 			for( int i=0; i<list.size(); i++ ) {
 				Object obj = list.get(i);
-				if( obj==null ) {
-					gotNull = true;
+				if( isFirst ) {
+					isFirst = false;
 				} else {
-					if( isFirst ) {
-						isFirst = false;
-					} else {
-						sb.append(", ");
-					}
-					if( gotNull )
-						sb.append(i+1).append('=');
-					sb.append(repr(set,obj));
+					sb.append(", ");
 				}
+				sb.append(repr(set,obj));
 			}
 		}
 		if( map != null ) {
@@ -173,7 +166,7 @@ final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCl
 
 	private static final Pattern namePtn = Pattern.compile("[a-zA-Z_][a-zA-Z_0-9]*");
 
-	private static String reprKey(Set<LuanTableImpl> set,Object obj) {
+	private String reprKey(Set<LuanTableImpl> set,Object obj) {
 		if( obj instanceof String ) {
 			String s = (String)obj;
 			if( namePtn.matcher(s).matches() )
@@ -182,7 +175,7 @@ final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCl
 		return "[" + repr(set,obj) + "]";
 	}
 
-	private static String repr(Set<LuanTableImpl> set,Object obj) {
+	String repr(Set<LuanTableImpl> set,Object obj) {
 		if( obj instanceof LuanTableImpl ) {
 			LuanTableImpl t = (LuanTableImpl)obj;
 			return t.repr(set);
@@ -349,7 +342,7 @@ final class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCl
 	}
 
 	@Override public LuanTable subList(int from,int to) {
-		LuanTableImpl tbl = new LuanTableImpl();
+		LuanTableImpl tbl = shallowClone();
 		tbl.list = new ArrayList<Object>(list().subList(from-1,to-1));
 		return tbl;
 	}
