@@ -90,7 +90,6 @@ public final class HttpLuan {
 		try {
 			module.put( "request", lib.requestTable() );
 			module.put( "response", lib.responseTable() );
-			module.put( "cookie", lib.cookieTable() );
 			module.put( "session", lib.sessionTable() );
 /*
 			module.put( "write", new LuanJavaFunction(
@@ -164,6 +163,40 @@ public final class HttpLuan {
 		tbl.put( "get_remote_address", new LuanJavaFunction(
 			HttpServletRequest.class.getMethod("getRemoteAddr"), request
 		) );
+		LuanTable cookies = new AbstractLuanTable() {
+
+			@Override public final Object get(Object key) {
+				if( !(key instanceof String) )
+					return null;
+				String name = (String)key;
+				return getCookieValue(request,name);
+			}
+
+			@Override public final Iterator<Map.Entry<Object,Object>> iterator() {
+				return new Iterator<Map.Entry<Object,Object>>() {
+					final Cookie[] cookies = request.getCookies();
+					int i = 0;
+	
+					@Override public boolean hasNext() {
+						return i < cookies.length;
+					}
+					@Override public Map.Entry<Object,Object> next() {
+						Cookie cookie = cookies[i++];
+						String name = cookie.getName();
+						Object val = unescape(cookie.getValue());
+						return new AbstractMap.SimpleEntry<Object,Object>(name,val);
+					}
+					@Override public void remove() {
+						throw new UnsupportedOperationException();
+					}
+				};
+			}
+
+			@Override protected String type() {
+				return "request.cookies-table";
+			}
+		};
+		tbl.put( "cookies", cookies );
 		return tbl;
 	}
 
@@ -210,20 +243,8 @@ public final class HttpLuan {
 			HttpServletResponse.class.getMethod("setCharacterEncoding",String.class), response
 		) );
 		add( tbl, "text_writer" );
-		return tbl;
-	}
-
-	private LuanTable cookieTable() throws NoSuchMethodException {
-		LuanTable tbl = Luan.newTable();
-		tbl.put( "get", new LuanJavaFunction(
-			HttpLuan.class.getMethod("get_cookie",String.class), this
-		) );
-		tbl.put( "set", new LuanJavaFunction(
-			HttpLuan.class.getMethod("set_cookie", String.class, String.class, Boolean.TYPE, String.class), this
-		) );
-		tbl.put( "remove", new LuanJavaFunction(
-			HttpLuan.class.getMethod("remove_cookie", String.class, String.class), this
-		) );
+		add( tbl, "set_cookie", String.class, String.class, Boolean.TYPE, String.class );
+		add( tbl, "remove_cookie", String.class, String.class );
 		return tbl;
 	}
 
@@ -273,10 +294,6 @@ public final class HttpLuan {
 	public LuanTable get_parameter_values(String name) {
 		Object[] a = request.getParameterValues(name);
 		return a==null ? null : TableLuan.pack(a);
-	}
-
-	public String get_cookie(String name) {
-		return getCookieValue(request, name);
 	}
 
 	public String get_current_url() {
@@ -395,7 +412,6 @@ public final class HttpLuan {
 									HttpServletResponse response,
 									String name,
 									String domain
-
 	) {
 		Cookie cookie = getCookie(request, name);
 		if(cookie != null) {
