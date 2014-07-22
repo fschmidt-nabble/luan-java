@@ -21,7 +21,7 @@ end
 function service()
 	local content_type = Http.request.parameters.content_type
 	if content_type ~= nil then
-		Http.response.set_content_type(content_type)
+		Http.response.content_type = content_type
 	end
 	Io.stdout = Http.response.text_writer()
 	local code = Http.request.parameters.code
