@@ -151,19 +151,19 @@ public final class HttpLuan {
 			}
 		};
 		tbl.put( "headers", headers );
-		tbl.put( "method", new LuanProperty(){ public Object get() {
+		tbl.put( "method", new LuanProperty() { public Object get() {
 			return request.getMethod();
 		} } );
-		tbl.put( "servlet_path", new LuanProperty(){ public Object get() {
+		tbl.put( "servlet_path", new LuanProperty() { public Object get() {
 			return request.getServletPath();
 		} } );
-		tbl.put( "server_name", new LuanProperty(){ public Object get() {
+		tbl.put( "server_name", new LuanProperty() { public Object get() {
 			return request.getServerName();
 		} } );
-		tbl.put( "current_url", new LuanProperty(){ public Object get() {
+		tbl.put( "current_url", new LuanProperty() { public Object get() {
 			return getCurrentURL(request);
 		} } );
-		tbl.put( "remote_address", new LuanProperty(){ public Object get() {
+		tbl.put( "remote_address", new LuanProperty() { public Object get() {
 			return request.getRemoteAddr();
 		} } );
 		LuanTable cookies = new AbstractLuanTable() {
@@ -239,7 +239,7 @@ public final class HttpLuan {
 			}
 		};
 		tbl.put( "headers", headers );
-		tbl.put( "content_type", new LuanProperty(){
+		tbl.put( "content_type", new LuanProperty() {
 			@Override public Object get() {
 				return response.getContentType();
 			}
@@ -247,7 +247,7 @@ public final class HttpLuan {
 				response.setContentType(string(value));  return true;
 			}
 		} );
-		tbl.put( "character_encoding", new LuanProperty(){
+		tbl.put( "character_encoding", new LuanProperty() {
 			@Override public Object get() {
 				return response.getCharacterEncoding();
 			}
