@@ -26,11 +26,12 @@ final class ReturnStmt extends CodeImpl implements Stmt {
 	@Override public void eval(LuanStateImpl luan) throws LuanException {
 		luan.returnValues = expressions.eval(luan);
 		if( tailFnExpr != null ) {
-			LuanFunction tailFn = luan.bit(se).checkFunction( tailFnExpr.eval(luan) );
+			LuanSource.Element seTail = tailFnExpr.se();
+			LuanFunction tailFn = luan.bit(seTail).checkFunction( tailFnExpr.eval(luan) );
 			if( tailFn instanceof Closure ) {
 				luan.tailFn = (Closure)tailFn;
 			} else {
-				luan.returnValues =  luan.bit(tailFnExpr.se()).call(tailFn,tailFnExpr.se().text(),Luan.array(luan.returnValues));
+				luan.returnValues =  luan.bit(seTail).call(tailFn,seTail.text(),Luan.array(luan.returnValues));
 			}
 		}
 		if( throwReturnException )

@@ -1,0 +1,19 @@
+import "Package"
+
+if Package.is_blocked "mail/Mail" then
+	error "Mail is blocked"
+end
+
+
+import "Java"
+import "java.lang.System"
+import "luan.modules.mail.SmtpCon"
+
+
+System.setProperty( "mail.mime.charset", "UTF-8" )
+
+
+function Sender(params)
+	assert_table(params)
+	return SmtpCon.new(params).table()
+end
