@@ -26,8 +26,6 @@ public final class PackageLuan {
 			module.put( "jpath", jpath );
 			try {
 				module.put("require",requireFn);
-				add( module, "block_path", LuanState.class, String.class );
-				add( module, "is_blocked_path", LuanState.class, String.class );
 				add( module, "load", LuanState.class, String.class );
 				add( module, "load_lib", LuanState.class, String.class );
 				add( module, "search_path", String.class, String.class );
@@ -197,19 +195,17 @@ public final class PackageLuan {
 	};
 
 
-	public static void block_path(LuanState luan,String path) {
-		blocked(luan).put(path,true);
+	public static void block(LuanState luan,String key) {
+		blocked(luan).put(key,true);
 	}
 
-	public static boolean is_blocked_path(LuanState luan,String path) {
-		return blocked(luan).get(path) != null;
+	public static boolean is_blocked(LuanState luan,String key) {
+		return blocked(luan).get(key) != null;
 	}
 
 	public static LuanFunction load_lib(LuanState luan,String path)
 		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, LuanException
 	{
-		if( is_blocked_path(luan,path) )
-			throw luan.exception(path+" is blocked");
 		int i = path.lastIndexOf('.');
 		String clsPath = path.substring(0,i);
 		String fld = path.substring(i+1);

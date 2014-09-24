@@ -26,8 +26,16 @@ jar cvf $HOME/dist/luan-web-$VERSION.jar `find . -name *.class -o -name *.luan`
 
 cd $HOME
 SRC=logging/src
-CLASSPATH=$HOME/core/src:$HOME/$SRC
-for i in $HOME/web/ext/* ; do CLASSPATH=$CLASSPATH:$i ; done
+#CLASSPATH=$HOME/core/src:$HOME/$SRC
+#for i in $HOME/logging/ext/* ; do CLASSPATH=$CLASSPATH:$i ; done
 #javac -classpath $CLASSPATH `find $SRC -name *.java`
 cd $SRC
 jar cvf $HOME/dist/luan-logging-$VERSION.jar `find . -name *.class -o -name *.luan`
+
+cd $HOME
+SRC=mail/src
+CLASSPATH=$HOME/core/src:$HOME/$SRC
+for i in $HOME/mail/ext/* ; do CLASSPATH=$CLASSPATH:$i ; done
+javac -classpath $CLASSPATH `find $SRC -name *.java`
+cd $SRC
+jar cvf $HOME/dist/luan-mail-$VERSION.jar `find . -name *.class -o -name *.luan`

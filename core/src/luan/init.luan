@@ -39,22 +39,6 @@ Package.global(Basic,"type")
 do_file "java:luan/version.luan"
 
 
-function Package.block(mod_name)
-	local fn,path = Package.search(mod_name)
-	if path == nil then
-		error("module '"..mod_name.."' not found")
-	end
-	Package.block_path(path)
-end
-
-function Package.is_blocked(mod_name)
-	local fn,path = Package.search(mod_name)
-	if path == nil then
-		error("module '"..mod_name.."' not found")
-	end
-	return Package.is_blocked_path(path)
-end
-
 function Io.print_to(out,...)
 	local list = {}
 	for _,v in Basic.values(...) do
