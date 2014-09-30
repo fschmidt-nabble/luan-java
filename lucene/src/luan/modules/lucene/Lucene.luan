@@ -1,0 +1,25 @@
+import "Java"
+import "luan.modules.lucene.LuceneIndex"
+
+standard_fields = {
+	"type" = "type index";
+	"id" = "id index";
+}
+
+function Index(indexDir)
+	local index LuceneIndex.new(indexDir).table()
+
+	function index.save_document(doc)
+		index.Writer( function(writer)
+			writer.save_document(doc)
+		end )
+	end
+
+	function index.delete_documents(terms)
+		index.Writer( function(writer)
+			writer.delete_documents(terms)
+		end )
+	end
+
+	return index
+end
