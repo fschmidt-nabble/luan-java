@@ -88,7 +88,7 @@ public final class LuceneIndex {
 	private long idLim = 0;
 	private final int idBatch = 10;
 
-	private void initId() {
+	private void initId() throws IOException {
 		TopDocs td = searcher.search(new TermQuery(new Term(FLD_TYPE,"next_id")),1);
 		switch(td.totalHits) {
 		case 0:
@@ -116,27 +116,6 @@ public final class LuceneIndex {
 			return rtn;
 		} catch(IOException e) {
 			throw new RuntimeException(e);
-		}
-	}
-
-	public LuanTable getDocument(String id) {
-		return getDocument(new Term(LuceneWriter.FLD_ID,id));
-	}
-
-	public LuanTable getDocument(Term term) {
-		LuceneSearcher searcher = openSearcher();
-		try {
-			TopDocs td = searcher.search(new TermQuery(term),1);
-			switch(td.totalHits) {
-			case 0:
-				return null;
-			case 1:
-				return searcher.doc(td.scoreDocs[0].doc);
-			default:
-				throw new RuntimeException();
-			}
-		} finally {
-			searcher.close();
 		}
 	}
 
@@ -180,6 +159,15 @@ public final class LuceneIndex {
 		}
 	}
 
+	public void Searcher(LuanState luan,LuanFunction fn) throws LuanException, IOException {
+		LuceneSearcher searcher = openSearcher();
+		try {
+			luan.call( fn, new Object[]{searcher.table()} );
+		} finally {
+			searcher.close();
+		}
+	}
+
 	private void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(LuceneIndex.class.getMethod(method,parameterTypes),this) );
 	}
@@ -189,6 +177,8 @@ public final class LuceneIndex {
 		try {
 			add( tbl, "to_string" );
 			add( tbl, "backup", String.class );
+			add( tbl, "Writer", LuanState.class, LuanFunction.class );
+			add( tbl, "Searcher", LuanState.class, LuanFunction.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
