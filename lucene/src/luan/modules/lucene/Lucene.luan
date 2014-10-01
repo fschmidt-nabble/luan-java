@@ -2,12 +2,12 @@ import "Java"
 import "luan.modules.lucene.LuceneIndex"
 
 standard_fields = {
-	"type" = "type index";
-	"id" = "id index";
+	type = "type index";
+	id = "id index";
 }
 
 function Index(indexDir)
-	local index LuceneIndex.new(indexDir).table()
+	local index = LuceneIndex.new(indexDir).table()
 
 	function index.save_document(doc)
 		index.Writer( function(writer)
@@ -18,6 +18,18 @@ function Index(indexDir)
 	function index.delete_documents(terms)
 		index.Writer( function(writer)
 			writer.delete_documents(terms)
+		end )
+	end
+
+	function index.get_document(query)
+		index.Searcher( function(searcher)
+			local results, _, total_hits = searcher.search(query,1)
+			if total_hits == 0 then
+				return nil
+			elseif total_hits > 1 then
+				error "found " .. total_hits .. " documents"
+			end
+			return results()
 		end )
 	end
 

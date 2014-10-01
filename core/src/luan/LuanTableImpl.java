@@ -79,7 +79,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 			clone.metatable = cloner.get(metatable);
 	}
 
-	public boolean isList() {
+	@Override public boolean isList() {
 		return map==null || map.isEmpty();
 	}
 
