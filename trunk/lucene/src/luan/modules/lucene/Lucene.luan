@@ -1,10 +1,6 @@
 import "Java"
 import "luan.modules.lucene.LuceneIndex"
 
-standard_fields = {
-	type = "type index";
-	id = "id index";
-}
 
 function Index(indexDir)
 	local index = LuceneIndex.new(indexDir).table()
@@ -22,12 +18,12 @@ function Index(indexDir)
 	end
 
 	function index.get_document(query)
-		index.Searcher( function(searcher)
+		return index.Searcher( function(searcher)
 			local results, _, total_hits = searcher.search(query,1)
 			if total_hits == 0 then
 				return nil
 			elseif total_hits > 1 then
-				error "found " .. total_hits .. " documents"
+				error( "found " .. total_hits .. " documents" )
 			end
 			return results()
 		end )

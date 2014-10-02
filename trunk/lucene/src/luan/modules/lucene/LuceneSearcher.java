@@ -25,23 +25,21 @@ import luan.LuanException;
 
 
 public final class LuceneSearcher {
+	private final LuceneIndex index;
 	private final IndexSearcher searcher;
 
-	LuceneSearcher(IndexReader reader) {
+	LuceneSearcher(LuceneIndex index,IndexReader reader) {
+		this.index = index;
 		this.searcher = new IndexSearcher(reader);
 	}
 
 	// call in finally block
-	void close() {
-		try {
-			searcher.getIndexReader().decRef();
-		} catch(IOException e) {
-			throw new RuntimeException(e);
-		}
+	void close() throws IOException {
+		searcher.getIndexReader().decRef();
 	}
 
-	public LuanTable doc(int docID) throws IOException {
-		return LuceneDocument.toTable(searcher.doc(docID));
+	LuanTable doc(LuanState luan,int docID) throws LuanException, IOException {
+		return index.toTable(luan,searcher.doc(docID));
 	}
 
 	TopDocs search(Query query,int n) throws IOException {
@@ -54,46 +52,57 @@ public final class LuceneSearcher {
 
 	// luan
 
-	private Query termQuery(Map<Object,Object> map) {
+	private Query termQuery(LuanTable queryTbl) {
+		if( queryTbl.length() != 0 )
+			return null;
+		Map<Object,Object> map = queryTbl.asMap();
 		if( map.size() != 1 )
 			return null;
 		Map.Entry<Object,Object> entry = map.entrySet().iterator().next();
 		Object key = entry.getKey();
 		Object value = entry.getValue();
 		if( key instanceof String && value instanceof String ) {
-			return new TermQuery(new Term( (String)key, (String)value ));
+			return new TermQuery(index.newTerm( (String)key, (String)value ));
 		}
 		return null;
 	}
 
-	private Query booleanQuery(Map<Object,Object> map) {
+	private Query booleanQuery(LuanTable queryTbl) {
+		if( !queryTbl.isList() )
+			return null;
+		List<Object> clauses = queryTbl.asList();
 		BooleanQuery query = new BooleanQuery();
-		for( Map.Entry<Object,Object> entry : map.entrySet() ) {
-			Object key = entry.getKey();
-			Object value = entry.getValue();
-			if( !(key instanceof String && value instanceof LuanTable) )
+		for( Object obj : clauses ) {
+			if( !(obj instanceof LuanTable) )
 				return null;
-			Query subQuery = query( (LuanTable)value );
-			if( subQuery == null )
+			LuanTable tbl = (LuanTable)obj;
+			if( !(tbl.isList() && tbl.length()==2) )
+				return null;
+			List<Object> list = tbl.asList();
+			Object obj0 = list.get(0);
+			Object obj1 = list.get(1);
+			if( !(obj0 instanceof String && obj1 instanceof LuanTable) )
 				return null;
 			BooleanClause.Occur occur;
 			try {
-				occur = BooleanClause.Occur.valueOf( ((String)key).toUpperCase() );
+				occur = BooleanClause.Occur.valueOf( ((String)obj0).toUpperCase() );
 			} catch(IllegalArgumentException e) {
 				return null;
 			}
+			Query subQuery = query( (LuanTable)obj1 );
+			if( subQuery == null )
+				return null;
 			query.add(subQuery,occur);
 		}
 		return query;
 	}
 
 	private Query query(LuanTable queryTbl) {
-		Map<Object,Object> map = queryTbl.asMap();
-		if( map.isEmpty() )
+		if( queryTbl.isEmpty() )
 			return null;
 		Query query;
-		query = termQuery(map);  if(query!=null) return query;
-		query = booleanQuery(map);  if(query!=null) return query;
+		query = termQuery(queryTbl);  if(query!=null) return query;
+		query = booleanQuery(queryTbl);  if(query!=null) return query;
 		return null;
 	}
 
@@ -106,6 +115,7 @@ public final class LuceneSearcher {
 		if( !(obj0 instanceof String && obj1 instanceof String) )
 			throw luan.exception("invalid sort field"+pos);
 		String field = (String)obj0;
+		field = index.fixFieldName(field);
 		SortField.Type type;
 		try {
 			type = SortField.Type.valueOf( ((String)obj1).toUpperCase() );
@@ -115,10 +125,12 @@ public final class LuceneSearcher {
 		if( size == 2 )
 			return new SortField(field,type);
 		Object obj2 = list.get(2);
-		if( !(obj2 instanceof Boolean) )
-			throw luan.exception("invalid sort field"+pos+", 'reverse' must be boolean");
-		boolean reverse = (Boolean)obj2;
-		return new SortField(field,type,reverse);
+		if( !(obj2 instanceof String) )
+			throw luan.exception("invalid sort field"+pos+", order must be 'ascending' or 'descending'");
+		String order = (String)obj2;
+		if( !(order.equals("ascending") || order.equals("descending")) )
+			throw luan.exception("invalid sort field"+pos+", order must be 'ascending' or 'descending'");
+		return new SortField( field, type, order.equals("descending") );
 	}
 
 	private Sort sort(LuanState luan,LuanTable sortTbl) throws LuanException {
@@ -155,7 +167,7 @@ public final class LuceneSearcher {
 				if( i >= scoreDocs.length )
 					return LuanFunction.NOTHING;
 				try {
-					LuanTable doc = doc(scoreDocs[i++].doc);
+					LuanTable doc = doc(luan,scoreDocs[i++].doc);
 					return doc;
 				} catch(IOException e) {
 					throw luan.exception(e);
