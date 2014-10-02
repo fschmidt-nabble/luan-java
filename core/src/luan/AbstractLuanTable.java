@@ -29,7 +29,11 @@ public abstract class AbstractLuanTable implements LuanTable {
 	}
 
 	@Override public Map<Object,Object> asMap() {
-		return Collections.emptyMap();
+		Map<Object,Object> map = new HashMap<Object,Object>();
+		for( Map.Entry<Object,Object> entry : this ) {
+			map.put(entry.getKey(),entry.getValue());
+		}
+		return map;
 	}
 
 	protected abstract String type();

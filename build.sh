@@ -39,3 +39,11 @@ for i in $HOME/mail/ext/* ; do CLASSPATH=$CLASSPATH:$i ; done
 javac -classpath $CLASSPATH `find $SRC -name *.java`
 cd $SRC
 jar cvf $HOME/dist/luan-mail-$VERSION.jar `find . -name *.class -o -name *.luan`
+
+cd $HOME
+SRC=lucene/src
+CLASSPATH=$HOME/core/src:$HOME/$SRC
+for i in $HOME/lucene/ext/* ; do CLASSPATH=$CLASSPATH:$i ; done
+javac -classpath $CLASSPATH `find $SRC -name *.java`
+cd $SRC
+jar cvf $HOME/dist/luan-lucene-$VERSION.jar `find . -name *.class -o -name *.luan`
