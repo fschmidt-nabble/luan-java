@@ -128,9 +128,14 @@ public final class LuceneSearcher {
 		if( !(obj2 instanceof String) )
 			throw luan.exception("invalid sort field"+pos+", order must be 'ascending' or 'descending'");
 		String order = (String)obj2;
-		if( !(order.equals("ascending") || order.equals("descending")) )
+		boolean reverse;
+		if( order.equalsIgnoreCase("ascending") )
+			reverse = false;
+		else if( order.equalsIgnoreCase("descending") )
+			reverse = true;
+		else
 			throw luan.exception("invalid sort field"+pos+", order must be 'ascending' or 'descending'");
-		return new SortField( field, type, order.equals("descending") );
+		return new SortField( field, type, reverse );
 	}
 
 	private Sort sort(LuanState luan,LuanTable sortTbl) throws LuanException {

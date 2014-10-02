@@ -27,8 +27,15 @@ class FieldTable extends AbstractLuanTable {
 		if( !(value instanceof String) )
 			throw new UnsupportedOperationException("value must be string");
 		String field = (String)value;
-		map.put(name,field);
-		reverseMap.put(field,name);
+		String oldField = map.put(name,field);
+		if( oldField != null )
+			reverseMap.remove(oldField);
+		String oldName = reverseMap.put(field,name);
+		if( oldName != null ) {
+			reverseMap.put(field,oldName);
+			map.remove(name);
+			throw new IllegalArgumentException("field '"+oldName+"' is already assigned to '"+field+"'");
+		}
 	}
 
 	@Override public final Object get(Object key) {
