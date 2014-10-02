@@ -10,6 +10,7 @@ import java.util.zip.ZipOutputStream;
 import java.util.zip.ZipEntry;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.DirectoryReader;
@@ -30,7 +31,6 @@ import luan.LuanException;
 
 
 public final class LuceneIndex {
-	private static final String FLD_TYPE = LuceneWriter.FLD_TYPE;
 	private static final String FLD_NEXT_ID = "nextId";
 
 	final Lock writeLock = new ReentrantLock();
@@ -39,47 +39,57 @@ public final class LuceneIndex {
 	final IndexWriter writer;
 	private DirectoryReader reader;
 	private LuceneSearcher searcher;
+	final FieldTable fields = new FieldTable();
 
-	public LuceneIndex(String indexDirStr) {
-		try {
-			File indexDir = new File(indexDirStr);
-			this.indexDir = indexDir;
-			Directory dir = FSDirectory.open(indexDir);
-			Version version = Version.LUCENE_4_9;
-			Analyzer analyzer = new StandardAnalyzer(version);
-			IndexWriterConfig conf = new IndexWriterConfig(version,analyzer);
-			snapshotDeletionPolicy = new SnapshotDeletionPolicy(conf.getIndexDeletionPolicy());
-			conf.setIndexDeletionPolicy(snapshotDeletionPolicy);
-			writer = new IndexWriter(dir,conf);
-			writer.commit();  // commit index creation
-			reader = DirectoryReader.open(dir);
-			searcher = new LuceneSearcher(reader);
-			initId();
-		} catch(IOException e) {
-			throw new RuntimeException(e);
-		}
+	public LuceneIndex(LuanState luan,String indexDirStr) throws LuanException, IOException {
+		File indexDir = new File(indexDirStr);
+		this.indexDir = indexDir;
+		Directory dir = FSDirectory.open(indexDir);
+		Version version = Version.LUCENE_4_9;
+		Analyzer analyzer = new StandardAnalyzer(version);
+		IndexWriterConfig conf = new IndexWriterConfig(version,analyzer);
+		snapshotDeletionPolicy = new SnapshotDeletionPolicy(conf.getIndexDeletionPolicy());
+		conf.setIndexDeletionPolicy(snapshotDeletionPolicy);
+		writer = new IndexWriter(dir,conf);
+		writer.commit();  // commit index creation
+		reader = DirectoryReader.open(dir);
+		searcher = new LuceneSearcher(this,reader);
+		initId(luan);
+	}
+
+	Document toLucene(LuanState luan,LuanTable table) throws LuanException {
+		return LuceneDocument.toLucene(luan,table,fields.map);
+	}
+
+	LuanTable toTable(LuanState luan,Document doc) throws LuanException {
+		return LuceneDocument.toTable(luan,doc,fields.reverseMap);
+	}
+
+	String fixFieldName(String fld) {
+		String s = fields.map.get(fld);
+		return s!=null ? s : fld;
+	}
+
+	Term newTerm(String fld,String text) {
+		return new Term(fixFieldName(fld),text);
 	}
 
 	public LuceneWriter openWriter() {
 		return new LuceneWriter(this);
 	}
 
-	public synchronized LuceneSearcher openSearcher() {
-		try {
-			DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
-			if( newReader != null ) {
-				reader.decRef();
-				reader = newReader;
-				searcher = new LuceneSearcher(reader);
-			}
-			reader.incRef();
-			return searcher;
-		} catch(IOException e) {
-			throw new RuntimeException(e);
+	synchronized LuceneSearcher openSearcher() throws IOException {
+		DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
+		if( newReader != null ) {
+			reader.decRef();
+			reader = newReader;
+			searcher = new LuceneSearcher(this,reader);
 		}
+		reader.incRef();
+		return searcher;
 	}
 
-	public LuceneSnapshot openSnapshot() {
+	LuceneSnapshot openSnapshot() throws IOException {
 		return new LuceneSnapshot(this);
 	}
 
@@ -88,13 +98,13 @@ public final class LuceneIndex {
 	private long idLim = 0;
 	private final int idBatch = 10;
 
-	private void initId() throws IOException {
-		TopDocs td = searcher.search(new TermQuery(new Term(FLD_TYPE,"next_id")),1);
+	private void initId(LuanState luan) throws LuanException, IOException {
+		TopDocs td = searcher.search(new TermQuery(newTerm("type","next_id")),1);
 		switch(td.totalHits) {
 		case 0:
 			break;  // do nothing
 		case 1:
-			LuanTable doc = searcher.doc(td.scoreDocs[0].doc);
+			LuanTable doc = searcher.doc(luan,td.scoreDocs[0].doc);
 			idLim = (Long)doc.get(FLD_NEXT_ID);
 			id = idLim;
 			break;
@@ -103,26 +113,22 @@ public final class LuceneIndex {
 		}
 	}
 
-	synchronized String nextId() {
-		try {
-			String rtn = Long.toString(++id);
-			if( id > idLim ) {
-				idLim += idBatch;
-				LuanTable doc = Luan.newTable();
-				doc.put( FLD_TYPE, "next_id" );
-				doc.put( FLD_NEXT_ID, idLim );
-				writer.updateDocument(new Term(FLD_TYPE,"next_id"),LuceneDocument.toLucene(doc));
-			}
-			return rtn;
-		} catch(IOException e) {
-			throw new RuntimeException(e);
+	synchronized String nextId(LuanState luan) throws LuanException, IOException {
+		String rtn = Long.toString(++id);
+		if( id > idLim ) {
+			idLim += idBatch;
+			LuanTable doc = Luan.newTable();
+			doc.put( "type", "next_id" );
+			doc.put( FLD_NEXT_ID, idLim );
+			writer.updateDocument(newTerm("type","next_id"),toLucene(luan,doc));
 		}
+		return rtn;
 	}
 
 
-	public void backup(String zipFile) {
+	public void backup(LuanState luan,String zipFile) throws LuanException, IOException {
 		if( !zipFile.endsWith(".zip") )
-			throw new RuntimeException("file "+zipFile+" doesn't end with '.zip'");
+			throw luan.exception("file "+zipFile+" doesn't end with '.zip'");
 		LuceneSnapshot snapshot = openSnapshot();
 		try {
 			ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFile));
@@ -134,8 +140,6 @@ public final class LuceneIndex {
 				out.closeEntry();
 			}
 			out.close();
-		} catch(IOException e) {
-			throw new RuntimeException(e);
 		} finally {
 			snapshot.close();
 		}
@@ -159,10 +163,10 @@ public final class LuceneIndex {
 		}
 	}
 
-	public void Searcher(LuanState luan,LuanFunction fn) throws LuanException, IOException {
+	public Object Searcher(LuanState luan,LuanFunction fn) throws LuanException, IOException {
 		LuceneSearcher searcher = openSearcher();
 		try {
-			luan.call( fn, new Object[]{searcher.table()} );
+			return luan.call( fn, new Object[]{searcher.table()} );
 		} finally {
 			searcher.close();
 		}
@@ -175,8 +179,9 @@ public final class LuceneIndex {
 	public LuanTable table() {
 		LuanTable tbl = Luan.newTable();
 		try {
+			tbl.put("fields",fields);
 			add( tbl, "to_string" );
-			add( tbl, "backup", String.class );
+			add( tbl, "backup", LuanState.class, String.class );
 			add( tbl, "Writer", LuanState.class, LuanFunction.class );
 			add( tbl, "Searcher", LuanState.class, LuanFunction.class );
 		} catch(NoSuchMethodException e) {

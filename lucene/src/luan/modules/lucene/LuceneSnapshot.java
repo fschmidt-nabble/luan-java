@@ -9,30 +9,18 @@ public final class LuceneSnapshot {
 	private final LuceneIndex index;
 	private final IndexCommit ic;
 
-	LuceneSnapshot(LuceneIndex index) {
+	LuceneSnapshot(LuceneIndex index) throws IOException {
 		this.index = index;
-		try {
-			this.ic = index.snapshotDeletionPolicy.snapshot();
-		} catch(IOException e) {
-			throw new RuntimeException(e);
-		}
+		this.ic = index.snapshotDeletionPolicy.snapshot();
 	}
 
 	// call in finally block
-	public void close() {
-		try {
-			index.snapshotDeletionPolicy.release(ic);
-		} catch(IOException e) {
-			throw new RuntimeException(e);
-		}
+	public void close() throws IOException {
+		index.snapshotDeletionPolicy.release(ic);
 	}
 
-	public Collection<String> getFileNames() {
-		try {
-			return ic.getFileNames();
-		} catch(IOException e) {
-			throw new RuntimeException(e);
-		}
+	public Collection<String> getFileNames() throws IOException {
+		return ic.getFileNames();
 	}
 
 }

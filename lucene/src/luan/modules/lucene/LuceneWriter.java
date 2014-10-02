@@ -15,9 +15,6 @@ import luan.LuanException;
 
 
 public final class LuceneWriter {
-	public static final String FLD_TYPE = "type index";
-	public static final String FLD_ID = "id index";
-
 	private final LuceneIndex index;
 
 	LuceneWriter(LuceneIndex index) {
@@ -34,12 +31,12 @@ public final class LuceneWriter {
 		index.writer.commit();
 	}
 
-	void addDocument(LuanTable doc) throws IOException {
-		index.writer.addDocument(LuceneDocument.toLucene(doc));
+	void addDocument(LuanState luan,LuanTable doc) throws LuanException, IOException {
+		index.writer.addDocument(index.toLucene(luan,doc));
 	}
 
-	void updateDocument(Term term,LuanTable doc) throws IOException {
-		index.writer.updateDocument(term,LuceneDocument.toLucene(doc));
+	void updateDocument(LuanState luan,Term term,LuanTable doc) throws LuanException, IOException {
+		index.writer.updateDocument(term,index.toLucene(luan,doc));
 	}
 
 	public void delete_documents(LuanState luan,LuanTable tblTerms) throws LuanException, IOException {
@@ -51,25 +48,25 @@ public final class LuceneWriter {
 				throw luan.exception("key must be a string but got "+key.getClass().getSimpleName());
 			if( !(value instanceof String) )
 				throw luan.exception("value must be a string but got "+value.getClass().getSimpleName());
-			list.add( new Term( (String)key, (String)value ) );
+			list.add( index.newTerm( (String)key, (String)value ) );
 		}
 		index.writer.deleteDocuments(list.toArray(new Term[list.size()]));
 	}
 
-	String nextId() {
-		return index.nextId();
+	String nextId(LuanState luan) throws LuanException, IOException {
+		return index.nextId(luan);
 	}
 
-	public void save_document(LuanTable doc) throws IOException {
-		if( doc.get(FLD_TYPE)==null )
-			throw new RuntimeException("missing '"+FLD_TYPE+"'");
-		String id = (String)doc.get(FLD_ID);
+	public void save_document(LuanState luan,LuanTable doc) throws LuanException, IOException {
+		if( doc.get("type")==null )
+			throw luan.exception("missing 'type'");
+		String id = (String)doc.get("id");
 		if( id == null ) {
-			id = nextId();
-			doc.put(FLD_ID,id);
-			addDocument(doc);
+			id = nextId(luan);
+			doc.put("id",id);
+			addDocument(luan,doc);
 		} else {
-			updateDocument(new Term(FLD_ID,id),doc);
+			updateDocument(luan,index.newTerm("id",id),doc);
 		}
 	}
 
@@ -82,7 +79,7 @@ public final class LuceneWriter {
 	LuanTable table() {
 		LuanTable tbl = Luan.newTable();
 		try {
-			add( tbl, "save_document", LuanTable.class );
+			add( tbl, "save_document", LuanState.class, LuanTable.class );
 			add( tbl, "delete_documents", LuanState.class, LuanTable.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);

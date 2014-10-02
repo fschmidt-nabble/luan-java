@@ -12,9 +12,12 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.DoubleField;
 import org.apache.lucene.util.BytesRef;
 import luan.Luan;
+import luan.LuanState;
 import luan.LuanTable;
+import luan.LuanException;
 
 
 public class LuceneDocument {
@@ -23,16 +26,17 @@ public class LuceneDocument {
 
 	private LuceneDocument(String a) {}  // never
 
-	static Document toLucene(LuanTable table) {
+	static Document toLucene(LuanState luan,LuanTable table,Map<String,String> nameMap) throws LuanException {
 		Document doc = new Document();
 		for( Map.Entry<Object,Object> entry : table ) {
 			Object key = entry.getKey();
 			if( !(key instanceof String) )
-				throw new IllegalArgumentException("key must be string");
+				throw luan.exception("key must be string");
 			String name = (String)key;
 			Object value = entry.getValue();
-			if( value == null )
-				continue;
+			String newName = nameMap.get(name);
+			if( newName != null )
+				name = newName;
 			Set<String> flags = new HashSet<String>();
 			String[] a = name.split(" +");
 			for( int i=1; i<a.length; i++ ) {
@@ -59,23 +63,33 @@ public class LuceneDocument {
 				} else {
 					doc.add(new StoredField(name, i));
 				}
+			} else if( value instanceof Double ) {
+				double i = (Double)value;
+				if( flags.remove(INDEX) ) {
+					doc.add(new DoubleField(name, i, Field.Store.YES));
+				} else {
+					doc.add(new StoredField(name, i));
+				}
 			} else if( value instanceof byte[] ) {
 				byte[] b = (byte[])value;
 				doc.add(new StoredField(name, b));
 			} else
-				throw new IllegalArgumentException("invalid value type "+value.getClass()+"' for '"+name+"'");
+				throw luan.exception("invalid value type "+value.getClass()+"' for '"+name+"'");
 			if( !flags.isEmpty() )
-				throw new IllegalArgumentException("invalid flags "+flags+" in '"+name+"'");
+				throw luan.exception("invalid flags "+flags+" in '"+name+"'");
 		}
 		return doc;
 	}
 
-	static LuanTable toTable(Document doc) {
+	static LuanTable toTable(LuanState luan,Document doc,Map<String,String> nameMap) throws LuanException {
 		if( doc==null )
 			return null;
 		LuanTable table = Luan.newTable();
 		for( IndexableField ifld : doc ) {
 			String name = ifld.name();
+			String newName = nameMap.get(name);
+			if( newName != null )
+				name = newName;
 			BytesRef br = ifld.binaryValue();
 			if( br != null ) {
 				table.put(name,br.bytes);
@@ -91,7 +105,7 @@ public class LuceneDocument {
 				table.put(name,s);
 				continue;
 			}
-			throw new RuntimeException("invalid field type for "+ifld);
+			throw luan.exception("invalid field type for "+ifld);
 		}
 		return table;
 	}

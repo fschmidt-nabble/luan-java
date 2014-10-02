@@ -30,6 +30,7 @@ public final class BasicLuan {
 				add( module, "assert_number", LuanState.class, Number.class );
 				add( module, "assert_string", LuanState.class, String.class );
 				add( module, "assert_table", LuanState.class, LuanTable.class );
+				add( module, "assert_integer", LuanState.class, Integer.TYPE );
 				add( module, "do_file", LuanState.class, String.class );
 				add( module, "error", LuanState.class, Object.class );
 				add( module, "get_metatable", LuanState.class, Object.class );
@@ -191,6 +192,10 @@ public final class BasicLuan {
 	public static Object assert_nil(LuanState luan,Object v) throws LuanException {
 		if( v != null )
 			throw luan.exception("bad argument #1 (nil expected, got "+Luan.type(v)+")");
+		return v;
+	}
+
+	public static int assert_integer(LuanState luan,int v) throws LuanException {
 		return v;
 	}
 

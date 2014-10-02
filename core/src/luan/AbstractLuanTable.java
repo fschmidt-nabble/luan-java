@@ -16,6 +16,14 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractLuanTable implements LuanTable {
 
+	@Override public boolean isEmpty() {
+		return isList() && length()==0;
+	}
+
+	@Override public boolean isList() {
+		return asList().size() == asMap().size();
+	}
+
 	@Override public List<Object> asList() {
 		return Collections.emptyList();
 	}

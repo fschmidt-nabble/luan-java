@@ -6,6 +6,7 @@ import java.util.Comparator;
 
 
 public interface LuanTable extends Iterable<Map.Entry<Object,Object>> {
+	public boolean isEmpty();
 	public boolean isList();
 	public List<Object> asList();
 	public Map<Object,Object> asMap();
