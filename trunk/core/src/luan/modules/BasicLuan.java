@@ -45,6 +45,7 @@ public final class BasicLuan {
 				add( module, "raw_set", LuanTable.class, Object.class, Object.class );
 				add( module, "repr", LuanState.class, Object.class );
 				add( module, "set_metatable", LuanTable.class, LuanTable.class );
+				add( module, "to_boolean", Object.class );
 				add( module, "to_number", Object.class, Integer.class );
 				add( module, "to_string", LuanState.class, Object.class );
 				add( module, "type", Object.class );
@@ -156,6 +157,10 @@ public final class BasicLuan {
 
 	public static String to_string(LuanState luan,Object v) throws LuanException {
 		return luan.toString(v);
+	}
+
+	public static boolean to_boolean(Object v) throws LuanException {
+		return Luan.toBoolean(v);
 	}
 
 	public static void error(LuanState luan,Object msg) throws LuanException {
