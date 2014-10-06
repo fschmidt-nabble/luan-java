@@ -1,7 +1,3 @@
-CURRDIR=`pwd`
-cd `dirname $0`/../..
-HOME=`pwd`
-cd $CURRDIR
+. check_luan_home.sh
 
-luan.sh $HOME/dist/scripts/mmake.luan $*
-echo `pwd`
+luan.sh $LUAN_HOME/dist/scripts/mmake.luan $*
