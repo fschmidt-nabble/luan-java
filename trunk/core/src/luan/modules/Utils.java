@@ -51,7 +51,7 @@ public final class Utils {
 		copyAll(in,out);
 		return out.toByteArray();
 	}
-
+/*
 	public static boolean exists(File file) {
 		try {
 			return file.exists() && file.getName().equals(file.getCanonicalFile().getName());
@@ -59,12 +59,12 @@ public final class Utils {
 			throw new RuntimeException(e);
 		}
 	}
-
+*/
 	public static File toFile(String path) {
 		if( path.contains("//") )
 			return null;
 		File file = new File(path);
-		return exists(file) ? file : null;
+		return file.exists() ? file : null;
 	}
 
 	public static URL toUrl(String path) {

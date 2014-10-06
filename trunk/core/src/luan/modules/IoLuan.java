@@ -367,7 +367,7 @@ public final class IoLuan {
 		}
 
 		public boolean exists() {
-			return Utils.exists(file);
+			return file.exists();
 		}
 
 		@Override LuanTable table() {
