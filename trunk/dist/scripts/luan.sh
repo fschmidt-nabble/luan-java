@@ -1,8 +1,5 @@
-CURRDIR=`pwd`
-cd `dirname $0`/../..
-HOME=`pwd`
-cd $CURRDIR
+. check_luan_home.sh
 
-. luan-cp.sh $HOME
+. luan-classpath.sh
 
 java -classpath $CLASSPATH luan.Luan $*
