@@ -22,8 +22,8 @@ final class ForStmt extends CodeImpl implements Stmt {
 	}
 
 	@Override public void eval(LuanStateImpl luan) throws LuanException {
-		LuanFunction iter = luan.bit(se).checkFunction( iterExpr.eval(luan) );
 		LuanBit bit = luan.bit(iterExpr.se());
+		LuanFunction iter = bit.checkFunction( iterExpr.eval(luan) );
 		String name = iterExpr.se().text();
 		try {
 			while(true) {
