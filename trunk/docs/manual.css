@@ -15,7 +15,7 @@ span.apii {
 	color: gray ;
 }
 
-p+h1, ul+h1 {
+h1:not(.main) {
 	font-style: normal ;
 	padding-top: 0.4em ;
 	padding-bottom: 0.4em ;
