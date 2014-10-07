@@ -11,7 +11,7 @@
 <body>
 
 <hr>
-<h1>
+<h1 class="main">
 Luan Reference Manual
 </h1>
 
@@ -175,7 +175,6 @@ For a discussion of the decisions behind the design of Lua,
 see the technical papers available at Lua's web site.
 For a detailed introduction to programming in Lua,
 see Roberto's book, <em>Programming in Lua</em>.
-
 
 <h1>2 &ndash; <a name="2">Basic Concepts</a></h1>
 
@@ -1176,7 +1175,7 @@ consider the following code:
        print("foo", a)
        return coroutine.yield(2*a)
      end
-     
+
      co = coroutine.create(function (a,b)
            print("co-body", a, b)
            local r = foo(a+1)
@@ -1185,7 +1184,7 @@ consider the following code:
            print("co-body", r, s)
            return b, "end"
      end)
-     
+
      print("main", coroutine.resume(co, 1, 10))
      print("main", coroutine.resume(co, "r"))
      print("main", coroutine.resume(co, "x", "y"))
@@ -1513,7 +1512,7 @@ The grammar could see it in two ways:
 
 <pre>
      a = b + c(print or io.write)('done')
-     
+
      a = b + c; (print or io.write)('done')
 </pre><p>
 The current parser always sees such constructions
@@ -1993,7 +1992,7 @@ Here are some examples:
      a,b = ...          -- a gets the first vararg parameter, b gets
                         -- the second (both a and b can get nil if there
                         -- is no corresponding vararg parameter)
-     
+
      a,b,c = x, f()     -- f() is adjusted to 2 results
      a,b,c = f()        -- f() is adjusted to 3 results
      return f()         -- returns all results from f()
@@ -2464,13 +2463,13 @@ to the vararg expression:
 
 <pre>
      CALL            PARAMETERS
-     
+
      f(3)             a=3, b=nil
      f(3, 4)          a=3, b=4
      f(3, 4, 5)       a=3, b=4
      f(r(), 10)       a=1, b=10
      f(r())           a=1, b=2
-     
+
      g(3)             a=3, b=nil, ... --&gt;  (nothing)
      g(3, 4)          a=3, b=4,   ... --&gt;  (nothing)
      g(3, 4, 5, 8)    a=3, b=4,   ... --&gt;  5  8
@@ -8130,21 +8129,21 @@ Here are some examples:
 <pre>
      x = string.gsub("hello world", "(%w+)", "%1 %1")
      --&gt; x="hello hello world world"
-     
+
      x = string.gsub("hello world", "%w+", "%0 %0", 1)
      --&gt; x="hello hello world"
-     
+
      x = string.gsub("hello world from Lua", "(%w+)%s*(%w+)", "%2 %1")
      --&gt; x="world hello Lua from"
-     
+
      x = string.gsub("home = $HOME, user = $USER", "%$(%w+)", os.getenv)
      --&gt; x="home = /home/roberto, user = roberto"
-     
+
      x = string.gsub("4+5 = $return 4+5$", "%$(.-)%$", function (s)
            return load(s)()
          end)
      --&gt; x="4+5 = 9"
-     
+
      local t = {name="lua", version="5.2"}
      x = string.gsub("$name-$version.tar.gz", "%$(%w+)", t)
      --&gt; x="lua-5.2.tar.gz"
@@ -8817,7 +8816,7 @@ pseudo-random generator function <code>rand</code> provided by Standard&nbsp;C.
 <p>
 When called without arguments,
 returns a uniform pseudo-random real number
-in the range <em>[0,1)</em>.  
+in the range <em>[0,1)</em>.
 When called with an integer number <code>m</code>,
 <code>math.random</code> returns
 a uniform pseudo-random integer in the range <em>[1, m]</em>.
@@ -10171,7 +10170,7 @@ and as <code>lua -</code> otherwise.
 
 
 <p>
-When called without option <code>-E</code>, 
+When called without option <code>-E</code>,
 the interpreter checks for an environment variable <a name="pdf-LUA_INIT_5_2"><code>LUA_INIT_5_2</code></a>
 (or <a name="pdf-LUA_INIT"><code>LUA_INIT</code></a> if it is not defined)
 before running any argument.
@@ -10517,21 +10516,21 @@ Here is the complete syntax of Lua in extended BNF.
 
 	block ::= {stat} [retstat]
 
-	stat ::=  &lsquo;<b>;</b>&rsquo; | 
-		 varlist &lsquo;<b>=</b>&rsquo; explist | 
-		 functioncall | 
-		 label | 
-		 <b>break</b> | 
-		 <b>goto</b> Name | 
-		 <b>do</b> block <b>end</b> | 
-		 <b>while</b> exp <b>do</b> block <b>end</b> | 
-		 <b>repeat</b> block <b>until</b> exp | 
-		 <b>if</b> exp <b>then</b> block {<b>elseif</b> exp <b>then</b> block} [<b>else</b> block] <b>end</b> | 
-		 <b>for</b> Name &lsquo;<b>=</b>&rsquo; exp &lsquo;<b>,</b>&rsquo; exp [&lsquo;<b>,</b>&rsquo; exp] <b>do</b> block <b>end</b> | 
-		 <b>for</b> namelist <b>in</b> explist <b>do</b> block <b>end</b> | 
-		 <b>function</b> funcname funcbody | 
-		 <b>local</b> <b>function</b> Name funcbody | 
-		 <b>local</b> namelist [&lsquo;<b>=</b>&rsquo; explist] 
+	stat ::=  &lsquo;<b>;</b>&rsquo; |
+		 varlist &lsquo;<b>=</b>&rsquo; explist |
+		 functioncall |
+		 label |
+		 <b>break</b> |
+		 <b>goto</b> Name |
+		 <b>do</b> block <b>end</b> |
+		 <b>while</b> exp <b>do</b> block <b>end</b> |
+		 <b>repeat</b> block <b>until</b> exp |
+		 <b>if</b> exp <b>then</b> block {<b>elseif</b> exp <b>then</b> block} [<b>else</b> block] <b>end</b> |
+		 <b>for</b> Name &lsquo;<b>=</b>&rsquo; exp &lsquo;<b>,</b>&rsquo; exp [&lsquo;<b>,</b>&rsquo; exp] <b>do</b> block <b>end</b> |
+		 <b>for</b> namelist <b>in</b> explist <b>do</b> block <b>end</b> |
+		 <b>function</b> funcname funcbody |
+		 <b>local</b> <b>function</b> Name funcbody |
+		 <b>local</b> namelist [&lsquo;<b>=</b>&rsquo; explist]
 
 	retstat ::= <b>return</b> [explist] [&lsquo;<b>;</b>&rsquo;]
 
@@ -10541,20 +10540,20 @@ Here is the complete syntax of Lua in extended BNF.
 
 	varlist ::= var {&lsquo;<b>,</b>&rsquo; var}
 
-	var ::=  Name | prefixexp &lsquo;<b>[</b>&rsquo; exp &lsquo;<b>]</b>&rsquo; | prefixexp &lsquo;<b>.</b>&rsquo; Name 
+	var ::=  Name | prefixexp &lsquo;<b>[</b>&rsquo; exp &lsquo;<b>]</b>&rsquo; | prefixexp &lsquo;<b>.</b>&rsquo; Name
 
 	namelist ::= Name {&lsquo;<b>,</b>&rsquo; Name}
 
 	explist ::= exp {&lsquo;<b>,</b>&rsquo; exp}
 
-	exp ::=  <b>nil</b> | <b>false</b> | <b>true</b> | Number | String | &lsquo;<b>...</b>&rsquo; | functiondef | 
-		 prefixexp | tableconstructor | exp binop exp | unop exp 
+	exp ::=  <b>nil</b> | <b>false</b> | <b>true</b> | Number | String | &lsquo;<b>...</b>&rsquo; | functiondef |
+		 prefixexp | tableconstructor | exp binop exp | unop exp
 
 	prefixexp ::= var | functioncall | &lsquo;<b>(</b>&rsquo; exp &lsquo;<b>)</b>&rsquo;
 
-	functioncall ::=  prefixexp args | prefixexp &lsquo;<b>:</b>&rsquo; Name args 
+	functioncall ::=  prefixexp args | prefixexp &lsquo;<b>:</b>&rsquo; Name args
 
-	args ::=  &lsquo;<b>(</b>&rsquo; [explist] &lsquo;<b>)</b>&rsquo; | tableconstructor | String 
+	args ::=  &lsquo;<b>(</b>&rsquo; [explist] &lsquo;<b>)</b>&rsquo; | tableconstructor | String
 
 	functiondef ::= <b>function</b> funcbody
 
@@ -10570,8 +10569,8 @@ Here is the complete syntax of Lua in extended BNF.
 
 	fieldsep ::= &lsquo;<b>,</b>&rsquo; | &lsquo;<b>;</b>&rsquo;
 
-	binop ::= &lsquo;<b>+</b>&rsquo; | &lsquo;<b>-</b>&rsquo; | &lsquo;<b>*</b>&rsquo; | &lsquo;<b>/</b>&rsquo; | &lsquo;<b>^</b>&rsquo; | &lsquo;<b>%</b>&rsquo; | &lsquo;<b>..</b>&rsquo; | 
-		 &lsquo;<b>&lt;</b>&rsquo; | &lsquo;<b>&lt;=</b>&rsquo; | &lsquo;<b>&gt;</b>&rsquo; | &lsquo;<b>&gt;=</b>&rsquo; | &lsquo;<b>==</b>&rsquo; | &lsquo;<b>~=</b>&rsquo; | 
+	binop ::= &lsquo;<b>+</b>&rsquo; | &lsquo;<b>-</b>&rsquo; | &lsquo;<b>*</b>&rsquo; | &lsquo;<b>/</b>&rsquo; | &lsquo;<b>^</b>&rsquo; | &lsquo;<b>%</b>&rsquo; | &lsquo;<b>..</b>&rsquo; |
+		 &lsquo;<b>&lt;</b>&rsquo; | &lsquo;<b>&lt;=</b>&rsquo; | &lsquo;<b>&gt;</b>&rsquo; | &lsquo;<b>&gt;=</b>&rsquo; | &lsquo;<b>==</b>&rsquo; | &lsquo;<b>~=</b>&rsquo; |
 		 <b>and</b> | <b>or</b>
 
 	unop ::= &lsquo;<b>-</b>&rsquo; | <b>not</b> | &lsquo;<b>#</b>&rsquo;
