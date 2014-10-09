@@ -32,7 +32,7 @@ public final class MathLuan {
 				module.put("pi",Math.PI);
 				add( module, "pow", Double.TYPE, Double.TYPE );
 				add( module, "rad", Double.TYPE );
-				add( module, "random" );
+				add( module, "random", Integer.class, Integer.class );
 				add( module, "sin", Double.TYPE );
 				add( module, "sinh", Double.TYPE );
 				add( module, "sqrt", Double.TYPE );
@@ -126,8 +126,12 @@ public final class MathLuan {
 		return Math.toRadians(x);
 	}
 
-	public static double random() {
-		return Math.random();
+	public static double random(Integer m,Integer n) {
+		if( m==null )
+			return Math.random();
+		if( n==null )
+			return Math.floor(m*Math.random()) + 1;
+		return Math.floor((n-m)*Math.random()) + m;
 	}
 
 	public static double sin(double x) {

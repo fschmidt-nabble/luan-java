@@ -232,17 +232,26 @@ public final class LuanJavaFunction extends LuanFunction {
 		public Object convert(Object obj) {
 			return obj;
 		}
+		@Override public String toString() {
+			return "ARG_SAME";
+		}
 	};
 
 	private static final ArgConverter ARG_BOOLEAN = new ArgConverter() {
 		public Object convert(Object obj) {
 			return Luan.toBoolean(obj);
 		}
+		@Override public String toString() {
+			return "ARG_BOOLEAN";
+		}
 	};
 
 	private static final ArgConverter ARG_BOOLEAN_OBJ = new ArgConverter() {
 		public Object convert(Object obj) {
 			return obj==null ? null : Luan.toBoolean(obj);
+		}
+		@Override public String toString() {
+			return "ARG_BOOLEAN_OBJ";
 		}
 	};
 
@@ -262,6 +271,9 @@ public final class LuanJavaFunction extends LuanFunction {
 			}
 			return obj;
 		}
+		@Override public String toString() {
+			return "ARG_DOUBLE";
+		}
 	};
 
 	private static final ArgConverter ARG_FLOAT = new ArgConverter() {
@@ -279,6 +291,9 @@ public final class LuanJavaFunction extends LuanFunction {
 				} catch(NumberFormatException e) {}
 			}
 			return obj;
+		}
+		@Override public String toString() {
+			return "ARG_FLOAT";
 		}
 	};
 
@@ -300,6 +315,9 @@ public final class LuanJavaFunction extends LuanFunction {
 			}
 			return obj;
 		}
+		@Override public String toString() {
+			return "ARG_LONG";
+		}
 	};
 
 	private static final ArgConverter ARG_INTEGER = new ArgConverter() {
@@ -319,6 +337,9 @@ public final class LuanJavaFunction extends LuanFunction {
 				} catch(NumberFormatException e) {}
 			}
 			return obj;
+		}
+		@Override public String toString() {
+			return "ARG_INTEGER";
 		}
 	};
 
@@ -340,6 +361,9 @@ public final class LuanJavaFunction extends LuanFunction {
 			}
 			return obj;
 		}
+		@Override public String toString() {
+			return "ARG_SHORT";
+		}
 	};
 
 	private static final ArgConverter ARG_BYTE = new ArgConverter() {
@@ -359,6 +383,9 @@ public final class LuanJavaFunction extends LuanFunction {
 				} catch(NumberFormatException e) {}
 			}
 			return obj;
+		}
+		@Override public String toString() {
+			return "ARG_BYTE";
 		}
 	};
 
@@ -388,6 +415,9 @@ public final class LuanJavaFunction extends LuanFunction {
 			}
 			return obj;
 		}
+		@Override public String toString() {
+			return "ARG_TABLE";
+		}
 	};
 
 	private static final ArgConverter ARG_MAP = new ArgConverter() {
@@ -397,6 +427,9 @@ public final class LuanJavaFunction extends LuanFunction {
 				return t.asMap();
 			}
 			return obj;
+		}
+		@Override public String toString() {
+			return "ARG_MAP";
 		}
 	};
 
@@ -409,6 +442,9 @@ public final class LuanJavaFunction extends LuanFunction {
 			}
 			return obj;
 		}
+		@Override public String toString() {
+			return "ARG_LIST";
+		}
 	};
 
 	private static final ArgConverter ARG_SET = new ArgConverter() {
@@ -419,6 +455,9 @@ public final class LuanJavaFunction extends LuanFunction {
 					return t.asSet();
 			}
 			return obj;
+		}
+		@Override public String toString() {
+			return "ARG_SET";
 		}
 	};
 
