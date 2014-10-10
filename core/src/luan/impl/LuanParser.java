@@ -227,9 +227,6 @@ final class LuanParser {
 		parser.begin();
 		if( parser.match( ';' ) )
 			return parser.success();
-		if( parser.match( "--" ) ) {
-			while( parser.noneOf("\r\n") );
-		}
 		if( EndOfLine() )
 			return parser.success();
 		parser.rollback();
@@ -1349,7 +1346,7 @@ final class LuanParser {
 	}
 
 	private void Spaces(In in) throws ParseException {
-		while( parser.anyOf(" \t") || Comment() || ContinueOnNextLine() || in.parens && NewLine() );
+		while( parser.anyOf(" \t") || Comment() || ContinueOnNextLine() || in.parens && EndOfLine() );
 	}
 
 	private boolean ContinueOnNextLine() {
@@ -1357,16 +1354,17 @@ final class LuanParser {
 		return parser.match('\\') &&  EndOfLine() ? parser.success() : parser.failure();
 	}
 
-	private boolean NewLine() {
-		if( !EndOfLine() )
-			return false;
+	private boolean Comment() throws ParseException {
+		if( LongComment() )
+			return true;
 		if( parser.match("--") ) {
 			while( parser.noneOf("\r\n") );
+			return true;
 		}
-		return true;
+		return false;
 	}
 
-	private boolean Comment() throws ParseException {
+	private boolean LongComment() throws ParseException {
 		parser.begin();
 		if( !parser.match("--[") )
 			return parser.failure();
