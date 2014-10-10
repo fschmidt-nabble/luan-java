@@ -19,7 +19,7 @@ public final class StringLuan {
 			try {
 				add( module, "to_binary", String.class );
 				add( module, "to_integers", String.class );
-				add( module, "from_integers", new int[0].getClass() );
+				module.put( "char", new LuanJavaFunction(StringLuan.class.getMethod( "char_", new int[0].getClass() ),null) );
 				add( module, "find", String.class, String.class, Integer.class, Boolean.class );
 				add( module, "format", String.class, new Object[0].getClass() );
 				add( module, "gmatch", String.class, String.class );
@@ -90,7 +90,7 @@ public final class StringLuan {
 		return chars;
 	}
 
-	public static String from_integers(int... chars) {
+	public static String char_(int... chars) {
 		char[] a = new char[chars.length];
 		for( int i=0; i<chars.length; i++ ) {
 			a[i] = (char)chars[i];
