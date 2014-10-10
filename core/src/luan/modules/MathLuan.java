@@ -131,7 +131,7 @@ public final class MathLuan {
 			return Math.random();
 		if( n==null )
 			return Math.floor(m*Math.random()) + 1;
-		return Math.floor((n-m)*Math.random()) + m;
+		return Math.floor((n-m+1)*Math.random()) + m;
 	}
 
 	public static double sin(double x) {
