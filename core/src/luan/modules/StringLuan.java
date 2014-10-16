@@ -62,7 +62,8 @@ public final class StringLuan {
 	}
 
 	static int start(String s,int i) {
-		return i==0 ? 0 : i > 0 ? i - 1 : s.length() + i;
+		int len = s.length();
+		return i==0 ? 0 : i > 0 ? Math.min(i-1,len) : Math.max(len+i,0);
 	}
 
 	static int start(String s,Integer i,int dflt) {
@@ -70,7 +71,8 @@ public final class StringLuan {
 	}
 
 	static int end(String s,int i) {
-		return i==0 ? 0 : i > 0 ? i : s.length() + i + 1;
+		int len = s.length();
+		return i==0 ? 0 : i > 0 ? Math.min(i,len) : Math.max(len+i+1,0);
 	}
 
 	static int end(String s,Integer i,int dflt) {
