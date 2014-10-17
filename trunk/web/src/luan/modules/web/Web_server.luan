@@ -65,7 +65,10 @@ end
 
 local hc = HandlerCollection.new()
 hc.setHandlers { SessionHandler.new(), handler_wrapper, DefaultHandler.new(), log_handler }
- 
+
+-- override to config server
+function config_server(server)
+end 
 
 function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
@@ -81,5 +84,6 @@ function serve(dir)
 	luan_handler.setWelcomeFile(welcome_file)
 	local server = Server.new(port)
 	server.setHandler(hc);
+	config_server(server)
 	server.start()
 end
