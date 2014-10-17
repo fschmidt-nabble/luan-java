@@ -101,7 +101,11 @@ public final class HttpLuan {
 			throw new RuntimeException(e);
 		}
 
-		luan.call(fn,"<http>");
+		try {
+			luan.call(fn,"<http>");
+		} catch(LuanExitException e) {
+//			System.out.println("caught LuanExitException");
+		}
 		return true;
 	}
 
