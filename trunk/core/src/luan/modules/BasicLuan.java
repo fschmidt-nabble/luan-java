@@ -88,7 +88,7 @@ public final class BasicLuan {
 	}
 
 	public static LuanFunction pairs(LuanState luan,final LuanTable t) throws LuanException {
-		Utils.checkNotNull(luan,t,"table");
+		Utils.checkNotNull(luan,t);
 		return new LuanFunction() {
 			Iterator<Map.Entry<Object,Object>> iter = t.iterator();
 
@@ -102,7 +102,7 @@ public final class BasicLuan {
 	}
 
 	public static LuanFunction ipairs(LuanState luan,final LuanTable t) throws LuanException {
-		Utils.checkNotNull(luan,t,"table");
+		Utils.checkNotNull(luan,t);
 		return new LuanFunction() {
 			List<Object> list = t.asList();
 			int i = 0;
@@ -176,17 +176,17 @@ public final class BasicLuan {
 	}
 
 	public static String assert_string(LuanState luan,String v) throws LuanException {
-		Utils.checkNotNull(luan,v,"string");
+		Utils.checkNotNull(luan,v);
 		return v;
 	}
 
 	public static Number assert_number(LuanState luan,Number v) throws LuanException {
-		Utils.checkNotNull(luan,v,"number");
+		Utils.checkNotNull(luan,v);
 		return v;
 	}
 
 	public static LuanTable assert_table(LuanState luan,LuanTable v) throws LuanException {
-		Utils.checkNotNull(luan,v,"table");
+		Utils.checkNotNull(luan,v);
 		return v;
 	}
 

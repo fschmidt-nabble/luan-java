@@ -29,27 +29,7 @@ import luan.modules.IoLuan;
 import luan.modules.TableLuan;
 
 
-public final class HttpLuan {
-
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				addStatic( module, "new_luan_handler", LuanState.class );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
-	private static void addStatic(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(HttpLuan.class.getMethod(method,parameterTypes),null) );
-	}
-
-	public static LuanHandler new_luan_handler(LuanState luan) {
-		return new LuanHandler(luan);
-	}
+public final class HttpServicer {
 
 	public static boolean service(LuanState luan,HttpServletRequest request,HttpServletResponse response,String modName)
 		throws LuanException
@@ -87,14 +67,14 @@ public final class HttpLuan {
 		LuanTable module = (LuanTable)PackageLuan.loaded(luan).get("web/Http");
 		if( module == null )
 			throw luan.exception( "module 'web/Http' not defined" );
-		HttpLuan lib = new HttpLuan(request,response);
+		HttpServicer lib = new HttpServicer(request,response);
 		try {
 			module.put( "request", lib.requestTable() );
 			module.put( "response", lib.responseTable() );
 			module.put( "session", lib.sessionTable() );
 /*
 			module.put( "write", new LuanJavaFunction(
-				HttpLuan.class.getMethod( "text_write", LuanState.class, new Object[0].getClass() ), lib
+				HttpServicer.class.getMethod( "text_write", LuanState.class, new Object[0].getClass() ), lib
 			) );
 */
 		} catch(NoSuchMethodException e) {
@@ -116,7 +96,7 @@ public final class HttpLuan {
 //	private PrintWriter writer = null;
 //	private ServletOutputStream sos = null;
 
-	private HttpLuan(HttpServletRequest request,HttpServletResponse response) {
+	private HttpServicer(HttpServletRequest request,HttpServletResponse response) {
 		this.request = request;
 		this.response = response;
 	}
@@ -293,7 +273,7 @@ public final class HttpLuan {
 	}
 
 	private void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(HttpLuan.class.getMethod(method,parameterTypes),this) );
+		t.put( method, new LuanJavaFunction(HttpServicer.class.getMethod(method,parameterTypes),this) );
 	}
 /*
 	public void text_write(LuanState luan,Object... args) throws LuanException, IOException {
