@@ -1,0 +1,36 @@
+import "Java"
+import "Table"
+import "luan.modules.web.LuanHandler"
+
+function new_luan_handler()
+	return LuanHandler.new()
+end
+
+
+
+function init_for_test()
+
+	function get_page(mod_name)
+		local mod = require(mod_name)
+		mod.service()
+		return Table.concat(result)
+	end
+
+	request = {
+		cookies = {}
+	}
+
+	response = {
+		text_writer = function()
+			result = {}
+			return {
+				write = function(...)
+					for _, v in ipairs{...} do
+						result[#result+1] = v
+					end
+				end;
+			}
+		end;
+	}
+
+end

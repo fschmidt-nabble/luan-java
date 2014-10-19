@@ -1,5 +1,6 @@
 import "String"
 import "Table"
+import "Io"
 
 
 local standalone_usage = [=[
@@ -69,7 +70,7 @@ if i <= #args then
 		local main_file = load_file(file)
 		main_file( Table.unpack(_G.arg) )
 	catch e do
-		print(e)
+		Io.print_to(Io.stderr, e )
 	end
 end
 if interactive then

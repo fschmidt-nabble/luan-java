@@ -10,6 +10,7 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import luan.LuanState;
 import luan.LuanException;
+import luan.LuanTable;
 
 
 public final class Utils {
@@ -17,9 +18,21 @@ public final class Utils {
 
 	static final int bufSize = 8192;
 
-	public static void checkNotNull(LuanState luan,Object v,String expected) throws LuanException {
+	private static void checkNotNull(LuanState luan,Object v,String expected) throws LuanException {
 		if( v == null )
 			throw luan.exception("bad argument #1 ("+expected+" expected, got nil)");
+	}
+
+	public static void checkNotNull(LuanState luan,String s) throws LuanException {
+		checkNotNull(luan,s,"string");
+	}
+
+	public static void checkNotNull(LuanState luan,LuanTable t) throws LuanException {
+		checkNotNull(luan,t,"table");
+	}
+
+	public static void checkNotNull(LuanState luan,Number n) throws LuanException {
+		checkNotNull(luan,n,"number");
 	}
 
 	public static String readAll(Reader in)

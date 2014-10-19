@@ -29,7 +29,7 @@ public final class StringLuan {
 				add( module, "match", String.class, String.class, Integer.class );
 				add( module, "rep", String.class, Integer.TYPE, String.class );
 				add( module, "reverse", String.class );
-				add( module, "sub", String.class, Integer.TYPE, Integer.class );
+				add( module, "sub", LuanState.class, String.class, Integer.TYPE, Integer.class );
 				add( module, "upper", String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -128,7 +128,8 @@ public final class StringLuan {
 		return buf.toString();
 	}
 
-	public static String sub(String s,int i,Integer j) {
+	public static String sub(LuanState luan,String s,int i,Integer j) throws LuanException {
+		Utils.checkNotNull(luan,s);
 		int start = start(s,i);
 		int end = end(s,j,s.length());
 		return s.substring(start,end);
