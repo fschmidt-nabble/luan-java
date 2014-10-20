@@ -16,11 +16,15 @@ function init_for_test()
 		return Table.concat(result)
 	end
 
+	cookies = cookies or {}
+
 	request = {
-		cookies = {}
+		parameters = {};
 	}
+	request.cookies = cookies
 
 	response = {
+
 		text_writer = function()
 			result = {}
 			return {
@@ -31,6 +35,15 @@ function init_for_test()
 				end;
 			}
 		end;
+
+		set_cookie = function(name,value)
+			cookies[name] = value
+		end;
+
+		send_redirect = function(url)
+			response.redirect = url
+		end;
+
 	}
 
 end

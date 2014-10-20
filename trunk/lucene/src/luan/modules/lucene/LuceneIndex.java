@@ -93,6 +93,17 @@ public final class LuceneIndex {
 		return new LuceneSnapshot(this);
 	}
 
+	public void delete_all() throws IOException {
+		writeLock.lock();
+		try {
+			writer.deleteAll();
+			writer.commit();
+			id = idLim = 0;
+		} finally {
+			writeLock.unlock();
+		}
+	}
+
 
 	private long id = 0;
 	private long idLim = 0;
@@ -184,6 +195,7 @@ public final class LuceneIndex {
 			add( tbl, "backup", LuanState.class, String.class );
 			add( tbl, "Writer", LuanState.class, LuanFunction.class );
 			add( tbl, "Searcher", LuanState.class, LuanFunction.class );
+			add( tbl, "delete_all" );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
