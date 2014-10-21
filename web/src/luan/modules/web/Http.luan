@@ -40,6 +40,10 @@ function init_for_test()
 			cookies[name] = value
 		end;
 
+		remove_cookie = function(name)
+			cookies[name] = nil
+		end;
+
 		send_redirect = function(url)
 			response.redirect = url
 		end;
