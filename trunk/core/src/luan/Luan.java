@@ -80,6 +80,9 @@ public final class Luan {
 	public static String toString(Number n) {
 		if( n instanceof Integer )
 			return n.toString();
+		int i = n.intValue();
+		if( i == n.doubleValue() )
+			return Integer.toString(i);
 		String s = n.toString();
 		int iE = s.indexOf('E');
 		String ending  = null;
