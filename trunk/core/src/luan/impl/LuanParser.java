@@ -799,6 +799,7 @@ final class LuanParser {
 				Spaces(inParens);
 				if( !parser.match("...") )
 					throw parser.exception();
+				Spaces(inParens);
 				frame.isVarArg = true;
 			}
 		} else if( parser.match("...") ) {

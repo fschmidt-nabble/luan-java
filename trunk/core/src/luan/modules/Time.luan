@@ -1,0 +1,41 @@
+-- incomplete, will add as needed
+
+import "String"
+import "Table"
+import "Java"
+import "java.lang.System"
+import "java.util.Calendar"
+import "java.util.Date"
+import "java.text.SimpleDateFormat"
+
+
+function now()
+	return System.currentTimeMillis()
+end
+
+-- add more as needed
+local fields = {
+	year = Calendar.YEAR;
+	month = Calendar.MONTH;
+	day_of_month = Calendar.DAY_OF_MONTH;
+}
+
+function get( time, ... )
+	local cal = Calendar.getInstance()
+	cal.setTimeInMillis(time)
+	local rtn = {}
+	for i, v in ipairs{...} do
+		local fld = fields[v.lower()]
+		fld or error("invalid field: "+v)
+		local n = cal.get(fld)
+		if fld == "month" then
+			n = n + 1
+		end
+		rtn[i] = n
+	end
+	return Table.unpack(rtn)
+end
+
+function format(time,pattern)
+	return SimpleDateFormat.new(pattern).format(Date.new(time))
+end
