@@ -39,14 +39,9 @@ public final class IoLuan {
 			LuanTable module = Luan.newTable();
 			try {
 				add( module, "read_console_line", String.class );
-
 				module.put( "protocols", newProtocols() );
-
 				add( module, "get", LuanState.class, String.class );
-
 				module.put( "stdin", stdin.table() );
-
-				add( module, "Socket", String.class, Integer.TYPE );
 				add( module, "socket_server", Integer.TYPE );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -442,6 +437,7 @@ public final class IoLuan {
 		try {
 			add( protocols, "file", LuanState.class, String.class );
 			add( protocols, "classpath", LuanState.class, String.class );
+			add( protocols, "socket", LuanState.class, String.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
@@ -522,7 +518,13 @@ public final class IoLuan {
 		}
 	}
 
-	public static LuanTable Socket(String host,int port) throws IOException {
+	public static LuanTable socket(LuanState luan,String name) throws LuanException, IOException {
+		int i = name.indexOf(':');
+		if( i == -1 )
+			throw luan.exception( "invalid socket '"+name+"', format is: <host>:<port>" );
+		String host = name.substring(0,i);
+		String portStr = name.substring(i+1);
+		int port = Integer.parseInt(portStr);
 		return new LuanSocket(host,port).table();
 	}
 
