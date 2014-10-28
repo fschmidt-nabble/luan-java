@@ -83,8 +83,8 @@ public final class Utils {
 	public static URL toUrl(String path) {
 		if( path.indexOf(':') == -1 )
 			return null;
-		if( path.startsWith("java:") ) {
-			path = path.substring(5);
+		if( path.startsWith("classpath:") ) {
+			path = path.substring(10);
 			if( path.contains("//") )
 				return null;
 			URL url;

@@ -8,7 +8,7 @@ public final class Luan {
 	public static void main(String[] args) {
 		LuanState luan = LuanState.newStandard();
 		try {
-			LuanFunction standalone = (LuanFunction)BasicLuan.load_file(luan,"java:luan/cmd_line.luan");
+			LuanFunction standalone = (LuanFunction)BasicLuan.load_file(luan,"classpath:luan/cmd_line.luan");
 			luan.call(standalone,args);
 		} catch(LuanException e) {
 			System.err.println(e.getFullMessage());

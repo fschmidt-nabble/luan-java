@@ -22,7 +22,7 @@ public final class PackageLuan {
 			LuanTable module = Luan.newTable();
 			module.put( "loaded", loaded(luan) );
 			module.put( "preload", Luan.newTable() );
-			module.put( "path", "?.luan;java:luan/modules/?.luan" );
+			module.put( "path", "?.luan;classpath:luan/modules/?.luan" );
 			module.put( "jpath", jpath );
 			try {
 				module.put("require",requireFn);
