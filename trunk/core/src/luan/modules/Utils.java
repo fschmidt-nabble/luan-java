@@ -73,14 +73,15 @@ public final class Utils {
 		}
 	}
 */
-	public static File toFile(String path) {
+/*
+	private static File toFile(String path) {
 		if( path.contains("//") )
 			return null;
 		File file = new File(path);
 		return file.exists() ? file : null;
 	}
 
-	public static URL toUrl(String path) {
+	private static URL toUrl(String path) {
 		if( path.indexOf(':') == -1 )
 			return null;
 		if( path.startsWith("classpath:") ) {
@@ -115,7 +116,8 @@ public final class Utils {
 		return null;
 	}
 
-	public static boolean exists(String path) {
+	static boolean exists(String path) {
 		return toFile(path)!=null || toUrl(path)!=null;
 	}
+*/
 }

@@ -38,8 +38,11 @@ public final class IoLuan {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = Luan.newTable();
 			try {
-				add( module, "File", LuanState.class, String.class );
 				add( module, "read_console_line", String.class );
+
+				module.put( "protocols", newProtocols() );
+
+				add( module, "get", LuanState.class, String.class );
 
 				LuanTable stdin = Luan.newTable();
 				stdin.put( "read_text", new LuanJavaFunction(
@@ -410,20 +413,73 @@ public final class IoLuan {
 		}
 	}
 
-	public static LuanIn luanIo(LuanState luan,String name) throws LuanException {
-		check(luan,name);
-		File file = Utils.toFile(name);
-		if( file != null )
-			return new LuanFile(file);
-		URL url = Utils.toUrl(name);
-		if( url != null ) {
-			return new LuanUrl(url);
-		}
-		throw luan.exception( "file '"+name+"' not found" );
+	public static LuanTable file(LuanState luan,String name) throws LuanException {
+		File file = new File(name);
+		if( !file.exists() )
+			return null;
+		return new LuanFile(file).table();
 	}
 
-	public static LuanTable File(LuanState luan,String name) throws LuanException {
-		return luanIo(luan,name).table();
+	public static LuanTable classpath(LuanState luan,String path) throws LuanException {
+		if( path.contains("//") )
+			return null;
+		URL url;
+		if( !path.contains("#") ) {
+			url = ClassLoader.getSystemResource(path);
+		} else {
+			String[] a = path.split("#");
+			url = ClassLoader.getSystemResource(a[0]);
+			if( url==null ) {
+				for( int i=1; i<a.length; i++ ) {
+					url = ClassLoader.getSystemResource(a[0]+"/"+a[i]);
+					if( url != null ) {
+						try {
+							url = new URL(url,".");
+						} catch(MalformedURLException e) {
+							throw new RuntimeException(e);
+						}
+						break;
+					}
+				}
+			}
+		}
+		if( url == null )
+			return null;
+		return new LuanUrl(url).table();
+	}
+
+	private static LuanTable newProtocols() {
+		LuanTable protocols = Luan.newTable();
+		try {
+			add( protocols, "file", LuanState.class, String.class );
+			add( protocols, "classpath", LuanState.class, String.class );
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		return protocols;
+	}
+
+	private static LuanTable protocols(LuanState luan) {
+		LuanTable t = (LuanTable)PackageLuan.loaded(luan).get("Io");
+		if( t == null )
+			return newProtocols();
+		t = (LuanTable)t.get("protocols");
+		if( t == null )
+			return newProtocols();
+		return t;
+	}
+
+	public static LuanTable get(LuanState luan,String name) throws LuanException {
+		int i = name.indexOf(':');
+		if( i == -1 )
+			throw luan.exception( "invalid IO name '"+name+"', missing protocol" );
+		String protocol = name.substring(0,i);
+		String location = name.substring(i+1);
+		LuanTable protocols = protocols(luan);
+		LuanFunction opener = (LuanFunction)protocols.get(protocol);
+		if( opener == null )
+			throw luan.exception( "invalid protocol '"+protocol+"' in '"+name+"'" );
+		return (LuanTable)Luan.first(luan.call(opener,"<open \""+name+"\">",new Object[]{location}));
 	}
 
 	public static final class LuanSocket extends LuanIO {
