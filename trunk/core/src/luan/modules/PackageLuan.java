@@ -21,7 +21,6 @@ public final class PackageLuan {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = Luan.newTable();
 			module.put( "loaded", loaded(luan) );
-			module.put( "preload", Luan.newTable() );
 			module.put( "path", "?.luan;classpath:luan/modules/?.luan" );
 			module.put( "jpath", jpath );
 			try {
@@ -69,7 +68,6 @@ public final class PackageLuan {
 		LuanTable tbl = (LuanTable)luan.registry().get(key);
 		if( tbl == null ) {
 			tbl = Luan.newTable();
-			tbl.add(preloadSearcher);
 			tbl.add(fileSearcher);
 			tbl.add(javaSearcher);
 			tbl.add(JavaLuan.javaSearcher);
@@ -117,14 +115,6 @@ public final class PackageLuan {
 		}
 		return null;
 	}
-
-	public static final LuanFunction preloadSearcher = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			String modName = (String)args[0];
-			LuanTable preload = (LuanTable)pkg(luan,"preload");
-			return preload==null ? LuanFunction.NOTHING : preload.get(modName);
-		}
-	};
 
 	public static String search_path(String name,String path) {
 		for( String s : path.split(";") ) {
