@@ -44,20 +44,7 @@ public final class IoLuan {
 
 				add( module, "get", LuanState.class, String.class );
 
-				LuanTable stdin = Luan.newTable();
-				stdin.put( "read_text", new LuanJavaFunction(
-					IoLuan.class.getMethod( "stdin_read_text" ), null
-				) );
-				stdin.put( "read_binary", new LuanJavaFunction(
-					IoLuan.class.getMethod( "stdin_read_binary" ), null
-				) );
-				stdin.put( "read_lines", new LuanJavaFunction(
-					IoLuan.class.getMethod( "stdin_read_lines" ), null
-				) );
-				stdin.put( "read_blocks", new LuanJavaFunction(
-					IoLuan.class.getMethod( "stdin_read_blocks", Integer.class ), null
-				) );
-				module.put( "stdin", stdin );
+				module.put( "stdin", stdin.table() );
 
 				add( module, "Socket", String.class, Integer.TYPE );
 				add( module, "socket_server", Integer.TYPE );
@@ -74,23 +61,6 @@ public final class IoLuan {
 		t.put( method, new LuanJavaFunction(IoLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
-
-	public static String stdin_read_text() throws IOException {
-		return Utils.readAll(new InputStreamReader(System.in));
-	}
-
-	public static byte[] stdin_read_binary() throws IOException {
-		return Utils.readAll(System.in);
-	}
-
-	public static LuanFunction stdin_read_lines() throws IOException {
-		return lines(new BufferedReader(new InputStreamReader(System.in)));
-	}
-
-	public static LuanFunction stdin_read_blocks(Integer blockSize) throws IOException {
-		int n = blockSize!=null ? blockSize : Utils.bufSize;
-		return blocks(System.in,n);
-	}
 
 	public static String read_console_line(String prompt) throws IOException {
 		if( prompt==null )
@@ -265,6 +235,25 @@ public final class IoLuan {
 			return tbl;
 		}
 	}
+
+	private static final LuanIn stdin = new LuanIn() {
+
+		@Override InputStream inputStream() {
+			return System.in;
+		}
+
+		@Override public String to_string() {
+			return "<stdin>";
+		}
+
+		@Override public String read_text() throws IOException {
+			return Utils.readAll(new InputStreamReader(System.in));
+		}
+
+		@Override public byte[] read_binary() throws IOException {
+			return Utils.readAll(System.in);
+		}
+	};
 
 	public static abstract class LuanIO extends LuanIn {
 		abstract OutputStream outputStream() throws IOException;
