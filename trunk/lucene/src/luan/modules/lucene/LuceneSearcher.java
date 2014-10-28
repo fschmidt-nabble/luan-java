@@ -16,6 +16,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.TotalHitCountCollector;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -159,10 +160,21 @@ public final class LuceneSearcher {
 		return new Sort(flds);
 	}
 
+	private static final LuanFunction nothingFn = new LuanFunction() {
+		@Override public Object call(LuanState luan,Object[] args) {
+			return LuanFunction.NOTHING;
+		}
+	};
+
 	public Object[] search( LuanState luan, LuanTable queryTbl, int n, LuanTable sortTbl ) throws LuanException, IOException {
 		Query query = query(queryTbl);
 		if( query == null )
 			throw luan.exception("invalid query");
+		if( n==0 ) {
+			TotalHitCountCollector thcc = new TotalHitCountCollector();
+			searcher.search(query,thcc);
+			return new Object[]{ nothingFn, 0, thcc.getTotalHits() };
+		}
 		TopDocs td = sortTbl==null ? searcher.search(query,n) : searcher.search(query,n,sort(luan,sortTbl));
 		final ScoreDoc[] scoreDocs = td.scoreDocs;
 		LuanFunction results = new LuanFunction() {
