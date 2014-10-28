@@ -73,10 +73,10 @@ end
 function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Http.dir = dir
-	Package.path = dir .. "?.luan;java:luan/modules/?.luan"
+	Package.path = dir .. "?.luan;classpath:luan/modules/?.luan"
 	authentication_handler.setPassword(private_password)
 	local base = dir
-	if base.match("^java:") ~= nil then
+	if base.match("^classpath:") ~= nil then
 		base = dir.."#"..welcome_file.."#"..welcome_file..".luan"
 	end
 	resource_handler.setResourceBase(Io.File(base).to_string())

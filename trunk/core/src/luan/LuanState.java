@@ -60,7 +60,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	public static LuanState newStandard() {
 		try {
 			LuanState luan = LuanCompiler.newLuanState();
-			BasicLuan.do_file(luan,"java:luan/init.luan");
+			BasicLuan.do_file(luan,"classpath:luan/init.luan");
 			return luan;
 		} catch(LuanException e) {
 			throw new RuntimeException(e);

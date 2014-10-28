@@ -38,7 +38,7 @@ Package.global(Basic,"to_number")
 local to_string = Package.global(Basic,"to_string")
 Package.global(Basic,"type")
 
-do_file "java:luan/version.luan"
+do_file "classpath:luan/version.luan"
 
 
 function Io.print_to(out,...)
