@@ -39,3 +39,16 @@ end
 function format(time,pattern)
 	return SimpleDateFormat.new(pattern).format(Date.new(time))
 end
+
+function on( year, month, day, hour, minute, second, millis )
+	month = month - 1
+	local cal = Calendar.getInstance()
+	cal.set( year, month, day, hour or 0, minute or 0, second or 0 )
+	cal.set( Calendar.MILLISECOND, millis or 0 )
+	return cal.getTimeInMillis()
+end
+
+function parse( pattern, source )
+	return SimpleDateFormat.new(pattern).parse(source).getTime()
+end
+	
