@@ -17,15 +17,25 @@ function Index(indexDir)
 		end )
 	end
 
-	function index.get_document(query)
+	function index.get_first(query, sort)
 		return index.Searcher( function(searcher)
-			local results, _, total_hits = searcher.search(query,1)
-			if total_hits == 0 then
-				return nil
-			elseif total_hits > 1 then
-				error( "found " .. total_hits .. " documents" )
-			end
-			return results()
+			local results, _, total_hits = searcher.search(query,1,sort)
+			return results(), total_hits
+		end )
+	end
+
+	function index.get_document(query)
+		local doc, total_hits = index.get_first(query);
+		if total_hits > 1 then
+			error( "found " .. total_hits .. " documents" )
+		end
+		return doc
+	end
+
+	function index.count(query)
+		return index.Searcher( function(searcher)
+			local _, _, total_hits = searcher.search(query,0)
+			return total_hits
 		end )
 	end
 
