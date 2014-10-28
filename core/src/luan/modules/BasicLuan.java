@@ -75,7 +75,16 @@ public final class BasicLuan {
 
 	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
 		try {
-			String src = fileName==null ? Utils.readAll(new InputStreamReader(System.in)) : IoLuan.luanIo(luan,fileName).read_text();
+			String src;
+			if( fileName==null ) {
+				src = Utils.readAll(new InputStreamReader(System.in));
+			} else {
+				LuanTable t = IoLuan.get(luan,fileName);
+				if( t == null )
+					throw luan.exception( "file '"+fileName+"' not found" );
+				LuanFunction fn = (LuanFunction)t.get("read_text");
+				src = (String)Luan.first(luan.call(fn));
+			}
 			return load(luan,src,fileName,null,false);
 		} catch(IOException e) {
 			throw luan.exception(e);

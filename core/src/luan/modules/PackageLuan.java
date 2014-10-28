@@ -27,7 +27,7 @@ public final class PackageLuan {
 				module.put("require",requireFn);
 				add( module, "load", LuanState.class, String.class );
 				add( module, "load_lib", LuanState.class, String.class );
-				add( module, "search_path", String.class, String.class );
+				add( module, "search_path", LuanState.class, String.class, String.class );
 				add( module, "search", LuanState.class, String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -116,10 +116,10 @@ public final class PackageLuan {
 		return null;
 	}
 
-	public static String search_path(String name,String path) {
+	public static String search_path(LuanState luan,String name,String path) throws LuanException {
 		for( String s : path.split(";") ) {
 			String file = s.replaceAll("\\?",name);
-			if( Utils.exists(file) )
+			if( file.indexOf(':') > 0 && IoLuan.get(luan,file) != null )
 				return file;
 		}
 		return null;
@@ -134,12 +134,12 @@ public final class PackageLuan {
 	};
 
 	public static final LuanFunction fileSearcher = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) {
+		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
 			String modName = (String)args[0];
 			String path = (String)pkg(luan,"path");
 			if( path==null )
 				return LuanFunction.NOTHING;
-			String file = search_path(modName,path);
+			String file = search_path(luan,modName,path);
 			return file==null ? LuanFunction.NOTHING : new Object[]{fileLoader,file};
 		}
 	};

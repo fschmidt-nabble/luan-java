@@ -357,6 +357,8 @@ final class LuanParser {
 		int i = modName.lastIndexOf('/');
 		if( i == -1 )
 			i = modName.lastIndexOf('.');
+		if( i == -1 )
+			i = modName.lastIndexOf(':');
 		String varName = modName.substring(i+1);
 		if( !isValidName(varName) )
 			throw parser.exception("invalid variable name '"+varName+"' in import");

@@ -67,7 +67,7 @@ if i <= #args then
 		_G.arg[j-i] = v
 	end
 	try
-		local main_file = load_file(file)
+		local main_file = load_file("file:"..file)
 		main_file( Table.unpack(_G.arg) )
 	catch e do
 		Io.print_to(Io.stderr, e )
