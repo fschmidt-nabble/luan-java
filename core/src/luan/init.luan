@@ -1,7 +1,7 @@
-import "Package"
-import "Basic"
-import "Table"
-import "Io"
+import "luan:Package"
+import "luan:Basic"
+import "luan:Table"
+import "luan:Io"
 
 function Package.global(module,fn_name)
 	local function fn(...)

@@ -43,7 +43,7 @@ public final class StringLuan {
 	}
 
 	public static Object __index(LuanState luan,final String s,Object key) throws LuanException {
-		LuanTable mod = (LuanTable)PackageLuan.loaded(luan).get("String");
+		LuanTable mod = (LuanTable)PackageLuan.loaded(luan).get("luan:String");
 		if( mod!=null ) {
 			Object obj = mod.get(key);
 			if( obj instanceof LuanFunction ) {

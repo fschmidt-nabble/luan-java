@@ -25,7 +25,7 @@ public class LuanHandler extends AbstractHandler {
 		if( target.endsWith("/") )
 			target += welcomeFile;
 		try {
-			if( !HttpServicer.service(luan,request,response,target) )
+			if( !HttpServicer.service(luan,request,response,"site:"+target) )
 				return;
 			response.setStatus(HttpServletResponse.SC_OK);
 		} catch(LuanException e) {

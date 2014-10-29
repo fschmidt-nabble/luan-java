@@ -44,25 +44,22 @@ public final class JavaLuan {
 	};
 
 	private static boolean isLoaded(LuanState luan) {
-		return PackageLuan.loaded(luan).get("Java") != null;
+		return PackageLuan.loaded(luan).get("luan:Java") != null;
 	}
 
-	public static final LuanFunction javaSearcher = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-			if( !isLoaded(luan) )
-				return LuanFunction.NOTHING;
-			String modName = (String)args[0];
-			final Static s = JavaLuan.getClass(luan,modName);
-			if( s==null )
-				return null;
-			LuanFunction loader = new LuanFunction() {
-				@Override public Object call(LuanState luan,Object[] args) {
-					return s;
-				}
-			};
-			return loader;
-		}
-	};
+	static LuanFunction javaLoader(LuanState luan,String modName) throws LuanException {
+		if( !isLoaded(luan) )
+			return null;
+		final Static s = JavaLuan.getClass(luan,modName);
+		if( s==null )
+			return null;
+		LuanFunction loader = new LuanFunction() {
+			@Override public Object call(LuanState luan,Object[] args) {
+				return s;
+			}
+		};
+		return loader;
+	}
 
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) {
 		try {

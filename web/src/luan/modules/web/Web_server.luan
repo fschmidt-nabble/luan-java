@@ -1,21 +1,21 @@
-import "Java"
-import "String"
-import "Io"
-import "Package"
-import "web/Http"
+import "luan:Java"
+import "luan:String"
+import "luan:Io"
+import "luan:Package"
+import "luan:web/Http"
 
-import "org.eclipse.jetty.server.Server"
-import "org.eclipse.jetty.server.NCSARequestLog"
-import "org.eclipse.jetty.server.handler.DefaultHandler"
-import "org.eclipse.jetty.server.handler.HandlerList"
-import "org.eclipse.jetty.server.handler.HandlerCollection"
-import "org.eclipse.jetty.server.handler.ResourceHandler"
-import "org.eclipse.jetty.server.handler.RequestLogHandler"
-import "org.eclipse.jetty.server.handler.ContextHandler"
-import "org.eclipse.jetty.server.handler.GzipHandler"
-import "org.eclipse.jetty.server.handler.HandlerWrapper"
-import "org.eclipse.jetty.server.session.SessionHandler"
-import "luan.modules.web.AuthenticationHandler"
+import "class:org.eclipse.jetty.server.Server"
+import "class:org.eclipse.jetty.server.NCSARequestLog"
+import "class:org.eclipse.jetty.server.handler.DefaultHandler"
+import "class:org.eclipse.jetty.server.handler.HandlerList"
+import "class:org.eclipse.jetty.server.handler.HandlerCollection"
+import "class:org.eclipse.jetty.server.handler.ResourceHandler"
+import "class:org.eclipse.jetty.server.handler.RequestLogHandler"
+import "class:org.eclipse.jetty.server.handler.ContextHandler"
+import "class:org.eclipse.jetty.server.handler.GzipHandler"
+import "class:org.eclipse.jetty.server.handler.HandlerWrapper"
+import "class:org.eclipse.jetty.server.session.SessionHandler"
+import "class:luan.modules.web.AuthenticationHandler"
 
 
 port = 8080
@@ -73,7 +73,9 @@ end
 function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Http.dir = dir
-	Package.path = dir .. "?.luan;classpath:luan/modules/?.luan"
+	function Io.protocols.site(path,loading)
+		return Io.get( dir..path, loading )
+	end
 	authentication_handler.setPassword(private_password)
 	local base = dir
 	if base.match("^classpath:") ~= nil then
