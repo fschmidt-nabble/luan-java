@@ -48,6 +48,8 @@ function init_for_test()
 			response.redirect = url
 		end;
 
+		headers = {};
+
 	}
 
 end
