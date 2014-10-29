@@ -301,7 +301,7 @@ public final class IoLuan {
 	public static final class LuanUrl extends LuanIn {
 		private final URL url;
 
-		private LuanUrl(URL url) throws LuanException {
+		private LuanUrl(URL url) {
 			this.url = url;
 		}
 
@@ -432,12 +432,26 @@ public final class IoLuan {
 		return new LuanUrl(url).table();
 	}
 
+	private static LuanTable url(String url) throws IOException {
+		return new LuanUrl(new URL(url)).table();
+	}
+
+	public static LuanTable http(String path) throws IOException {
+		return url("http:"+path);
+	}
+
+	public static LuanTable https(String path) throws IOException {
+		return url("https:"+path);
+	}
+
 	private static LuanTable newProtocols() {
 		LuanTable protocols = Luan.newTable();
 		try {
 			add( protocols, "file", LuanState.class, String.class );
 			add( protocols, "classpath", LuanState.class, String.class );
 			add( protocols, "socket", LuanState.class, String.class );
+			add( protocols, "http", String.class );
+			add( protocols, "https", String.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
