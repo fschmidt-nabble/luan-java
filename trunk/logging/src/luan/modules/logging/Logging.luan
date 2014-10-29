@@ -1,10 +1,10 @@
-import "Java"
-import "org.apache.log4j.Logger"
-import "org.apache.log4j.EnhancedPatternLayout"
-import "org.apache.log4j.ConsoleAppender"
-import "org.apache.log4j.Level"
-import "org.apache.log4j.RollingFileAppender"
-import "luan.modules.logging.LuanLogger"
+import "luan:Java"
+import "class:org.apache.log4j.Logger"
+import "class:org.apache.log4j.EnhancedPatternLayout"
+import "class:org.apache.log4j.ConsoleAppender"
+import "class:org.apache.log4j.Level"
+import "class:org.apache.log4j.RollingFileAppender"
+import "class:luan.modules.logging.LuanLogger"
 
 
 layout = "%d %-5p %c - %m%n"

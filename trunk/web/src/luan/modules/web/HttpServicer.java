@@ -64,7 +64,7 @@ public final class HttpServicer {
 			}
 		}
 
-		LuanTable module = (LuanTable)PackageLuan.loaded(luan).get("web/Http");
+		LuanTable module = (LuanTable)PackageLuan.loaded(luan).get("luan:web/Http");
 		if( module == null )
 			throw luan.exception( "module 'web/Http' not defined" );
 		HttpServicer lib = new HttpServicer(request,response);

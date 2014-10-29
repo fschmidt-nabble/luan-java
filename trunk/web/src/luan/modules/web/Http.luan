@@ -1,6 +1,6 @@
-import "Java"
-import "Table"
-import "luan.modules.web.LuanHandler"
+import "luan:Java"
+import "luan:Table"
+import "class:luan.modules.web.LuanHandler"
 
 function new_luan_handler()
 	return LuanHandler.new()
@@ -11,7 +11,7 @@ end
 function init_for_test()
 
 	function get_page(mod_name)
-		local mod = require(mod_name)
+		local mod = require("site:"..mod_name)
 		mod.service()
 		return Table.concat(result)
 	end

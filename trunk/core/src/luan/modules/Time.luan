@@ -1,12 +1,12 @@
 -- incomplete, will add as needed
 
-import "String"
-import "Table"
-import "Java"
-import "java.lang.System"
-import "java.util.Calendar"
-import "java.util.Date"
-import "java.text.SimpleDateFormat"
+import "luan:String"
+import "luan:Table"
+import "luan:Java"
+import "class:java.lang.System"
+import "class:java.util.Calendar"
+import "class:java.util.Date"
+import "class:java.text.SimpleDateFormat"
 
 
 function now()

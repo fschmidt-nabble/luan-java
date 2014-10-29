@@ -15,24 +15,18 @@ import luan.LuanException;
 
 public final class PackageLuan {
 
-	private static final String jpath = "luan.modules.?Luan.LOADER";
-
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = Luan.newTable();
 			module.put( "loaded", loaded(luan) );
-			module.put( "path", "?.luan;classpath:luan/modules/?.luan" );
-			module.put( "jpath", jpath );
 			try {
 				module.put("require",requireFn);
 				add( module, "load", LuanState.class, String.class );
 				add( module, "load_lib", LuanState.class, String.class );
-				add( module, "search_path", LuanState.class, String.class, String.class );
 				add( module, "search", LuanState.class, String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-			module.put( "searchers", searchers(luan) );
 			return module;
 		}
 	};
@@ -61,19 +55,6 @@ public final class PackageLuan {
 	private static Object pkg(LuanState luan,String key) {
 		LuanTable t = (LuanTable)loaded(luan).get("Package");
 		return t==null ? null : t.get(key);
-	}
-
-	private static LuanTable searchers(LuanState luan) {
-		String key = "Package.searchers";
-		LuanTable tbl = (LuanTable)luan.registry().get(key);
-		if( tbl == null ) {
-			tbl = Luan.newTable();
-			tbl.add(fileSearcher);
-			tbl.add(javaSearcher);
-			tbl.add(JavaLuan.javaSearcher);
-			luan.registry().put(key,tbl);
-		}
-		return tbl;
 	}
 
 	public static Object require(LuanState luan,String modName) throws LuanException {
@@ -107,82 +88,13 @@ public final class PackageLuan {
 	}
 
 	public static Object[] search(LuanState luan,String modName) throws LuanException {
-		for( Object s : searchers(luan).asList() ) {
-			LuanFunction searcher = (LuanFunction)s;
-			Object[] a = Luan.array(luan.call(searcher,"<searcher>",new Object[]{modName}));
-			if( a.length >= 1 && a[0] instanceof LuanFunction )
-				return a;
-		}
-		return null;
+		LuanTable t = IoLuan.get(luan,modName,true);
+		if( t == null )
+			return null;
+		LuanFunction loader = (LuanFunction)t.get("loader");
+		LuanFunction fn = (LuanFunction)Luan.first(luan.call(loader,new Object[]{modName}));
+		return new Object[]{fn,modName};
 	}
-
-	public static String search_path(LuanState luan,String name,String path) throws LuanException {
-		for( String s : path.split(";") ) {
-			String file = s.replaceAll("\\?",name);
-			if( file.indexOf(':') > 0 && IoLuan.get(luan,file) != null )
-				return file;
-		}
-		return null;
-	}
-
-	public static final LuanFunction fileLoader = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-			String fileName = (String)args[1];
-			LuanFunction fn = BasicLuan.load_file(luan,fileName);
-			return fn.call(luan,args);
-		}
-	};
-
-	public static final LuanFunction fileSearcher = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args) throws LuanException {
-			String modName = (String)args[0];
-			String path = (String)pkg(luan,"path");
-			if( path==null )
-				return LuanFunction.NOTHING;
-			String file = search_path(luan,modName,path);
-			return file==null ? LuanFunction.NOTHING : new Object[]{fileLoader,file};
-		}
-	};
-
-
-	public static final LuanFunction javaLoader = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-			try {
-				String objName = (String)args[1];
-				LuanFunction fn = load_lib(luan,objName);
-				return fn.call(luan,args);
-			} catch(ClassNotFoundException e) {
-				throw new RuntimeException(e);
-			} catch(NoSuchFieldException e) {
-				throw new RuntimeException(e);
-			} catch(IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	};
-
-	public static final LuanFunction javaSearcher = new LuanFunction() {
-		@Override public Object[] call(LuanState luan,Object[] args)
-			throws LuanException
-		{
-			String modName = (String)args[0];
-			modName = modName.replace('/','.');
-			String path = (String)pkg(luan,"jpath");
-			if( path==null )
-				path = jpath;
-			for( String s : path.split(";") ) {
-				String objName = s.replaceAll("\\?",modName);
-				try {
-					load_lib(luan,objName);  // throws exception if not found
-					return new Object[]{javaLoader,objName};
-				} catch(ClassNotFoundException e) {
-				} catch(NoSuchFieldException e) {
-				} catch(IllegalAccessException e) {
-				}
-			}
-			return LuanFunction.NOTHING;
-		}
-	};
 
 
 	public static void block(LuanState luan,String key) {
