@@ -74,14 +74,14 @@ function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Http.dir = dir
 	function Io.protocols.site(path,loading)
-		return Io.get( dir..path, loading )
+		return Io.Uri( dir..path, loading )
 	end
 	authentication_handler.setPassword(private_password)
 	local base = dir
 	if base.match("^classpath:") ~= nil then
 		base = dir.."#"..welcome_file.."#"..welcome_file..".luan"
 	end
-	resource_handler.setResourceBase(Io.get(base).to_string())
+	resource_handler.setResourceBase(Io.Uri(base).to_string())
 	resource_handler.setWelcomeFiles {welcome_file}
 	luan_handler.setWelcomeFile(welcome_file)
 	local server = Server.new(port)

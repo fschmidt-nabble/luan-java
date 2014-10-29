@@ -88,7 +88,7 @@ public final class PackageLuan {
 	}
 
 	static LuanFunction loader(LuanState luan,String name,boolean loading) throws LuanException {
-		LuanTable t = IoLuan.get(luan,name,loading);
+		LuanTable t = IoLuan.Uri(luan,name,loading);
 		if( t == null )
 			return null;
 		LuanFunction loader = (LuanFunction)t.get("loader");
