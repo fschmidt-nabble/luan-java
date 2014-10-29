@@ -41,7 +41,7 @@ public final class IoLuan {
 			try {
 				add( module, "read_console_line", String.class );
 				module.put( "protocols", newProtocols() );
-				add( module, "get", LuanState.class, String.class, Boolean.class );
+				add( module, "Uri", LuanState.class, String.class, Boolean.class );
 				module.put( "stdin", stdin.table() );
 				add( module, "socket_server", Integer.TYPE );
 			} catch(NoSuchMethodException e) {
@@ -552,7 +552,7 @@ public final class IoLuan {
 		return t;
 	}
 
-	public static LuanTable get(LuanState luan,String name,Boolean loading) throws LuanException {
+	public static LuanTable Uri(LuanState luan,String name,Boolean loading) throws LuanException {
 		int i = name.indexOf(':');
 		if( i == -1 )
 			throw luan.exception( "invalid Io name '"+name+"', missing protocol" );
