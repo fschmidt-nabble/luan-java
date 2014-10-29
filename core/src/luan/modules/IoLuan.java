@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -210,8 +211,19 @@ public final class IoLuan {
 			try {
 				String src = read_text();
 				return BasicLuan.load(luan,src,name,null,false);
+			} catch(FileNotFoundException e) {
+				return null;
 			} catch(IOException e) {
 				throw luan.exception(e);
+			}
+		}
+
+		public boolean exists() throws IOException {
+			try {
+				inputStream().close();
+				return true;
+			} catch(FileNotFoundException e) {
+				return false;
 			}
 		}
 
@@ -236,6 +248,9 @@ public final class IoLuan {
 				tbl.put( "loader", new LuanJavaFunction(
 					LuanIn.class.getMethod( "loader", LuanState.class, String.class ), this
 				) );
+				tbl.put( "exists", new LuanJavaFunction(
+					LuanIn.class.getMethod( "exists" ), this
+				) );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
@@ -259,6 +274,10 @@ public final class IoLuan {
 
 		@Override public byte[] read_binary() throws IOException {
 			return Utils.readAll(System.in);
+		}
+
+		@Override public boolean exists() {
+			return true;
 		}
 	};
 
@@ -365,7 +384,7 @@ public final class IoLuan {
 			return list;
 		}
 
-		public boolean exists() {
+		@Override public boolean exists() {
 			return file.exists();
 		}
 
@@ -374,9 +393,6 @@ public final class IoLuan {
 			try {
 				tbl.put( "name", new LuanJavaFunction(
 					File.class.getMethod( "getName" ), file
-				) );
-				tbl.put( "exists", new LuanJavaFunction(
-					LuanFile.class.getMethod( "exists" ), this
 				) );
 				tbl.put( "is_directory", new LuanJavaFunction(
 					File.class.getMethod( "isDirectory" ), file
@@ -413,8 +429,6 @@ public final class IoLuan {
 		if( Boolean.TRUE.equals(loading) )
 			name += ".luan";
 		File file = new File(name);
-		if( !file.exists() )
-			return null;
 		return new LuanFile(file).table();
 	}
 
@@ -504,6 +518,11 @@ public final class IoLuan {
 		return classpath( luan, "luan/modules/" + path, loading );
 	}
 
+	public static LuanTable stdin(LuanState luan) throws LuanException {
+		LuanTable io = (LuanTable)PackageLuan.loaded(luan).get("luan:Io");
+		return (LuanTable)io.get("stdin");
+	}
+
 	private static LuanTable newProtocols() {
 		LuanTable protocols = Luan.newTable();
 		try {
@@ -516,6 +535,7 @@ public final class IoLuan {
 				IoLuan.class.getMethod( "_class", LuanState.class, String.class, Boolean.class ), null
 			) );
 			add( protocols, "luan", LuanState.class, String.class, Boolean.class );
+			add( protocols, "stdin", LuanState.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
