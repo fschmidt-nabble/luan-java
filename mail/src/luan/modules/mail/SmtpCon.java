@@ -1,5 +1,6 @@
 package luan.modules.mail;
 
+import java.util.Map;
 import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
@@ -8,6 +9,8 @@ import javax.mail.Transport;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeBodyPart;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -64,7 +67,7 @@ public final class SmtpCon {
 	private String getString(LuanState luan,LuanTable params,String key) throws LuanException {
 		Object val = params.get(key);
 		if( val!=null && !(val instanceof String) )
-			throw luan.exception( "parameter '"+key+"' is must be a string" );
+			throw luan.exception( "parameter '"+key+"' must be a string" );
 		return (String)val;
 	}
 
@@ -97,9 +100,28 @@ public final class SmtpCon {
 			if( subject != null )
 				msg.setSubject(subject);
 
-			String body = getString(luan,mailTbl,"body");
-			if( body != null )
-				msg.setText(body);
+			Object body = mailTbl.get("body");
+			if( body != null ) {
+				if( body instanceof String ) {
+					msg.setText((String)body);
+				} else if( body instanceof LuanTable ) {
+					MimeMultipart mp = new MimeMultipart("alternative");
+					for( Map.Entry<Object,Object> entry : (LuanTable)body ) {
+						String key = (String)entry.getKey();
+						String val = (String)entry.getValue();
+						MimeBodyPart part = new MimeBodyPart();
+						if( key.equals("text") ) {
+							part.setText(val);
+						} else if( key.equals("html") ) {
+							part.setContent(val,"text/html");
+						} else
+							throw luan.exception( "invalid body type: " + key );
+						mp.addBodyPart(part);
+					}
+					msg.setContent(mp);
+				} else
+					throw luan.exception( "parameter 'body' is must be a string or table" );
+			}
 
 			Transport.send(msg);
 		} catch(MessagingException e) {
