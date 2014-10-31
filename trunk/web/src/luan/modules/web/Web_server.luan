@@ -4,18 +4,18 @@ import "luan:Io"
 import "luan:Package"
 import "luan:web/Http"
 
-import "class:org.eclipse.jetty.server.Server"
-import "class:org.eclipse.jetty.server.NCSARequestLog"
-import "class:org.eclipse.jetty.server.handler.DefaultHandler"
-import "class:org.eclipse.jetty.server.handler.HandlerList"
-import "class:org.eclipse.jetty.server.handler.HandlerCollection"
-import "class:org.eclipse.jetty.server.handler.ResourceHandler"
-import "class:org.eclipse.jetty.server.handler.RequestLogHandler"
-import "class:org.eclipse.jetty.server.handler.ContextHandler"
-import "class:org.eclipse.jetty.server.handler.GzipHandler"
-import "class:org.eclipse.jetty.server.handler.HandlerWrapper"
-import "class:org.eclipse.jetty.server.session.SessionHandler"
-import "class:luan.modules.web.AuthenticationHandler"
+import "java:org.eclipse.jetty.server.Server"
+import "java:org.eclipse.jetty.server.NCSARequestLog"
+import "java:org.eclipse.jetty.server.handler.DefaultHandler"
+import "java:org.eclipse.jetty.server.handler.HandlerList"
+import "java:org.eclipse.jetty.server.handler.HandlerCollection"
+import "java:org.eclipse.jetty.server.handler.ResourceHandler"
+import "java:org.eclipse.jetty.server.handler.RequestLogHandler"
+import "java:org.eclipse.jetty.server.handler.ContextHandler"
+import "java:org.eclipse.jetty.server.handler.GzipHandler"
+import "java:org.eclipse.jetty.server.handler.HandlerWrapper"
+import "java:org.eclipse.jetty.server.session.SessionHandler"
+import "java:luan.modules.web.AuthenticationHandler"
 
 
 port = 8080
@@ -73,7 +73,7 @@ end
 function serve(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Http.dir = dir
-	function Io.protocols.site(path,loading)
+	function Io.schemes.site(path,loading)
 		return Io.Uri( dir..path, loading )
 	end
 	authentication_handler.setPassword(private_password)

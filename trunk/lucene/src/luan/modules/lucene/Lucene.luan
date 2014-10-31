@@ -1,5 +1,5 @@
 import "luan:Java"
-import "class:luan.modules.lucene.LuceneIndex"
+import "java:luan.modules.lucene.LuceneIndex"
 
 
 function Index(indexDir)
