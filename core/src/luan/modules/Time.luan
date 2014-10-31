@@ -3,10 +3,10 @@
 import "luan:String"
 import "luan:Table"
 import "luan:Java"
-import "class:java.lang.System"
-import "class:java.util.Calendar"
-import "class:java.util.Date"
-import "class:java.text.SimpleDateFormat"
+import "java:java.lang.System"
+import "java:java.util.Calendar"
+import "java:java.util.Date"
+import "java:java.text.SimpleDateFormat"
 
 
 function now()

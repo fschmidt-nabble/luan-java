@@ -1,6 +1,6 @@
 import "luan:Java"
-import "class:java.lang.System"
-import "class:luan.modules.mail.SmtpCon"
+import "java:java.lang.System"
+import "java:luan.modules.mail.SmtpCon"
 
 
 System.setProperty( "mail.mime.charset", "UTF-8" )

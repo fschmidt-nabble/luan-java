@@ -40,7 +40,7 @@ public final class IoLuan {
 			LuanTable module = Luan.newTable();
 			try {
 				add( module, "read_console_line", String.class );
-				module.put( "protocols", newProtocols() );
+				module.put( "schemes", newSchemes() );
 				add( module, "Uri", LuanState.class, String.class, Boolean.class );
 				module.put( "stdin", stdin.table() );
 				add( module, "socket_server", Integer.TYPE );
@@ -498,7 +498,7 @@ public final class IoLuan {
 		return url("https:"+path,loading);
 	}
 
-	public static LuanTable _class(LuanState luan,String path,Boolean loading) throws LuanException {
+	public static LuanTable java(LuanState luan,String path,Boolean loading) throws LuanException {
 		if( !Boolean.TRUE.equals(loading) )
 			return null;
 		final LuanFunction fn = JavaLuan.javaLoader(luan,path);
@@ -523,45 +523,43 @@ public final class IoLuan {
 		return (LuanTable)io.get("stdin");
 	}
 
-	private static LuanTable newProtocols() {
-		LuanTable protocols = Luan.newTable();
+	private static LuanTable newSchemes() {
+		LuanTable schemes = Luan.newTable();
 		try {
-			add( protocols, "file", LuanState.class, String.class, Boolean.class );
-			add( protocols, "classpath", LuanState.class, String.class, Boolean.class );
-			add( protocols, "socket", LuanState.class, String.class );
-			add( protocols, "http", String.class, Boolean.class );
-			add( protocols, "https", String.class, Boolean.class );
-			protocols.put( "class", new LuanJavaFunction(
-				IoLuan.class.getMethod( "_class", LuanState.class, String.class, Boolean.class ), null
-			) );
-			add( protocols, "luan", LuanState.class, String.class, Boolean.class );
-			add( protocols, "stdin", LuanState.class );
+			add( schemes, "file", LuanState.class, String.class, Boolean.class );
+			add( schemes, "classpath", LuanState.class, String.class, Boolean.class );
+			add( schemes, "socket", LuanState.class, String.class );
+			add( schemes, "http", String.class, Boolean.class );
+			add( schemes, "https", String.class, Boolean.class );
+			add( schemes, "java", LuanState.class, String.class, Boolean.class );
+			add( schemes, "luan", LuanState.class, String.class, Boolean.class );
+			add( schemes, "stdin", LuanState.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
-		return protocols;
+		return schemes;
 	}
 
-	private static LuanTable protocols(LuanState luan) {
+	private static LuanTable schemes(LuanState luan) {
 		LuanTable t = (LuanTable)PackageLuan.loaded(luan).get("luan:Io");
 		if( t == null )
-			return newProtocols();
-		t = (LuanTable)t.get("protocols");
+			return newSchemes();
+		t = (LuanTable)t.get("schemes");
 		if( t == null )
-			return newProtocols();
+			return newSchemes();
 		return t;
 	}
 
 	public static LuanTable Uri(LuanState luan,String name,Boolean loading) throws LuanException {
 		int i = name.indexOf(':');
 		if( i == -1 )
-			throw luan.exception( "invalid Io name '"+name+"', missing protocol" );
-		String protocol = name.substring(0,i);
+			throw luan.exception( "invalid Io name '"+name+"', missing scheme" );
+		String scheme = name.substring(0,i);
 		String location = name.substring(i+1);
-		LuanTable protocols = protocols(luan);
-		LuanFunction opener = (LuanFunction)protocols.get(protocol);
+		LuanTable schemes = schemes(luan);
+		LuanFunction opener = (LuanFunction)schemes.get(scheme);
 		if( opener == null )
-			throw luan.exception( "invalid protocol '"+protocol+"' in '"+name+"'" );
+			throw luan.exception( "invalid scheme '"+scheme+"' in '"+name+"'" );
 		return (LuanTable)Luan.first(luan.call(opener,"<open \""+name+"\">",new Object[]{location,loading}));
 	}
 

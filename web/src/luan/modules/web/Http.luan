@@ -1,6 +1,6 @@
 import "luan:Java"
 import "luan:Table"
-import "class:luan.modules.web.LuanHandler"
+import "java:luan.modules.web.LuanHandler"
 
 function new_luan_handler()
 	return LuanHandler.new()
