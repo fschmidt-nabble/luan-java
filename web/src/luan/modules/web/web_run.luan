@@ -1,9 +1,9 @@
-import "Io"
-import "web/Http"
-import "String"
+import "luan:Io"
+import "luan:web/Http"
+import "luan:String"
 
 local function lines(s)
-	local matcher = String.gmatch(s,"([^\n]*)\n|([^\n])+$")
+	local matcher = s.gmatch "([^\n]*)\n|([^\n])+$"
 	return function()
 		local m1, m2 = matcher()
 		return m1 or m2
@@ -33,7 +33,7 @@ function service()
 		local run = load(code,"<web_run>",env)
 		run()
 	catch e do
-		Http.response.set_content_type "text/plain"
+		Http.response.content_type = "text/plain"
 		print(e)
 		print()
 		print()

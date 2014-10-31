@@ -1,6 +1,6 @@
-import "Basic"
-import "Io"
-import "web/Http"
+import "luan:Basic"
+import "luan:Io"
+import "luan:web/Http"
 
 per_session = true
 

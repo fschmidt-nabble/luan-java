@@ -1316,7 +1316,7 @@ final class LuanParser {
 			if( c != null ) {
 				buf.append(c);
 			} else {
-				if( !parser.anyChar() )
+				if( parser.test('\r') || parser.test('\n') || !parser.anyChar() )
 					throw parser.exception("Unclosed string");
 				buf.append(parser.lastChar());
 			}
@@ -1345,6 +1345,8 @@ final class LuanParser {
 			if( Digit() ) Digit();  // optional
 			return parser.success((char)Integer.parseInt(parser.textFrom(start)));
 		}
+		if( EndOfLine() )
+			return parser.success('\n');
 		return parser.failure(null);
 	}
 

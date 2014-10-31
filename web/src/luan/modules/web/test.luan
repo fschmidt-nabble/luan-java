@@ -1,0 +1,22 @@
+import "luan:Io"
+import "luan:web/Http"
+
+
+local function print(...)
+	Io.print_to(Io.stderr,...)
+end
+
+function Io.protocols.site(path,loading)
+	return Io.Uri( "luan:web"..path, loading )
+end
+
+
+Http.init_for_test()
+Http.request.parameters.code = "print 'hi'"
+page = Http.get_page "/web_run"
+assert( page.trim() == "hi" )
+
+Http.init_for_test()
+Http.request.parameters.cmd = "'ab'..'cd'"
+page = Http.get_page "/web_shell"
+assert( page.find "abcd" )
