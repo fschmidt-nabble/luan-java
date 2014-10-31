@@ -141,6 +141,10 @@ final class Parser {
 		return true;
 	}
 
+	public boolean test(char c) {
+		return !endOfInput() && text.charAt(i()) == c;
+	}
+
 	public boolean test(String s) {
 		return text.regionMatches(i(),s,0,s.length());
 	}

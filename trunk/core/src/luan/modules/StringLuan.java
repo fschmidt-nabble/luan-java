@@ -18,19 +18,20 @@ public final class StringLuan {
 			LuanTable module = Luan.newTable();
 			try {
 				add( module, "to_binary", String.class );
-				add( module, "to_integers", String.class );
+				module.put( "byte", new LuanJavaFunction(StringLuan.class.getMethod( "byte_", String.class ),null) );
 				module.put( "char", new LuanJavaFunction(StringLuan.class.getMethod( "char_", new int[0].getClass() ),null) );
 				add( module, "find", String.class, String.class, Integer.class, Boolean.class );
 				add( module, "format", String.class, new Object[0].getClass() );
-				add( module, "gmatch", String.class, String.class );
+				add( module, "gmatch", LuanState.class, String.class, String.class );
 				add( module, "gsub", LuanState.class, String.class, String.class, Object.class, Integer.class );
-				add( module, "len", String.class );
-				add( module, "lower", String.class );
+				add( module, "len", LuanState.class, String.class );
+				add( module, "lower", LuanState.class, String.class );
 				add( module, "match", String.class, String.class, Integer.class );
 				add( module, "rep", String.class, Integer.TYPE, String.class );
-				add( module, "reverse", String.class );
+				add( module, "reverse", LuanState.class, String.class );
 				add( module, "sub", LuanState.class, String.class, Integer.TYPE, Integer.class );
-				add( module, "upper", String.class );
+				add( module, "trim", LuanState.class, String.class );
+				add( module, "upper", LuanState.class, String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
@@ -83,7 +84,7 @@ public final class StringLuan {
 		return s.getBytes();
 	}
 
-	public static int[] to_integers(String s) {
+	public static int[] byte_(String s) {
 		char[] a = s.toCharArray();
 		int[] chars = new int[a.length];
 		for( int i=0; i<a.length; i++ ) {
@@ -100,19 +101,28 @@ public final class StringLuan {
 		return new String(a);
 	}
 
-	public static int len(String s) {
+	public static int len(LuanState luan,String s) throws LuanException {
+		Utils.checkNotNull(luan,s);
 		return s.length();
 	}
 
-	public static String lower(String s) {
+	public static String lower(LuanState luan,String s) throws LuanException {
+		Utils.checkNotNull(luan,s);
 		return s.toLowerCase();
 	}
 
-	public static String upper(String s) {
+	public static String upper(LuanState luan,String s) throws LuanException {
+		Utils.checkNotNull(luan,s);
 		return s.toUpperCase();
 	}
 
-	public static String reverse(String s) {
+	public static String trim(LuanState luan,String s) throws LuanException {
+		Utils.checkNotNull(luan,s);
+		return s.trim();
+	}
+
+	public static String reverse(LuanState luan,String s) throws LuanException {
+		Utils.checkNotNull(luan,s);
 		return new StringBuilder(s).reverse().toString();
 	}
 
@@ -160,7 +170,8 @@ public final class StringLuan {
 		return rtn;
 	}
 
-	public static LuanFunction gmatch(String s,String pattern) {
+	public static LuanFunction gmatch(LuanState luan,String s,String pattern) throws LuanException {
+		Utils.checkNotNull(luan,s);
 		final Matcher m = Pattern.compile(pattern).matcher(s);
 		return new LuanFunction() {
 			@Override public Object call(LuanState luan,Object[] args) {
