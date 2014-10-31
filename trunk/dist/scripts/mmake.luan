@@ -1,8 +1,7 @@
-import "Table"
-import "Io"
-import "String"
-import "Java"
-import "java.util.Date"
+import "luan:Table"
+import "luan:Io"
+import "luan:String"
+import "luan:Time"
 
 compiler = Table.concat( { "javac -g -encoding UTF8", ... }, " " )
 
@@ -41,14 +40,14 @@ end
 
 function header()
 	return 	%>
-# Makefile created on <%=Date.new()%> by Mmake
+# Makefile created on <%=Time.format(Time.now())%> by Mmake
 
 .SUFFIXES: .java .class
 
 .java.class:
-	javac -g -encoding UTF8 $<
+	<%=compiler%> $<
 
 all: <%
 end
 
-mmake(Io.File ".")
+mmake(Io.schemes.file ".")

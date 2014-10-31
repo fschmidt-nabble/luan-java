@@ -37,6 +37,7 @@ function get( time, ... )
 end
 
 function format(time,pattern)
+	pattern = pattern or "yyyy-MM-dd HH:m:ss"
 	return SimpleDateFormat.new(pattern).format(Date.new(time))
 end
 

@@ -1,6 +1,7 @@
 package luan.modules.mail;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
@@ -105,19 +106,23 @@ public final class SmtpCon {
 				if( body instanceof String ) {
 					msg.setText((String)body);
 				} else if( body instanceof LuanTable ) {
+					LuanTable bodyTbl = (LuanTable)body;
+					Map<Object,Object> map = new HashMap<Object,Object>(bodyTbl.asMap());
 					MimeMultipart mp = new MimeMultipart("alternative");
-					for( Map.Entry<Object,Object> entry : (LuanTable)body ) {
-						String key = (String)entry.getKey();
-						String val = (String)entry.getValue();
+					String text = (String)map.remove("text");
+					if( text != null ) {
 						MimeBodyPart part = new MimeBodyPart();
-						if( key.equals("text") ) {
-							part.setText(val);
-						} else if( key.equals("html") ) {
-							part.setContent(val,"text/html");
-						} else
-							throw luan.exception( "invalid body type: " + key );
+						part.setText(text);
 						mp.addBodyPart(part);
 					}
+					String html = (String)map.remove("html");
+					if( html != null ) {
+						MimeBodyPart part = new MimeBodyPart();
+						part.setContent(html,"text/html");
+						mp.addBodyPart(part);
+					}
+					if( !map.isEmpty() )
+						throw luan.exception( "invalid body types: " + map );
 					msg.setContent(mp);
 				} else
 					throw luan.exception( "parameter 'body' is must be a string or table" );
