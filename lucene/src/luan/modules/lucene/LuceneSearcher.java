@@ -16,13 +16,17 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.TotalHitCountCollector;
+import org.apache.lucene.search.Scorer;
+import org.apache.lucene.index.AtomicReaderContext;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanException;
+import luan.LuanRuntimeException;
 
 
 public final class LuceneSearcher {
@@ -166,10 +170,43 @@ public final class LuceneSearcher {
 		}
 	};
 
-	public Object[] search( LuanState luan, LuanTable queryTbl, int n, LuanTable sortTbl ) throws LuanException, IOException {
+	private static abstract class MyCollector extends Collector {
+		@Override public void setScorer(Scorer scorer) {}
+		@Override public void setNextReader(AtomicReaderContext context) {}
+		@Override public boolean acceptsDocsOutOfOrder() {
+			return true;
+		}
+	}
+
+	public Object[] search( final LuanState luan, LuanTable queryTbl, Object nObj, LuanTable sortTbl ) throws LuanException, IOException {
 		Query query = query(queryTbl);
 		if( query == null )
 			throw luan.exception("invalid query");
+		if( nObj instanceof LuanFunction ) {
+			final LuanFunction fn = (LuanFunction)nObj;
+			Collector col = new MyCollector() {
+				@Override public void collect(int doc) {
+					try {
+						LuanTable docTbl = doc(luan,doc);
+						luan.call(fn,new Object[]{docTbl});
+					} catch(LuanException e) {
+						throw new LuanRuntimeException(e);
+					} catch(IOException e) {
+						throw new LuanRuntimeException(luan.exception(e));
+					}
+				}
+			};
+			try {
+				searcher.search(query,col);
+			} catch(LuanRuntimeException e) {
+				throw (LuanException)e.getCause();
+			}
+			return LuanFunction.NOTHING;
+		}
+		Integer nI = Luan.asInteger(nObj);
+		if( nI == null )
+			throw luan.exception("bad argument #2 (integer or function expected, got "+Luan.type(nObj)+")");
+		int n = nI;
 		if( n==0 ) {
 			TotalHitCountCollector thcc = new TotalHitCountCollector();
 			searcher.search(query,thcc);
@@ -201,7 +238,7 @@ public final class LuceneSearcher {
 	LuanTable table() {
 		LuanTable tbl = Luan.newTable();
 		try {
-			add( tbl, "search", LuanState.class, LuanTable.class, Integer.TYPE, LuanTable.class );
+			add( tbl, "search", LuanState.class, LuanTable.class, Object.class, LuanTable.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}

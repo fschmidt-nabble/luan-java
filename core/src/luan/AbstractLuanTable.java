@@ -76,4 +76,8 @@ public abstract class AbstractLuanTable implements LuanTable {
 	@Override public void setMetatable(LuanTable metatable) {
 		throw new UnsupportedOperationException("can't set a metatable on a "+type());
 	}
+
+	@Override public LuanTable cloneTable() {
+		return isList() ? new LuanTableImpl(new ArrayList<Object>(asList())) : new LuanTableImpl(new HashMap<Object,Object>(asMap()));
+	}
 }

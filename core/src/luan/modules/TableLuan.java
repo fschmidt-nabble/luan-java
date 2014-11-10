@@ -20,6 +20,7 @@ public final class TableLuan {
 		@Override public Object call(LuanState luan,Object[] args) {
 			LuanTable module = Luan.newTable();
 			try {
+				add( module, "clone", LuanTable.class );
 				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
 				add( module, "insert", LuanTable.class, Integer.TYPE, Object.class );
 				add( module, "pack", new Object[0].getClass() );
@@ -131,6 +132,10 @@ public final class TableLuan {
 
 	public static LuanTable sub_list(LuanTable list,int from,int to) {
 		return list.subList(from,to);
+	}
+
+	public static LuanTable clone(LuanTable tbl) {
+		return tbl.cloneTable();
 	}
 
 }
