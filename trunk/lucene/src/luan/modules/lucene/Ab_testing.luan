@@ -1,0 +1,160 @@
+import "luan:Math"
+import "luan:Table"
+
+
+function of(index)
+
+	local ab_testing = {}
+
+	ab_testing.test_map = {}
+	ab_testing.test_list = {}
+
+	function ab_testing.test(test)
+		test.name or error "name not defined"
+		test.values or error "values not defined"
+		-- test.date_field is optional
+
+		local field = "ab_test_" .. test.name
+		index.fields[field] == nil or error("test "+test.name+" already defined")
+		index.fields[field] = field .. " index"
+		test.field = field
+
+		-- pass in map of name to aggregator factory
+		-- returns map of name to (map of value to result) and "start_date"
+		function test.results(aggregator_factories)
+			return index.Searcher( function(searcher)
+				local results = {}
+				for name in pairs(aggregator_factories) do
+					results[name] = {}
+				end
+				local date_field = test.date_field
+				local start_date = nil
+				for _, value in ipairs(test.values) do
+					local aggregators = {}
+					for name, factory in pairs(aggregator_factories) do
+						aggregators[name] = factory()
+					end
+					local query = { [field] = value }
+					searcher.search(query, function(doc)
+						for _, aggregator in pairs(aggregators) do
+							aggregator.aggregate(doc)
+						end
+						if date_field ~= nil then
+							local date = doc[date_field]
+							if date ~= nil and (start_date==nil or start_date > date) then
+								start_date = date
+							end
+						end
+					end)
+					for name, aggregator in pairs(aggregators) do
+						results[name][value] = aggregator.result
+					end
+				end
+				results.start_date = start_date
+				return results
+			end )
+		end
+
+		ab_testing.test_map[test.name] = test
+		ab_testing.test_list[#ab_testing.test_list + 1] = test
+
+		return test
+	end
+	
+	function ab_testing.value(test_name,values)
+		return values[test_name] or ab_testing.test_map[test_name].values[1]
+	end
+	
+	-- returns map from test name to value
+	function ab_testing.from_doc(doc)
+		local tests = ab_testing.test_list
+		local values = {}
+		for _, test in ipairs(tests) do
+			values[test.name] = doc[test.field]
+		end
+		return values
+	end
+
+	function ab_testing.to_doc(doc,values,tests)
+		tests = tests or ab_testing.test_list
+		if values == nil then
+			for _, test in ipairs(tests) do
+				doc[test.field] = test.values[Math.random(#test.values)]
+			end
+		else
+			for _, test in ipairs(tests) do
+				doc[test.field] = values[test.name]
+			end
+		end
+	end
+
+	return ab_testing
+end
+
+
+-- aggregator factories
+
+-- fn(doc) should return boolean whether doc should be counted
+function count(fn)
+	return function()
+		local aggregator = {}
+		aggregator.result = 0
+		function aggregator.aggregate(doc)
+			if fn(doc) then
+				aggregator.result = aggregator.result + 1
+			end
+		end
+		return aggregator
+	end
+end
+
+count_all = count( function() return true end )
+
+-- fn(doc) should return number to add to result, return 0 for nothing
+function sum(fn)
+	return function()
+		local aggregator = {}
+		aggregator.result = 0
+		function aggregator.aggregate(doc)
+			aggregator.result = aggregator.result + fn(doc)
+		end
+		return aggregator
+	end
+end
+
+
+
+local function percent(x,total)
+	if total==0 then
+		return 0
+	else
+		return 100 * x / total
+	end
+end
+
+function fancy(results,names)
+	local fancy = {}
+	fancy.start_date = results.start_date
+	local name = names[1]
+	fancy[name] = {}
+	for value, count in pairs(result[name]) do
+		fancy[name][value] = {}
+		fancy[name][value].count = count
+		fancy[name][value].pct_of_total = 100
+		fancy[name][value].pct_of_prev = 100
+	end
+	local all = result[name]
+	local prev = all
+	for i in range(2,#names) do
+		name = names[i]
+		fancy[name] = {}
+		for value, count in pairs(result[name]) do
+			fancy[name][value] = {}
+			fancy[name][value].count = count
+			fancy[name][value].pct_of_total = percent(count,all[value])
+			fancy[name][value].pct_of_prev = percent(count,prev[value])
+		end
+		prev = result[name]
+	end
+	return fancy
+end

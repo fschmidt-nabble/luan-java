@@ -562,7 +562,8 @@ final class LuanParser {
 		Spaces(In.NOTHING);
 		Expressions values = ExpList(In.NOTHING);
 		if( values==null )
-			throw parser.exception("Expressions expected");
+//			throw parser.exception("Expressions expected");
+			return parser.failure(null);
 		return parser.success( new SetStmt( vars.toArray(new Settable[0]), values ) );
 	}
 
