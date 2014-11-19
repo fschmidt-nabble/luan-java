@@ -1,25 +1,25 @@
 -- Reactionary
 
-import "Io"
+import "luan:Io"
 
-host = "localhost"
 port = 9101
+socket = "socket:localhost:" .. port
 
 function put_site(domain,password,dir)
-	local pc = Io.Socket(host,port).Pickle_client()
+	local pc = Io.Uri(socket).Pickle_client()
 	local pickle = pc.pickle
 	pc.call(%>
-		import "Reactionary"
+		import "luan:Reactionary"
 		Reactionary.do_put_site(<%=pickle(domain)%>,<%=pickle(password)%>,<%=pickle(dir)%>)
 	<%)
 	pc.close()
 end
 
 function delete_site(domain,password)
-	local pc = Io.Socket(host,port).Pickle_client()
+	local pc = Io.Uri(socket).Pickle_client()
 	local pickle = pc.pickle
 	pc.call(%>
-		import "Reactionary"
+		import "luan:Reactionary"
 		Reactionary.do_delete_site(<%=pickle(domain)%>,<%=pickle(password)%>)
 	<%)
 	pc.close()

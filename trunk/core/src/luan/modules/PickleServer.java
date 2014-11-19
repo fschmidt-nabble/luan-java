@@ -53,7 +53,7 @@ public final class PickleServer {
 	}
 
 	public void run() {
-		LuanTable io = (LuanTable)PackageLuan.loaded(con.luan).get("Io");
+		LuanTable io = (LuanTable)PackageLuan.loaded(con.luan).get("luan:Io");
 		LuanTable env = con.env;
 		Object old_reverse_pickle = io.get("reverse_pickle");
 		Object old_unreverse_pickle = env.get("_unreverse_pickle");
