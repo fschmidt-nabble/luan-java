@@ -48,10 +48,6 @@ public final class PackageLuan {
 		return luan.registryTable("Package.loaded");
 	}
 
-	private static LuanTable blocked(LuanState luan) {
-		return luan.registryTable("Package.blocked");
-	}
-
 	private static Object pkg(LuanState luan,String key) {
 		LuanTable t = (LuanTable)loaded(luan).get("Package");
 		return t==null ? null : t.get(key);
@@ -102,14 +98,6 @@ public final class PackageLuan {
 		return fn==null ? null : new Object[]{fn,modName};
 	}
 
-
-	public static void block(LuanState luan,String key) {
-		blocked(luan).put(key,true);
-	}
-
-	public static boolean is_blocked(LuanState luan,String key) {
-		return blocked(luan).get(key) != null;
-	}
 
 	public static LuanFunction load_lib(LuanState luan,String path)
 		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, LuanException

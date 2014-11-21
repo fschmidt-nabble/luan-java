@@ -29,11 +29,8 @@ public final class JavaLuan {
 
 	public static final LuanFunction LOADER = new LuanFunction() {
 		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-			if( PackageLuan.is_blocked(luan,"Java") )
-				throw luan.exception("Java is blocked");
 			LuanTable module = Luan.newTable();
 			try {
-				module.put( "block", new LuanJavaFunction(JavaLuan.class.getMethod("block",LuanState.class),null) );
 				module.put( "class", new LuanJavaFunction(JavaLuan.class.getMethod("getClass",LuanState.class,String.class),null) );
 				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
 			} catch(NoSuchMethodException e) {
@@ -67,10 +64,6 @@ public final class JavaLuan {
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static void block(LuanState luan) {
-		PackageLuan.block(luan,"Java");
 	}
 
 	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
