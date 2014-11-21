@@ -350,7 +350,7 @@ public final class IoLuan {
 
 		private LuanFile(LuanState luan,File file) throws LuanException {
 			this(file);
-			check(luan,file.toString());
+			check(luan,"file",file.toString());
 		}
 
 		private LuanFile(File file) {
@@ -439,6 +439,7 @@ public final class IoLuan {
 		boolean isLoading = Boolean.TRUE.equals(loading);
 		if( isLoading )
 			path += ".luan";
+		check(luan,"classpath",path);
 		URL url;
 		if( !path.contains("#") ) {
 			url = ClassLoader.getSystemResource(path);
@@ -466,6 +467,7 @@ public final class IoLuan {
 		if( !isLoading )
 			return null;
 		String modName = name.replace('/','.') + "Luan.LOADER";
+//		check(luan,"classpath",modName);
 		try {
 //System.out.println("modName = "+modName);
 			final LuanFunction fn = PackageLuan.load_lib(luan,modName);  // throws exception if not found
@@ -647,39 +649,20 @@ public final class IoLuan {
 	// security
 
 	public interface Security {
-		public void check(LuanState luan,String name) throws LuanException;
+		public void check(LuanState luan,String scheme,String name) throws LuanException;
 	}
 
 	private static String SECURITY_KEY = "Io.Security";
 
-	private static void check(LuanState luan,String name) throws LuanException {
+	private static void check(LuanState luan,String scheme,String name) throws LuanException {
 		Security s = (Security)luan.registry().get(SECURITY_KEY);
 		if( s!=null )
-			s.check(luan,name);
+			s.check(luan,scheme,name);
 	}
 
 	public static void setSecurity(LuanState luan,Security s) {
 		luan.registry().put(SECURITY_KEY,s);
 	}
-
-	public static class DirSecurity implements Security {
-		private final String[] dirs;
-
-		public DirSecurity(LuanState luan,String[] dirs) {
-			this.dirs = dirs;
-		}
-
-		@Override public void check(LuanState luan,String name) throws LuanException {
-			if( name.contains("..") )
-				throw luan.exception("Security violation - '"+name+"' contains '..'");
-			for( String dir : dirs ) {
-				if( name.startsWith(dir) )
-					return;
-			}
-			throw luan.exception("Security violation - '"+name+"' not in allowed directory");
-		}
-	}
-
 
 	private void IoLuan() {}  // never
 }
