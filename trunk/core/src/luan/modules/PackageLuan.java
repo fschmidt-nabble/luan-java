@@ -22,7 +22,7 @@ public final class PackageLuan {
 			try {
 				module.put("require",requireFn);
 				add( module, "load", LuanState.class, String.class );
-				add( module, "load_lib", LuanState.class, String.class );
+//				add( module, "load_lib", LuanState.class, String.class );
 				add( module, "search", LuanState.class, String.class );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
@@ -99,7 +99,7 @@ public final class PackageLuan {
 	}
 
 
-	public static LuanFunction load_lib(LuanState luan,String path)
+	static LuanFunction load_lib(LuanState luan,String path)
 		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, LuanException
 	{
 		int i = path.lastIndexOf('.');
