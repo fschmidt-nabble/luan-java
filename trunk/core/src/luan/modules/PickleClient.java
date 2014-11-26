@@ -1,7 +1,7 @@
 package luan.modules;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.IOException;
 import luan.Luan;
 import luan.LuanState;
@@ -16,7 +16,7 @@ public final class PickleClient {
 	private final PickleCon con;
 	private final LuanFunction _reversed_pickle;
 
-	PickleClient(LuanState luan,DataInputStream in,DataOutputStream out) {
+	PickleClient(LuanState luan,InputStream in,OutputStream out) {
 		this(new PickleCon(luan,in,out));
 	}
 

@@ -1,7 +1,9 @@
 package luan.modules;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.io.IOException;
 import java.io.EOFException;
 import java.util.List;
@@ -19,7 +21,7 @@ public final class PickleServer {
 	private final PickleCon con;
 	private boolean isRunning;
 
-	PickleServer(LuanState luan,DataInputStream in,DataOutputStream out) {
+	PickleServer(LuanState luan,InputStream in,OutputStream out) {
 		this(new PickleCon(luan,in,out));
 	}
 
@@ -29,24 +31,36 @@ public final class PickleServer {
 
 	void next() throws IOException {
 		try {
-			List<String> list = new ArrayList<String>();
 			try {
 				Object[] result = Luan.array(con.read());
-				list.add( "return true" );
+				StringBuilder sb = new StringBuilder();
+				sb.append( "return true" );
 				for( Object obj : result ) {
-					list.add( ", " );
-					list.add( con.pickle(obj) );
+					sb.append( ", " );
+					sb.append( con.pickle(obj) );
 				}
+				sb.append( '\n' );
+				con.write( sb.toString() );
 			} catch(LuanException e) {
 //				System.out.println(e);
 //e.printStackTrace();
-				list.add( "return false, " );
-				list.add( con.pickle(e.getMessage()) );
-				list.add( ", " );
-				list.add( con.pickle(con.src) );
+				StringBuilder sb = new StringBuilder();
+				sb.append( "return false, " );
+				sb.append( con.pickle(e.getMessage()) );
+				sb.append( ", " );
+				sb.append( con.pickle(con.src) );
+				sb.append( '\n' );
+/*
+				Throwable cause = e.getCause();
+				if( cause != null ) {
+					sb.append( "\nCaused by: " );
+					StringWriter sw = new StringWriter();
+					cause.printStackTrace(new PrintWriter(sw));
+					sb.append( sw );
+				}
+*/
+				con.write( sb.toString() );
 			}
-			list.add( "\n" );
-			con.write( list.toArray() );
 		} catch(LuanException e2) {
 			throw new RuntimeException(e2);
 		}

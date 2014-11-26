@@ -1,10 +1,10 @@
 package luan.modules;
 
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.EOFException;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.IdentityHashMap;
 import java.util.Collections;
@@ -21,14 +21,14 @@ import luan.LuanException;
 
 public final class PickleCon {
 	final LuanState luan;
-	private final DataInputStream in;
+	private final InputStream in;
 	private final LuanFunction _read_binary;
-	private final DataOutputStream out;
+	private final OutputStream out;
 	private final List<byte[]> binaries = new ArrayList<byte[]>();
 	String src;
 	final LuanTable env = Luan.newTable();
 
-	PickleCon(LuanState luan,DataInputStream in,DataOutputStream out) {
+	PickleCon(LuanState luan,InputStream in,OutputStream out) {
 		this.in = in;
 		this.luan = luan;
 		try {
@@ -42,13 +42,14 @@ public final class PickleCon {
 		this.out = out;
 	}
 
-	public byte[] _read_binary(int size) throws IOException, LuanException {
+	public byte[] _read_binary(int size) throws IOException/*, LuanException*/ {
 		byte[] a = new byte[size];
 		int i = 0;
 		while( i < size ) {
 			int n = in.read(a,i,size-i);
 			if( n == -1 )
-				throw luan.exception( "end of stream" );
+//				throw luan.exception( "end of stream" );
+				throw new EOFException();
 			i += n;
 		}
 		return a;
@@ -57,7 +58,7 @@ public final class PickleCon {
 	public Object read() throws IOException, LuanException {
 		env.put("_read_binary",_read_binary);
 		try {
-			src = in.readUTF();
+			src = readString();
 			LuanFunction fn = BasicLuan.load(luan,src,"pickle-reader",env,false);
 			return luan.call(fn);
 		} finally {
@@ -117,7 +118,10 @@ public final class PickleCon {
 		for( Object obj : args ) {
 			sb.append( luan.toString(obj) );
 		}
-		out.writeUTF( sb.toString() );
+		writeString( sb.toString() );
+//System.out.println("aaaaaaaaaaaaaaaaaaaaaaaa");
+//System.out.println(sb);
+//System.out.println("zzzzzzzzzzzzzzzzzzzzzzzz");
 		for( byte[] a : binaries ) {
 			out.write(a);
 		}
@@ -128,5 +132,34 @@ public final class PickleCon {
 	public void close() throws IOException {
 		in.close();
 		out.close();
+	}
+
+	String readString() throws IOException {
+		int len = readInt();
+		byte[] a = _read_binary(len);
+		return new String(a,StandardCharsets.UTF_8);
+	}
+
+	int readInt() throws IOException {
+		int ch1 = in.read();
+		int ch2 = in.read();
+		int ch3 = in.read();
+		int ch4 = in.read();
+		if ((ch1 | ch2 | ch3 | ch4) < 0)
+			throw new EOFException();
+		return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+	}
+
+	void writeString(String s) throws IOException {
+		byte[] a = s.getBytes(StandardCharsets.UTF_8);
+		writeInt(a.length);
+		out.write(a);
+	}
+
+	void writeInt(int v) throws IOException {
+        out.write((v >>> 24) & 0xFF);
+        out.write((v >>> 16) & 0xFF);
+        out.write((v >>>  8) & 0xFF);
+        out.write((v >>>  0) & 0xFF);
 	}
 }
