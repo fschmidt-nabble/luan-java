@@ -3,6 +3,7 @@ import "luan:String"
 import "luan:Io"
 import "luan:Package"
 import "luan:web/Http"
+import "luan:logging/Logging"  -- initialize logging
 
 import "java:org.eclipse.jetty.server.Server"
 import "java:org.eclipse.jetty.server.NCSARequestLog"

@@ -3,9 +3,9 @@
 import "luan:Io"
 
 port = 9101
-socket = "socket:localhost:" .. port
 
 function put_site(domain,password,dir)
+	local socket = "socket:" .. domain .. ":" .. port
 	local pc = Io.Uri(socket).Pickle_client()
 	local pickle = pc.pickle
 	pc.call(%>
@@ -16,6 +16,7 @@ function put_site(domain,password,dir)
 end
 
 function delete_site(domain,password)
+	local socket = "socket:" .. domain .. ":" .. port
 	local pc = Io.Uri(socket).Pickle_client()
 	local pickle = pc.pickle
 	pc.call(%>
