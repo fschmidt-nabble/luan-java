@@ -589,14 +589,14 @@ public final class IoLuan {
 		}
 
 		public LuanTable Pickle_client(LuanState luan) throws IOException {
-			DataInputStream in = new DataInputStream(new BufferedInputStream(inputStream()));
-			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(outputStream()));
+			InputStream in = new BufferedInputStream(inputStream());
+			OutputStream out = new BufferedOutputStream(outputStream());
 			return new PickleClient(luan,in,out).table();
 		}
 
 		public void run_pickle_server(LuanState luan) throws IOException {
-			DataInputStream in = new DataInputStream(new BufferedInputStream(inputStream()));
-			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(outputStream()));
+			InputStream in = new BufferedInputStream(inputStream());
+			OutputStream out = new BufferedOutputStream(outputStream());
 			new PickleServer(luan,in,out).run();
 		}
 
