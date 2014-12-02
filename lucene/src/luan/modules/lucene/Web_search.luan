@@ -1,0 +1,88 @@
+import "luan:Io"
+import "luan:web/Http"
+import "luan:String"
+
+
+local function form() %>
+<html>
+<body>
+<form method="post">
+<p>Query: <input name="query" size="60" /></p>
+<p>Rows: <input name="rows" value="20" /></p>
+<p>Sort: <input name="sort" size="60" /></p>
+<p><input type="submit" /></p>
+</form>
+</body>
+</html>
+<% end
+
+
+local function result(query,sort,headers,table) %>
+<html>
+<body>
+<p>Query: <b><%=repr(query)%></b></p>
+<p>Sort: <b><%=repr(sort)%></b></p>
+<table border="1">
+<tr><th></th>
+<%
+for _, header in ipairs(headers) do
+	%><th><%=header%></th><%
+end
+%>
+</tr>
+<%
+for i, row in ipairs(table) do
+	%>
+	<tr><td><%=i%></td>
+	<%
+	for col in range(1,#headers) do
+		%><td><%= row[col] or "" %></td><%
+	end
+	%></tr><%
+end
+%>
+</body>
+</html>
+<% end
+
+
+local function index_of(tbl,val)
+	for i, v in ipairs(tbl) do
+		if v == val then
+			return i
+		end
+	end
+	local n = #tbl + 1
+	tbl[n] = val
+	return n
+end
+
+
+function of(index)
+
+	return { service = function()
+		Io.stdout = Http.response.text_writer()
+		local query_string = Http.request.parameters.query
+		if query_string == nil then
+			form()
+			return
+		end
+		local query = load(query_string,"<query>",{},true)()
+		local rows = to_number(Http.request.parameters.rows)
+		local sort = load(Http.request.parameters.sort,"<sort>",{},true)()
+		index.Searcher( function(searcher)
+			local results, length, total_hits = searcher.search(query,rows,sort)
+			local headers = {}
+			local table = {}
+			for doc in results do
+				local row = {}
+				for field, value in pairs(doc) do
+					row[index_of(headers,field)] = value
+				end
+				table[#table+1] = row
+			end
+			result(query,sort,headers,table)
+		end )
+	end }
+
+end

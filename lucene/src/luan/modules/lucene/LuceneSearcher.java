@@ -19,6 +19,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.index.AtomicReaderContext;
 import luan.Luan;
 import luan.LuanState;
@@ -179,9 +180,14 @@ public final class LuceneSearcher {
 	}
 
 	public Object[] search( final LuanState luan, LuanTable queryTbl, Object nObj, LuanTable sortTbl ) throws LuanException, IOException {
-		Query query = query(queryTbl);
-		if( query == null )
-			throw luan.exception("invalid query");
+		Query query;
+		if( queryTbl == null ) {
+			query = new MatchAllDocsQuery();
+		} else {
+			query = query(queryTbl);
+			if( query == null )
+				throw luan.exception("invalid query");
+		}
 		if( nObj instanceof LuanFunction ) {
 			final LuanFunction fn = (LuanFunction)nObj;
 			Collector col = new MyCollector() {

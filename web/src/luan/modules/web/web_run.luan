@@ -21,7 +21,7 @@ end
 local function form() %>
 <html>
 <body>
-<form action="run" method="post">
+<form method="post">
 <input type="hidden" name="content_type" value="text/plain" />
 <input type="submit" value="Execute Luan code below">
 <br />
