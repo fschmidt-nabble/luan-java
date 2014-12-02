@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,14 +23,14 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 /*
 	public LuanTableImpl(LuanTableImpl tbl) {
 		if( tbl.map != null )
-			this.map = new HashMap<Object,Object>(tbl.map);
+			this.map = newMap(tbl.map);
 		if( tbl.list != null )
 			this.list = new ArrayList<Object>(tbl.list);
 	}
 */
 	LuanTableImpl(List<Object> list) {
 		this.list = list;
-		this.map = new HashMap<Object,Object>();
+		this.map = newMap();
 		map.put("n",list.size());
 		for( int i=0; i<list.size(); i++ ) {
 			if( list.get(i) == null ) {
@@ -51,7 +50,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 	}
 
 	LuanTableImpl(Set<Object> set) {
-		map = new HashMap<Object,Object>();
+		map = newMap();
 		for( Object obj : set ) {
 			if( obj != null )
 				map.put(obj,Boolean.TRUE);
@@ -64,7 +63,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 
 	@Override public void deepenClone(LuanTableImpl clone,DeepCloner cloner) {
 		if( map != null ) {
-			clone.map = new HashMap<Object,Object>();
+			clone.map = newMap();
 			for( Map.Entry<Object,Object> entry : map.entrySet() ) {
 				clone.map.put( cloner.get(entry.getKey()), cloner.get(entry.getValue()) );
 			}
@@ -90,7 +89,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 	@Override public Map<Object,Object> asMap() {
 		if( list == null || list.isEmpty() )
 			return map!=null ? map : Collections.emptyMap();
-		Map<Object,Object> rtn = map!=null ? new HashMap<Object,Object>(map) : new HashMap<Object,Object>();
+		Map<Object,Object> rtn = map!=null ? newMap(map) : newMap();
 		for( ListIterator iter = list.listIterator(); iter.hasNext(); ) {
 			int i = iter.nextIndex();
 			rtn.put(i+1,iter.next());
@@ -222,7 +221,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 			}
 		}
 		if( map==null ) {
-			map = new HashMap<Object,Object>();
+			map = newMap();
 		}
 		if( key instanceof Number && !(key instanceof Double) ) {
 			Number n = (Number)key;
@@ -253,7 +252,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 				Object v = list.remove(i);
 				if( v != null ) {
 					if( map==null )
-						map = new HashMap<Object,Object>();
+						map = newMap();
 					map.put(i+1,v);
 				}
 			}

@@ -3,7 +3,7 @@ package luan;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +15,14 @@ import java.util.regex.Pattern;
 
 
 public abstract class AbstractLuanTable implements LuanTable {
+
+	protected final Map<Object,Object> newMap() {
+		return new LinkedHashMap<Object,Object>();
+	}
+
+	protected final Map<Object,Object> newMap(Map<Object,Object> map) {
+		return new LinkedHashMap<Object,Object>(map);
+	}
 
 	@Override public boolean isEmpty() {
 		return isList() && length()==0;
@@ -29,7 +37,7 @@ public abstract class AbstractLuanTable implements LuanTable {
 	}
 
 	@Override public Map<Object,Object> asMap() {
-		Map<Object,Object> map = new HashMap<Object,Object>();
+		Map<Object,Object> map = newMap();
 		for( Map.Entry<Object,Object> entry : this ) {
 			map.put(entry.getKey(),entry.getValue());
 		}
@@ -78,6 +86,6 @@ public abstract class AbstractLuanTable implements LuanTable {
 	}
 
 	@Override public LuanTable cloneTable() {
-		return isList() ? new LuanTableImpl(new ArrayList<Object>(asList())) : new LuanTableImpl(new HashMap<Object,Object>(asMap()));
+		return isList() ? new LuanTableImpl(new ArrayList<Object>(asList())) : new LuanTableImpl(newMap(asMap()));
 	}
 }
