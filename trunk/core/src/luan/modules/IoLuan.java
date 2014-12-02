@@ -343,6 +343,22 @@ public final class IoLuan {
 		@Override public String to_string() {
 			return url.toString();
 		}
+
+		public String post(String postS) throws IOException {
+			return new UrlCall(url).post(postS);
+		}
+
+		@Override LuanTable table() {
+			LuanTable tbl = super.table();
+			try {
+				tbl.put( "post", new LuanJavaFunction(
+					LuanUrl.class.getMethod( "post", String.class ), this
+				) );
+			} catch(NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+			return tbl;
+		}
 	}
 
 	public static final class LuanFile extends LuanIO {

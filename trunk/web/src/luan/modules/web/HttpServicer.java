@@ -147,6 +147,9 @@ public final class HttpServicer {
 		tbl.put( "current_url", new LuanProperty() { public Object get() {
 			return getCurrentURL(request);
 		} } );
+		tbl.put( "query_string", new LuanProperty() { public Object get() {
+			return getQueryString(request);
+		} } );
 		tbl.put( "remote_address", new LuanProperty() { public Object get() {
 			return request.getRemoteAddr();
 		} } );
