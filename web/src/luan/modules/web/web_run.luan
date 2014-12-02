@@ -18,13 +18,31 @@ local function print_with_line_numbers(s)
 	end
 end
 
+local function form() %>
+<html>
+<body>
+<form action="run" method="post">
+<input type="hidden" name="content_type" value="text/plain" />
+<input type="submit" value="Execute Luan code below">
+<br />
+<textarea name="code" rows="30" cols="90" wrap="off">
+</textarea>
+</form>
+</body>
+</html>
+<% end
+
 function service()
+	Io.stdout = Http.response.text_writer()
+	local code = Http.request.parameters.code
+	if code == nil then
+		form()
+		return
+	end
 	local content_type = Http.request.parameters.content_type
 	if content_type ~= nil then
 		Http.response.content_type = content_type
 	end
-	Io.stdout = Http.response.text_writer()
-	local code = Http.request.parameters.code
 	local env = {
 		request = Http.request;
 		response = Http.response;
