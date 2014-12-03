@@ -33,24 +33,33 @@ function service()
 
 	local write = Http.response.text_writer().write
 	write(%>
-<html>
-<title>Luan Shell</title>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Luan Shell</title>
+		<style>
+			body {font-family:'Arial',sans-serif;font-size:16px}
+			input {padding:.5em;border-radius:10px;border:1px solid #ccc;font-size:16px}
+			input.btn {background:#3B619D;color:#FFF;padding:.3em 0;font-size:20px;min-width:4em;}
+			h1 {font-weight:bold;font-size: 20px}
+			p {margin:1em 0 .2em}
+		</style>
+	</head>
 	<body>
-		<p>This is a command shell.  Enter commands below.
+		<h1>Luan Shell</h1>
+		<p>This is a command shell.  Enter commands below.</p>
 		<pre><%)
 		for _,v in ipairs(history) do
 			write(v)
 		end
 		write(%></pre>
-		<form name='theForm' method='post'>
-			% <input name='cmd' size=60>
-			<input type=submit value=run>
-			<input type=submit name=clear value=clear>
+		<form name='form0' method='post'>
+			% <input name='cmd' size="60">
+			<input type="submit" class="btn" value="run">
+			<input type="submit" class="btn" name="clear" value="clear">
 		</form>
-		
-		<script>document.theForm.cmd.focus();</script>
-		
-		<p/>
+
+		<script>document.form0.cmd.focus();</script>
 	</body>
 </html>
 <%)
