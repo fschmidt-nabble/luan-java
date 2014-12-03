@@ -3,45 +3,70 @@ import "luan:web/Http"
 import "luan:String"
 
 
+local function basic_style() %>
+	body {font-family:'Arial',sans-serif;font-size:16px}
+	input {padding:.5em;border-radius:10px;border:1px solid #ccc;font-size:16px}
+	input.btn {background:#3B619D;color:#FFF;padding:.5em 2em;font-size:20px}
+	h1 {font-weight:bold;font-size: 20px}
+	p {margin:1em 0 .2em}
+	span.label {min-width:100px;display:inline-block;text-align:right}
+	div.tip{color:#888;font-size:80%}
+	table.results {margin-top:2em;border-collapse:collapse;font-size:90%}
+	table.results th {background:#eee}
+	table.results th,table.results td {border-left:1px solid #bbb;padding:.4em}
+<% end
+
 local function form() %>
-<html>
-<body>
-<form method="post">
-<p>Query: <input name="query" size="60" /></p>
-<p>Rows: <input name="rows" value="20" /></p>
-<p>Sort: <input name="sort" size="60" /></p>
-<p><input type="submit" /></p>
-</form>
-</body>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Lucene Query</title>
+		<style><% basic_style() %></style>
+	</head>
+	<body>
+		<h1>Lucene Query</h1>
+		<form name="form0" method="post">
+			<p>
+				<span class="label">Query:</span> <input name="query" size="60" />
+				<div class="tip"><span class="label"></span> Query examples: { type = 'user' }</div>
+			</p>
+			<p><span class="label">Max Rows:</span> <input name="rows" value="20" maxlength="5" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="width:3em"/></p>
+			<p><span class="label">Sort:</span> <input name="sort" size="60" /></p>
+			<p><input type="submit" class="btn"/></p>
+		</form>
+		<script>document.form0.query.focus();</script>
+	</body>
 </html>
 <% end
 
 
 local function result(query,sort,headers,table) %>
-<html>
-<body>
-<p>Query: <b><%=repr(query)%></b></p>
-<p>Sort: <b><%=repr(sort)%></b></p>
-<table border="1">
-<tr><th></th>
-<%
-for _, header in ipairs(headers) do
-	%><th><%=header%></th><%
-end
-%>
-</tr>
-<%
-for i, row in ipairs(table) do
-	%>
-	<tr><td><%=i%></td>
-	<%
-	for col in range(1,#headers) do
-		%><td><%= row[col] or "" %></td><%
-	end
-	%></tr><%
-end
-%>
-</body>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<style><% basic_style() %></style>
+	</head>
+	<body>
+		<h1>Lucene Query Results</h1>
+			<p><span class="label">Query:</span> <b><%=repr(query)%></b></p>
+			<p><span class="label">Sort:</span> <b><%=repr(sort)%></b></p>
+			<table class="results">
+				<tr>
+					<th></th>
+					<% for _, header in ipairs(headers) do %>
+						<th><%=header%></th>
+					<% end %>
+				</tr>
+				<% for i, row in ipairs(table) do %>
+					<tr>
+						<td><%=i%></td>
+						<% for col in range(1, #headers) do %>
+							<td><%= row[col] or "" %></td>
+						<% end %>
+					</tr>
+				<% end %>
+			</table>
+	</body>
 </html>
 <% end
 
