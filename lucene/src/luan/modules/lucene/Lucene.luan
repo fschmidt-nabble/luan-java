@@ -1,5 +1,13 @@
+import "luan:Table"
 import "luan:Java"
 import "java:luan.modules.lucene.LuceneIndex"
+import "java:org.apache.lucene.index.Term"
+import "java:org.apache.lucene.search.TermQuery"
+import "java:org.apache.lucene.search.MatchAllDocsQuery"
+import "java:org.apache.lucene.search.BooleanQuery"
+import "java:org.apache.lucene.search.BooleanClause"
+import "java:org.apache.lucene.search.Sort"
+import "java:org.apache.lucene.search.SortField"
 
 
 function Index(indexDir)
@@ -38,6 +46,70 @@ function Index(indexDir)
 			return total_hits
 		end )
 	end
+
+
+
+	local Query = {}
+	index.Query = Query
+
+	Query.all_docs = MatchAllDocsQuery.new()
+	
+	function Query.term(t)
+		local iter = pairs(t)
+		local field, value = iter()
+		field and value or error "missing term"
+		iter()==nil or error "only one term allowed"
+		field = index.map_field_name(field)
+		return TermQuery.new(Term.new(field,value))
+	end
+	
+	function Query.boolean(t)
+		local boolean_query = BooleanQuery.new()
+		for query, occur_string in pairs(t) do
+			local occur = BooleanClause.Occur.valueOf( occur_string.upper() )
+			boolean_query.add( query, occur )
+		end
+		return boolean_query
+	end
+	
+	-- and list
+	function Query.all(t)
+		local bt = {}
+		for key, query in pairs(t) do
+			if type(key)=="string" then
+				query = Query.term{[key]=query}
+			end
+			bt[query] = "MUST"
+		end
+		return Query.boolean(bt)
+	end
+	
+	-- or list
+	function Query.any(t)
+		local bt = {}
+		for key, query in pairs(t) do
+			if type(key)=="string" then
+				query = Query.term{[key]=query}
+			end
+			bt[query] = "SHOULD"
+		end
+		return Query.boolean(bt)
+	end
+	
+	
+	function Query.sort(fields)
+		#fields > 0 or error "list of sort fields expected"
+		local a = {}
+		for _, f in ipairs(fields) do
+			f.field or error "missing sort field"
+			f.type or error "missing sort type"
+			local type = SortField.Type.valueOf( f.type.upper() )
+			local reverse = f.reverse or false
+			a[#a+1] = SortField.new(f.field,type,reverse)
+		end
+		return Sort.new(Table.unpack(a))
+	end
+
 
 	return index
 end

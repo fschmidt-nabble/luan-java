@@ -27,11 +27,14 @@ local function form() %>
 		<h1>Lucene Query</h1>
 		<form name="form0" method="post">
 			<p>
-				<span class="label">Query:</span> <input name="query" size="60" />
-				<div class="tip"><span class="label"></span> Query examples: { type = 'user' }</div>
+				<span class="label">Query:</span> <input name="query" size="60" value="Query.all_docs" />
+				<div class="tip"><span class="label"></span> Query examples: Query.term{ type = 'user' }</div>
 			</p>
 			<p><span class="label">Max Rows:</span> <input name="rows" value="20" maxlength="5" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="width:3em"/></p>
-			<p><span class="label">Sort:</span> <input name="sort" size="60" /></p>
+			<p>
+				<span class="label">Sort:</span> <input name="sort" size="60" />
+				<div class="tip"><span class="label"></span> Sort examples: Query.sort{{ field = 'id', type='int' }}</div>
+			</p>
 			<p><input type="submit" class="btn"/></p>
 		</form>
 		<script>document.form0.query.focus();</script>
@@ -48,8 +51,8 @@ local function result(query,sort,headers,table) %>
 	</head>
 	<body>
 		<h1>Lucene Query Results</h1>
-			<p><span class="label">Query:</span> <b><%=repr(query)%></b></p>
-			<p><span class="label">Sort:</span> <b><%=repr(sort)%></b></p>
+			<p><span class="label">Query:</span> <b><%=query%></b></p>
+			<p><span class="label">Sort:</span> <b><%=sort%></b></p>
 			<table class="results">
 				<tr>
 					<th></th>
@@ -92,9 +95,9 @@ function of(index)
 			form()
 			return
 		end
-		local query = load(query_string,"<query>",{},true)()
+		local query = load(query_string,"<query>",{Query=index.Query},true)()
 		local rows = to_number(Http.request.parameters.rows)
-		local sort = load(Http.request.parameters.sort,"<sort>",{},true)()
+		local sort = load(Http.request.parameters.sort,"<sort>",{Query=index.Query},true)()
 		index.Searcher( function(searcher)
 			local results, length, total_hits = searcher.search(query,rows,sort)
 			local headers = {}

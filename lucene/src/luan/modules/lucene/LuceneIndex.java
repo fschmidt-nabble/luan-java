@@ -65,13 +65,13 @@ public final class LuceneIndex {
 		return LuceneDocument.toTable(luan,doc,fields.reverseMap);
 	}
 
-	String fixFieldName(String fld) {
+	public String map_field_name(String fld) {
 		String s = fields.map.get(fld);
 		return s!=null ? s : fld;
 	}
 
 	Term newTerm(String fld,String text) {
-		return new Term(fixFieldName(fld),text);
+		return new Term(map_field_name(fld),text);
 	}
 
 	public LuceneWriter openWriter() {
@@ -196,6 +196,7 @@ public final class LuceneIndex {
 			add( tbl, "Writer", LuanState.class, LuanFunction.class );
 			add( tbl, "Searcher", LuanState.class, LuanFunction.class );
 			add( tbl, "delete_all" );
+			add( tbl, "map_field_name", String.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
