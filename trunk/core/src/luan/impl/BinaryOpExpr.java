@@ -18,7 +18,7 @@ abstract class BinaryOpExpr extends CodeImpl implements Expr {
 	}
 
 	Object arithmetic(LuanStateImpl luan,String op,Object o1,Object o2) throws LuanException {
-		return luan.bit(se()).arithmetic("__mod",o1,o2);
+		return luan.bit(se()).arithmetic(op,o1,o2);
 	}
 
 }
