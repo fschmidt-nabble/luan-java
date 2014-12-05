@@ -30,7 +30,7 @@ function init_for_test()
 			return {
 				write = function(...)
 					for _, v in ipairs{...} do
-						result[#result+1] = v
+						result[#result+1] = to_string(v)
 					end
 				end;
 			}
