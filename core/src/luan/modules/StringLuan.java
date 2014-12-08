@@ -20,6 +20,7 @@ public final class StringLuan {
 				add( module, "to_binary", String.class );
 				module.put( "byte", new LuanJavaFunction(StringLuan.class.getMethod( "byte_", String.class ),null) );
 				module.put( "char", new LuanJavaFunction(StringLuan.class.getMethod( "char_", new int[0].getClass() ),null) );
+				add( module, "concat", LuanState.class, new Object[0].getClass() );
 				add( module, "find", String.class, String.class, Integer.class, Boolean.class );
 				add( module, "format", String.class, new Object[0].getClass() );
 				add( module, "gmatch", LuanState.class, String.class, String.class );
@@ -254,6 +255,14 @@ public final class StringLuan {
 	// note - String.format() is too stupid to convert between ints and floats.
 	public static String format(String format,Object... args) {
 		return String.format(format,args);
+	}
+
+	public static String concat(LuanState luan,Object... args) throws LuanException {
+		StringBuilder sb = new StringBuilder();
+		for( Object arg : args ) {
+			sb.append( luan.toString(arg) );
+		}
+		return sb.toString();
 	}
 
 }
