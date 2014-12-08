@@ -22,7 +22,8 @@ import luan.LuanException;
 public final class SmtpCon {
 	private final Session session;
 
-	public SmtpCon(LuanState luan,LuanTable params) throws LuanException {
+	public SmtpCon(LuanState luan,LuanTable paramsTbl) throws LuanException {
+		Map<Object,Object> params = new HashMap<Object,Object>(paramsTbl.asMap());
 		Properties props = new Properties(System.getProperties());
 
 		String host = getString(luan,params,"host");
@@ -30,7 +31,7 @@ public final class SmtpCon {
 			throw luan.exception( "parameter 'host' is required" );
 		props.setProperty("mail.smtp.host",host);
 
-		Object port = params.get("port");
+		Object port = params.remove("port");
 		if( port != null ) {
 			String s;
 			if( port instanceof String ) {
@@ -63,10 +64,13 @@ public final class SmtpCon {
 			};
 			session = Session.getInstance(props,auth);
 		}
+
+		if( !params.isEmpty() )
+			throw luan.exception( "unrecognized parameters: "+params );
 	}
 
-	private String getString(LuanState luan,LuanTable params,String key) throws LuanException {
-		Object val = params.get(key);
+	private String getString(LuanState luan,Map<Object,Object> params,String key) throws LuanException {
+		Object val = params.remove(key);
 		if( val!=null && !(val instanceof String) )
 			throw luan.exception( "parameter '"+key+"' must be a string" );
 		return (String)val;
@@ -87,21 +91,26 @@ public final class SmtpCon {
 
 	public void send(LuanState luan,LuanTable mailTbl) throws LuanException {
 		try {
+			Map<Object,Object> mailParams = new HashMap<Object,Object>(mailTbl.asMap());
 			MimeMessage msg = new MimeMessage(session);
 
-			String from = getString(luan,mailTbl,"from");
+			String from = getString(luan,mailParams,"from");
 			if( from != null )
 				msg.setFrom(from);
 
-			String to = getString(luan,mailTbl,"to");
+			String to = getString(luan,mailParams,"to");
 			if( to != null )
 				msg.setRecipients(Message.RecipientType.TO,to);
 
-			String subject = getString(luan,mailTbl,"subject");
+			String cc = getString(luan,mailParams,"cc");
+			if( cc != null )
+				msg.setRecipients(Message.RecipientType.CC,cc);
+
+			String subject = getString(luan,mailParams,"subject");
 			if( subject != null )
 				msg.setSubject(subject);
 
-			Object body = mailTbl.get("body");
+			Object body = mailParams.remove("body");
 			if( body != null ) {
 				if( body instanceof String ) {
 					msg.setText((String)body);
@@ -127,6 +136,9 @@ public final class SmtpCon {
 				} else
 					throw luan.exception( "parameter 'body' is must be a string or table" );
 			}
+
+			if( !mailParams.isEmpty() )
+				throw luan.exception( "unrecognized parameters: "+mailParams );
 
 			Transport.send(msg);
 		} catch(MessagingException e) {
