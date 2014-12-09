@@ -31,6 +31,7 @@ public final class BasicLuan {
 				add( module, "assert_string", LuanState.class, String.class );
 				add( module, "assert_table", LuanState.class, LuanTable.class );
 				add( module, "assert_integer", LuanState.class, Integer.TYPE );
+				add( module, "assert_long", LuanState.class, Long.TYPE );
 				add( module, "do_file", LuanState.class, String.class );
 				add( module, "error", LuanState.class, Object.class );
 				add( module, "get_metatable", LuanState.class, Object.class );
@@ -201,6 +202,10 @@ public final class BasicLuan {
 	}
 
 	public static int assert_integer(LuanState luan,int v) throws LuanException {
+		return v;
+	}
+
+	public static long assert_long(LuanState luan,long v) throws LuanException {
 		return v;
 	}
 

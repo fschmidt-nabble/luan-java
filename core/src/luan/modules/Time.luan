@@ -6,6 +6,7 @@ import "luan:Java"
 import "java:java.lang.System"
 import "java:java.util.Calendar"
 import "java:java.util.Date"
+import "java:java.util.TimeZone"
 import "java:java.text.SimpleDateFormat"
 
 
@@ -44,7 +45,17 @@ end
 function on( year, month, day, hour, minute, second, millis )
 	month = month - 1
 	local cal = Calendar.getInstance()
+	cal.setLenient(false)
 	cal.set( year, month, day, hour or 0, minute or 0, second or 0 )
+	cal.set( Calendar.MILLISECOND, millis or 0 )
+	return cal.getTimeInMillis()
+end
+
+function period( days, hours, minutes, seconds, millis )
+	local cal = Calendar.getInstance()
+	cal.setTimeZone(TimeZone.getTimeZone("GMT"))
+	days = days + 1
+	cal.set( 1970, 0, days, hours or 0, minutes or 0, seconds or 0 )
 	cal.set( Calendar.MILLISECOND, millis or 0 )
 	return cal.getTimeInMillis()
 end
