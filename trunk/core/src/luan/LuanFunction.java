@@ -12,7 +12,7 @@ public abstract class LuanFunction implements LuanRepr {
 	}
 
 	@Override public String repr() {
-		return "<function>";
+		return "<" + toString() + ">";
 	}
 
 }

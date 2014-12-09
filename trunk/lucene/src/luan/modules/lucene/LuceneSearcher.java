@@ -65,8 +65,12 @@ public final class LuceneSearcher {
 	};
 
 	private static abstract class MyCollector extends Collector {
+		int docBase;
+
 		@Override public void setScorer(Scorer scorer) {}
-		@Override public void setNextReader(AtomicReaderContext context) {}
+		@Override public void setNextReader(AtomicReaderContext context) {
+			this.docBase = context.docBase;
+		}
 		@Override public boolean acceptsDocsOutOfOrder() {
 			return true;
 		}
@@ -78,7 +82,7 @@ public final class LuceneSearcher {
 			Collector col = new MyCollector() {
 				@Override public void collect(int doc) {
 					try {
-						LuanTable docTbl = doc(luan,doc);
+						LuanTable docTbl = doc(luan,docBase+doc);
 						luan.call(fn,new Object[]{docTbl});
 					} catch(LuanException e) {
 						throw new LuanRuntimeException(e);
