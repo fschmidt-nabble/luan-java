@@ -9,7 +9,6 @@ function of(index)
 	local ab_testing = {}
 
 	ab_testing.test_map = {}
-	ab_testing.test_list = {}
 
 	function ab_testing.test(test)
 		test.name or error "name not defined"
@@ -92,9 +91,7 @@ function of(index)
 			return fancy
 		end
 
-
 		ab_testing.test_map[test.name] = test
-		ab_testing.test_list[#ab_testing.test_list + 1] = test
 
 		return test
 	end
@@ -105,16 +102,15 @@ function of(index)
 	
 	-- returns map from test name to value
 	function ab_testing.from_doc(doc)
-		local tests = ab_testing.test_list
 		local values = {}
-		for _, test in ipairs(tests) do
+		for _, test in pairs(ab_testing.test_map) do
 			values[test.name] = doc[test.field]
 		end
 		return values
 	end
 
 	function ab_testing.to_doc(doc,values,tests)
-		tests = tests or ab_testing.test_list
+		tests = tests or ab_testing.test_map
 		if values == nil then
 			for _, test in ipairs(tests) do
 				doc[test.field] = test.values[Math.random(#test.values)]
