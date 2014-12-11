@@ -404,6 +404,10 @@ public final class IoLuan {
 			return file.exists();
 		}
 
+		public boolean rename_to(String dest) {
+			return file.renameTo(new File(dest));
+		}
+
 		@Override LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
@@ -433,6 +437,9 @@ public final class IoLuan {
 				) );
 				tbl.put( "children", new LuanJavaFunction(
 					LuanFile.class.getMethod( "children", LuanState.class ), this
+				) );
+				tbl.put( "rename_to", new LuanJavaFunction(
+					LuanFile.class.getMethod( "rename_to", String.class ), this
 				) );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);

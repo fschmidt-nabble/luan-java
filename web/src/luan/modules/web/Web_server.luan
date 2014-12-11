@@ -71,7 +71,7 @@ hc.setHandlers { SessionHandler.new(), handler_wrapper, DefaultHandler.new(), lo
 function config_server(server)
 end 
 
-function serve(dir)
+function init(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Http.dir = dir
 	function Io.schemes.site(path,loading)
@@ -85,6 +85,10 @@ function serve(dir)
 	resource_handler.setResourceBase(Io.Uri(base).to_string())
 	resource_handler.setWelcomeFiles {welcome_file}
 	luan_handler.setWelcomeFile(welcome_file)
+end
+
+function serve(dir)
+	init(dir)
 	local server = Server.new(port)
 	server.setHandler(hc);
 	config_server(server)
