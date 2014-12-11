@@ -95,11 +95,11 @@ function of(index)
 
 		return test
 	end
-	
+
 	function ab_testing.value(test_name,values)
 		return values[test_name] or ab_testing.test_map[test_name].values[1]
 	end
-	
+
 	-- returns map from test name to value
 	function ab_testing.from_doc(doc)
 		local values = {}
@@ -179,68 +179,79 @@ function percent(x,total)
 	end
 end
 
+local function basic_style() %>
+	body {font-family:'Arial',sans-serif;font-size:16px;padding:1em 2em}
+	h1 {font-weight:bold;font-size:20px}
+	h2 {margin:2em 0 0em;font-size:18px;color:#3589B1}
+	table.results {margin-top:.5em;border-collapse:collapse;font-size:90%}
+	table.results th {background:#eee}
+	table.results th,table.results td {border-left:1px solid #bbb;padding:.4em 2em}
+	table.results tr:nth-child(odd) td {background:#f8f8f8}
+<% end
+
+local function format(v)
+	v = v .. ''
+	return v.gsub('(\d+.\d{1})\d+','$1')
+end
 
 function html(test_names,tests,results) %>
-<html>
-<body>
-<h2>A/B Tests</h2>
-<%
-	for _, test_name in ipairs(test_names) do
-		local test = tests[test_name]
-		local result = results[test_name]
-		local n = #test.values
-		%>
-		<h3><%=test_name%></h3>
-		<table>
-			<tr>
-				<th>Event</th>
-				<th class="top" colspan="<%=n%>">Count</th>
-				<th class="top" colspan="<%=n%>">% of total</th>
-				<th class="top" colspan="<%=n%>">% of prev</th>
-			</tr>
-			<tr>
-				<th></th>
-				<%
-				for _ in range(1,3) do
-					for _, value in ipairs(test.values) do
-						%>
-						<th class="top"><%=value%></th>
-						<%
-					end
-				end
-				%>
-			</tr>
-			<%
-			for _, event in ipairs(test.events) do
-				local event_values = result[event]
-				%>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>A/B Test Results</title>
+		<style><% basic_style() %></style>
+	</head>
+	<body>
+		<h1>A/B Test Results</h1>
+		<%
+		for _, test_name in ipairs(test_names) do
+			local test = tests[test_name]
+			local result = results[test_name]
+			local n = #test.values
+			%>
+			<h2><%=test_name%></h2>
+			<table class="results">
 				<tr>
-					<td><%=event%></td>
+					<th>Event</th>
+					<th class="top" colspan="<%=n%>">Count</th>
+					<th class="top" colspan="<%=n%>">% of total</th>
+					<th class="top" colspan="<%=n%>">% of prev</th>
+				</tr>
+				<tr>
+					<th></th>
 					<%
-					for _, value in ipairs(test.values) do
-						%>
-						<td><%=event_values[value].count%></th>
-						<%
-					end
-					for _, value in ipairs(test.values) do
-						%>
-						<td><%=event_values[value].pct_of_total%></th>
-						<%
-					end
-					for _, value in ipairs(test.values) do
-						%>
-						<td><%=event_values[value].pct_of_prev%></th>
-						<%
+					for _ in range(1,3) do
+						for _, value in ipairs(test.values) do
+							%><th class="top"><%=value%></th><%
+						end
 					end
 					%>
 				</tr>
 				<%
-			end
-			%>
-		</table>
-		<%
-	end
-%>
-</body>
+				for _, event in ipairs(test.events) do
+					local event_values = result[event]
+					%>
+					<tr>
+						<td><%=event%></td>
+						<%
+						for _, value in ipairs(test.values) do
+							%><td><%=format(event_values[value].count)%></th><%
+						end
+						for _, value in ipairs(test.values) do
+							%><td><%=format(event_values[value].pct_of_total)%></th><%
+						end
+						for _, value in ipairs(test.values) do
+							%><td><%=format(event_values[value].pct_of_prev)%></th><%
+						end
+						%>
+					</tr>
+					<%
+				end
+				%>
+			</table>
+			<%
+		end
+		%>
+	</body>
 </html>
 <% end

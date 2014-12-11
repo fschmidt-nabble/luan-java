@@ -19,7 +19,7 @@ local function print_with_line_numbers(s)
 end
 
 local function basic_style() %>
-	body {font-family:'Arial',sans-serif;font-size:16px;text-align:center}
+	body {font-family:'Arial',sans-serif;font-size:16px;text-align:center;padding:1em 2em}
 	input,textarea {padding:.5em;border-radius:10px;border:1px solid #ccc;font-size:16px;display:block}
 	textarea {width:50%;margin:0 auto}
 	input.btn {background:#3B619D;color:#FFF;padding:.5em 2em;font-size:20px;margin:.5em auto}

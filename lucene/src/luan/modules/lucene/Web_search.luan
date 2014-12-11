@@ -4,7 +4,7 @@ import "luan:String"
 
 
 local function basic_style() %>
-	body {font-family:'Arial',sans-serif;font-size:16px}
+	body {font-family:'Arial',sans-serif;font-size:16px;padding:1em 2em}
 	input {padding:.5em;border-radius:10px;border:1px solid #ccc;font-size:16px}
 	input.btn {background:#3B619D;color:#FFF;padding:.5em 2em;font-size:20px}
 	h1 {font-weight:bold;font-size: 20px}
@@ -14,6 +14,7 @@ local function basic_style() %>
 	table.results {margin-top:2em;border-collapse:collapse;font-size:90%}
 	table.results th {background:#eee}
 	table.results th,table.results td {border-left:1px solid #bbb;padding:.4em}
+	table.results tr:nth-child(odd) td {background:#f8f8f8}
 <% end
 
 local function form() %>
@@ -30,7 +31,7 @@ local function form() %>
 				<span class="label">Query:</span> <input name="query" size="60" value="Query.all_docs" />
 				<div class="tip"><span class="label"></span> Query examples: Query.term{ type = 'user' }</div>
 			</p>
-			<p><span class="label">Max Rows:</span> <input name="rows" value="20" maxlength="5" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="width:3em"/></p>
+			<p><span class="label">Max Rows:</span> <input name="rows" value="100" maxlength="5" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="width:3em"/></p>
 			<p>
 				<span class="label">Sort:</span> <input name="sort" size="60" />
 				<div class="tip"><span class="label"></span> Sort examples: Query.sort{{ field = 'id', type='int' }}</div>
