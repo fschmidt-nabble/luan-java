@@ -2,7 +2,10 @@ import "luan:Math"
 import "luan:Table"
 import "luan:Io"
 import "luan:web/Http"
+import "luan:logging/Logging"
 
+
+local logger = Logging.logger "Ab_testing"
 
 function of(index)
 
@@ -112,14 +115,15 @@ function of(index)
 	function ab_testing.to_doc(doc,values,tests)
 		tests = tests or ab_testing.test_map
 		if values == nil then
-			for _, test in ipairs(tests) do
-				doc[test.field] = test.values[Math.random(#test.values)]
-			end
-		else
-			for _, test in ipairs(tests) do
-				doc[test.field] = values[test.name]
+			values = {}
+			for _, test in pairs(tests) do
+				values[test.name] = test.values[Math.random(#test.values)]
 			end
 		end
+		for _, test in pairs(tests) do
+			doc[test.field] = values[test.name]
+		end
+		return values
 	end
 
 	function ab_testing.web_page(test_names)
