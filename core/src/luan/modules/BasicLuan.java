@@ -37,7 +37,7 @@ public final class BasicLuan {
 				add( module, "get_metatable", LuanState.class, Object.class );
 				add( module, "ipairs", LuanState.class, LuanTable.class );
 				add( module, "load", LuanState.class, String.class, String.class, LuanTable.class, Boolean.class );
-				add( module, "load_file", LuanState.class, String.class );
+				add( module, "load_file", LuanState.class, String.class, LuanTable.class );
 				add( module, "pairs", LuanState.class, LuanTable.class );
 				add( module, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
 				add( module, "raw_equal", Object.class, Object.class );
@@ -74,17 +74,17 @@ public final class BasicLuan {
 		return LuanCompiler.compile(luan,new LuanSource(sourceName,text),env,allowExpr);
 	}
 
-	public static LuanFunction load_file(LuanState luan,String fileName) throws LuanException {
+	public static LuanFunction load_file(LuanState luan,String fileName,LuanTable env) throws LuanException {
 		if( fileName == null )
 			fileName = "stdin:";
-		LuanFunction fn = PackageLuan.loader(luan,fileName,false);
+		LuanFunction fn = PackageLuan.loader(luan,fileName,false,env);
 		if( fn == null )
 			throw luan.exception( "file '"+fileName+"' not found" );
 		return fn;
 	}
 
 	public static Object do_file(LuanState luan,String fileName) throws LuanException {
-		LuanFunction fn = load_file(luan,fileName);
+		LuanFunction fn = load_file(luan,fileName,null);
 		return luan.call(fn);
 	}
 
