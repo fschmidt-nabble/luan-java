@@ -207,10 +207,10 @@ public final class IoLuan {
 			return blocks(inputStream(),n);
 		}
 
-		public LuanFunction loader(LuanState luan,String name) throws LuanException {
+		public LuanFunction loader(LuanState luan,String name,LuanTable env) throws LuanException {
 			try {
 				String src = read_text();
-				return BasicLuan.load(luan,src,name,null,false);
+				return BasicLuan.load(luan,src,name,env,false);
 			} catch(FileNotFoundException e) {
 				return null;
 			} catch(IOException e) {
@@ -246,7 +246,7 @@ public final class IoLuan {
 					LuanIn.class.getMethod( "read_blocks", Integer.class ), this
 				) );
 				tbl.put( "loader", new LuanJavaFunction(
-					LuanIn.class.getMethod( "loader", LuanState.class, String.class ), this
+					LuanIn.class.getMethod( "loader", LuanState.class, String.class, LuanTable.class ), this
 				) );
 				tbl.put( "exists", new LuanJavaFunction(
 					LuanIn.class.getMethod( "exists" ), this

@@ -83,18 +83,18 @@ public final class PackageLuan {
 		return mod;
 	}
 
-	static LuanFunction loader(LuanState luan,String name,boolean loading) throws LuanException {
+	static LuanFunction loader(LuanState luan,String name,boolean loading,LuanTable env) throws LuanException {
 		LuanTable t = IoLuan.Uri(luan,name,loading);
 		if( t == null )
 			return null;
 		LuanFunction loader = (LuanFunction)t.get("loader");
 		if( loader == null )
 			return null;
-		return (LuanFunction)Luan.first(luan.call(loader,new Object[]{name}));
+		return (LuanFunction)Luan.first(luan.call(loader,new Object[]{name,env}));
 	}
 
 	public static Object[] search(LuanState luan,String modName) throws LuanException {
-		LuanFunction fn = loader(luan,modName,true);
+		LuanFunction fn = loader(luan,modName,true,null);
 		return fn==null ? null : new Object[]{fn,modName};
 	}
 
