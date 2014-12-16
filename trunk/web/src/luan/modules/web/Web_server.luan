@@ -73,8 +73,8 @@ end
 function init(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
 	Http.dir = dir
-	function Io.schemes.site(path,loading)
-		return Io.Uri( dir..path, loading )
+	function Io.schemes.site(path)
+		return Io.Uri( dir..path )
 	end
 	authentication_handler.setPassword(private_password)
 	local base = dir

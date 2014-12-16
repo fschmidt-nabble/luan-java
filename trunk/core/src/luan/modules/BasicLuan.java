@@ -35,10 +35,10 @@ public final class BasicLuan {
 	public static LuanFunction load_file(LuanState luan,String fileName,LuanTable env) throws LuanException {
 		if( fileName == null )
 			fileName = "stdin:";
-		LuanFunction fn = PackageLuan.loader(luan,fileName,false,env);
-		if( fn == null )
+		String src = PackageLuan.read(luan,fileName);
+		if( src == null )
 			throw luan.exception( "file '"+fileName+"' not found" );
-		return fn;
+		return load(luan,src,fileName,env,false);
 	}
 
 	public static Object do_file(LuanState luan,String fileName) throws LuanException {

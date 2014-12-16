@@ -25,12 +25,12 @@ public final class PackageLuan {
 	}
 
 	public static LuanTable loaded(LuanState luan) {
-		return luan.registryTable("Package.loaded");
-	}
-
-	private static Object pkg(LuanState luan,String key) {
-		LuanTable t = (LuanTable)loaded(luan).get("Package");
-		return t==null ? null : t.get(key);
+		LuanTable tbl = (LuanTable)luan.registry().get("Package.loaded");
+		if( tbl == null ) {
+			tbl = Luan.newTable();
+			luan.registry().put("Package.loaded",tbl);
+		}
+		return tbl;
 	}
 
 	public static Object require(LuanState luan,String modName) throws LuanException {
@@ -41,15 +41,16 @@ public final class PackageLuan {
 	}
 
 	public static Object load(LuanState luan,String modName) throws LuanException {
+		if( modName.startsWith("java:") )
+			return JavaLuan.load(luan,modName.substring(5));
 		LuanTable loaded = loaded(luan);
 		Object mod = loaded.get(modName);
 		if( mod == null ) {
-			Object[] a = search(luan,modName);
-			if( a == null )
+			String src = read(luan,modName+".luan");
+			if( src == null )
 				return null;
-			LuanFunction loader = (LuanFunction)a[0];
-			a[0] = modName;
-			mod = Luan.first(luan.call(loader,"<require \""+modName+"\">",a));
+			LuanFunction loader = BasicLuan.load(luan,src,modName,null,false);
+			mod = Luan.first(luan.call(loader,"<require \""+modName+"\">",new Object[]{modName}));
 			if( mod != null ) {
 				loaded.put(modName,mod);
 			} else {
@@ -63,19 +64,12 @@ public final class PackageLuan {
 		return mod;
 	}
 
-	static LuanFunction loader(LuanState luan,String name,boolean loading,LuanTable env) throws LuanException {
-		LuanTable t = IoLuan.Uri(luan,name,loading);
+	static String read(LuanState luan,String uri) throws LuanException {
+		LuanTable t = IoLuan.Uri(luan,uri);
 		if( t == null )
 			return null;
-		LuanFunction loader = (LuanFunction)t.get("loader");
-		if( loader == null )
-			return null;
-		return (LuanFunction)Luan.first(luan.call(loader,new Object[]{name,env}));
-	}
-
-	public static Object[] search(LuanState luan,String modName) throws LuanException {
-		LuanFunction fn = loader(luan,modName,true,null);
-		return fn==null ? null : new Object[]{fn,modName};
+		LuanFunction reader = (LuanFunction)t.get("read_text");
+		return (String)Luan.first(luan.call(reader));
 	}
 
 }
