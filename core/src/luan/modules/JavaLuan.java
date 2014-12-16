@@ -32,20 +32,6 @@ public final class JavaLuan {
 		return true;
 	}
 
-	static LuanFunction javaLoader(LuanState luan,String modName) throws LuanException {
-		if( !isLoaded(luan) )
-			return null;
-		final Static s = JavaLuan.getClass(luan,modName);
-		if( s==null )
-			return null;
-		LuanFunction loader = new LuanFunction() {
-			@Override public Object call(LuanState luan,Object[] args) {
-				return s;
-			}
-		};
-		return loader;
-	}
-
 	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
 		if( obj instanceof Static ) {
 			if( key instanceof String ) {
@@ -304,7 +290,22 @@ public final class JavaLuan {
 		}
 	}
 
-	public static Static getClass(LuanState luan,String name) throws LuanException {
+	public static Static load(LuanState luan,String name) throws LuanException {
+		@SuppressWarnings("unchecked")
+		Map<String,Static> loaded = (Map<String,Static>)luan.registry().get("Java.loaded");
+		if( loaded == null ) {
+			loaded = new HashMap<String,Static>();
+			luan.registry().put("Java.loaded",loaded);
+		}
+		Static s = loaded.get(name);
+		if( s == null ) {
+			s = getClassStatic(luan,name);
+			loaded.put(name,s);
+		}
+		return s;
+	}
+
+	private static Static getClassStatic(LuanState luan,String name) throws LuanException {
 		Class cls;
 		try {
 			cls = Class.forName(name);

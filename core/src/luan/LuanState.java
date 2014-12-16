@@ -44,15 +44,6 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		return registry;
 	}
 
-	public final LuanTable registryTable(Object key) {
-		LuanTable tbl = (LuanTable)registry.get(key);
-		if( tbl == null ) {
-			tbl = new LuanTableImpl();
-			registry.put(key,tbl);
-		}
-		return tbl;
-	}
-
 	public final LuanTable global() {
 		return global;
 	}
