@@ -27,3 +27,37 @@ to_number = BasicLuan.to_number
 to_string = BasicLuan.to_string
 type = BasicLuan.type
 values = BasicLuan.values
+
+
+import "luan:Package"
+local Basic = _ENV
+
+Package.global(Package,"require")
+Package.global(Basic,"assert")
+Package.global(Basic,"assert_boolean")
+Package.global(Basic,"assert_nil")
+Package.global(Basic,"assert_number")
+Package.global(Basic,"assert_string")
+Package.global(Basic,"assert_table")
+Package.global(Basic,"assert_integer")
+Package.global(Basic,"assert_long")
+Package.global(Basic,"do_file")
+Package.global(Basic,"error")
+Package.global(Basic,"get_metatable")
+Package.global(Basic,"ipairs")
+Package.global(Basic,"load")
+Package.global(Basic,"load_file")
+Package.global(Basic,"pairs")
+Package.global(Basic,"range")
+Package.global(Basic,"raw_equal")
+Package.global(Basic,"raw_get")
+Package.global(Basic,"raw_len")
+Package.global(Basic,"raw_set")
+Package.global(Basic,"repr")
+Package.global(Basic,"set_metatable")
+Package.global(Basic,"to_boolean")
+Package.global(Basic,"to_number")
+Package.global(Basic,"to_string")
+Package.global(Basic,"type")
+
+do_file "classpath:luan/version.luan"
