@@ -27,6 +27,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		registry = new LuanTableImpl();
 		global = new LuanTableImpl();
 		global.put("_G",global);
+		global.put("java",JavaLuan.javaFn);
 		metatable = newMetatable();
 	}
 
@@ -52,6 +53,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		try {
 			LuanState luan = LuanCompiler.newLuanState();
 			PackageLuan.require(luan,"luan:Basic");
+			PackageLuan.require(luan,"luan:Io");
 //			BasicLuan.do_file(luan,"classpath:luan/init.luan");
 			return luan;
 		} catch(LuanException e) {

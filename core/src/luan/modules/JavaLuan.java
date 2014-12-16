@@ -27,12 +27,32 @@ import luan.LuanElement;
 
 public final class JavaLuan {
 
+	public static void java(LuanState luan) {
+		luan.currentEnvironment().setJava();
+	}
+
+	public static final LuanFunction javaFn;
+	static {
+		try {
+			javaFn = new LuanJavaFunction(JavaLuan.class.getMethod("java",LuanState.class),null);
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static void checkJava(LuanState luan) throws LuanException {
+		if( !luan.currentEnvironment().hasJava() )
+			throw luan.exception("Java isn't allowed");
+	}
+
 	private static boolean isLoaded(LuanState luan) {
 //		return PackageLuan.loaded(luan).get("luan:Java") != null;
 		return true;
 	}
 
 	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
+		if( !luan.currentEnvironment().hasJava() )
+			return null;
 		if( obj instanceof Static ) {
 			if( key instanceof String ) {
 				String name = (String)key;
@@ -82,8 +102,6 @@ public final class JavaLuan {
 			} else {
 				List<Member> members = getMembers(cls,name);
 				if( !members.isEmpty() ) {
-					if( name.equals("getClass") && !isLoaded(luan) )
-						return null;  // security
 					return member(obj,members);
 				}
 			}
@@ -121,6 +139,7 @@ public final class JavaLuan {
 	}
 
 	public static void __newindex(LuanState luan,Object obj,Object key,Object value) throws LuanException {
+		checkJava(luan);
 		if( obj instanceof Static ) {
 			if( key instanceof String ) {
 				String name = (String)key;
@@ -291,6 +310,7 @@ public final class JavaLuan {
 	}
 
 	public static Static load(LuanState luan,String name) throws LuanException {
+		checkJava(luan);
 		@SuppressWarnings("unchecked")
 		Map<String,Static> loaded = (Map<String,Static>)luan.registry().get("Java.loaded");
 		if( loaded == null ) {
@@ -318,12 +338,8 @@ public final class JavaLuan {
 		}
 		return new Static(cls);
 	}
-/*
-	public static void importClass(LuanState luan,String name) throws LuanException {
-		luan.currentEnvironment().put( name.substring(name.lastIndexOf('.')+1), getClass(luan,name) );
-	}
-*/
-	static class AmbiguousJavaFunction extends LuanFunction {
+
+	private static class AmbiguousJavaFunction extends LuanFunction {
 		private final Map<Integer,List<LuanJavaFunction>> fnMap = new HashMap<Integer,List<LuanJavaFunction>>();
 
 		AmbiguousJavaFunction(List<LuanJavaFunction> fns) {

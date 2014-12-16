@@ -1,3 +1,4 @@
+java()
 import "java:luan.modules.MathLuan"
 local JavaMath = require "java:java.lang.Math"
 

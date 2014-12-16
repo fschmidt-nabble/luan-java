@@ -1,3 +1,4 @@
+java()
 import "luan:Table"
 import "java:luan.modules.lucene.LuceneIndex"
 import "java:org.apache.lucene.index.Term"

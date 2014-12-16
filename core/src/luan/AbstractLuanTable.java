@@ -88,4 +88,12 @@ public abstract class AbstractLuanTable implements LuanTable {
 	@Override public LuanTable cloneTable() {
 		return isList() ? new LuanTableImpl(new ArrayList<Object>(asList())) : new LuanTableImpl(newMap(asMap()));
 	}
+
+	@Override public boolean hasJava() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override public void setJava() {
+		throw new UnsupportedOperationException();
+	}
 }
