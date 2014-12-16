@@ -1,0 +1,10 @@
+import "java:luan.modules.IoLuan"
+import "java:java.lang.System"
+
+read_console_line = IoLuan.read_console_line
+schemes = IoLuan.newSchemes()
+Uri = IoLuan.Uri
+stdin = IoLuan.defaultStdin.table()
+socket_server = IoLuan.socket_server
+stdout = IoLuan.textWriter(System.out)
+stderr = IoLuan.textWriter(System.err)

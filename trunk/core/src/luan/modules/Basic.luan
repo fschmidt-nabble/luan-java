@@ -1,0 +1,29 @@
+import "java:luan.modules.BasicLuan"
+
+assert = BasicLuan.assert_
+assert_boolean = BasicLuan.assert_boolean
+assert_nil = BasicLuan.assert_nil
+assert_number = BasicLuan.assert_number
+assert_string = BasicLuan.assert_string
+assert_table = BasicLuan.assert_table
+assert_integer = BasicLuan.assert_integer
+assert_long = BasicLuan.assert_long
+do_file = BasicLuan.do_file
+error = BasicLuan.error
+get_metatable = BasicLuan.get_metatable
+ipairs = BasicLuan.ipairs
+load = BasicLuan.load
+load_file = BasicLuan.load_file
+pairs = BasicLuan.pairs
+range = BasicLuan.range
+raw_equal = BasicLuan.raw_equal
+raw_get = BasicLuan.raw_get
+raw_len = BasicLuan.raw_len
+raw_set = BasicLuan.raw_set
+repr = BasicLuan.repr
+set_metatable = BasicLuan.set_metatable
+to_boolean = BasicLuan.to_boolean
+to_number = BasicLuan.to_number
+to_string = BasicLuan.to_string
+type = BasicLuan.type
+values = BasicLuan.values

@@ -1,0 +1,5 @@
+import "java:luan.modules.PackageLuan"
+
+loaded = PackageLuan.loaded()
+require = PackageLuan.requireFn
+load = PackageLuan.load

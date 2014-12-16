@@ -27,21 +27,9 @@ import luan.LuanElement;
 
 public final class JavaLuan {
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-			LuanTable module = Luan.newTable();
-			try {
-				module.put( "class", new LuanJavaFunction(JavaLuan.class.getMethod("getClass",LuanState.class,String.class),null) );
-				add( module, "proxy", LuanState.class, Static.class, LuanTable.class, Object.class );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
 	private static boolean isLoaded(LuanState luan) {
-		return PackageLuan.loaded(luan).get("luan:Java") != null;
+//		return PackageLuan.loaded(luan).get("luan:Java") != null;
+		return true;
 	}
 
 	static LuanFunction javaLoader(LuanState luan,String modName) throws LuanException {
@@ -56,14 +44,6 @@ public final class JavaLuan {
 			}
 		};
 		return loader;
-	}
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) {
-		try {
-			t.put( method, new LuanJavaFunction(JavaLuan.class.getMethod(method,parameterTypes),null) );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
@@ -123,6 +103,7 @@ public final class JavaLuan {
 			}
 		}
 //		throw luan.exception("invalid member '"+key+"' for java object: "+obj);
+//System.out.println("invalid member '"+key+"' for java object: "+obj);
 		return null;
 	}
 
@@ -138,13 +119,13 @@ public final class JavaLuan {
 					return rtn instanceof Object[] ? Arrays.asList((Object[])rtn) : rtn;
 				} else {
 					Method method = (Method)member;
-					return new LuanJavaFunction(method,obj,true);
+					return new LuanJavaFunction(method,obj);
 				}
 			} else {
 				List<LuanJavaFunction> fns = new ArrayList<LuanJavaFunction>();
 				for( Member member : members ) {
 					Method method = (Method)member;
-					fns.add(new LuanJavaFunction(method,obj,true));
+					fns.add(new LuanJavaFunction(method,obj));
 				}
 				return new AmbiguousJavaFunction(fns);
 			}

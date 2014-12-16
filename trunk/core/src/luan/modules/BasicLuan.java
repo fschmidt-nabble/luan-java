@@ -20,48 +20,6 @@ import luan.impl.LuanCompiler;
 
 public final class BasicLuan {
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				module.put( "assert", new LuanJavaFunction(BasicLuan.class.getMethod("assert_",LuanState.class,Object.class,String.class),null) );
-				add( module, "assert_boolean", LuanState.class, Boolean.TYPE );
-				add( module, "assert_nil", LuanState.class, Object.class );
-				add( module, "assert_number", LuanState.class, Number.class );
-				add( module, "assert_string", LuanState.class, String.class );
-				add( module, "assert_table", LuanState.class, LuanTable.class );
-				add( module, "assert_integer", LuanState.class, Integer.TYPE );
-				add( module, "assert_long", LuanState.class, Long.TYPE );
-				add( module, "do_file", LuanState.class, String.class );
-				add( module, "error", LuanState.class, Object.class );
-				add( module, "get_metatable", LuanState.class, Object.class );
-				add( module, "ipairs", LuanState.class, LuanTable.class );
-				add( module, "load", LuanState.class, String.class, String.class, LuanTable.class, Boolean.class );
-				add( module, "load_file", LuanState.class, String.class, LuanTable.class );
-				add( module, "pairs", LuanState.class, LuanTable.class );
-				add( module, "range", LuanState.class, Double.TYPE, Double.TYPE, Double.class );
-				add( module, "raw_equal", Object.class, Object.class );
-				add( module, "raw_get", LuanTable.class, Object.class );
-				add( module, "raw_len", LuanState.class, Object.class );
-				add( module, "raw_set", LuanTable.class, Object.class, Object.class );
-				add( module, "repr", LuanState.class, Object.class );
-				add( module, "set_metatable", LuanTable.class, LuanTable.class );
-				add( module, "to_boolean", Object.class );
-				add( module, "to_number", Object.class, Integer.class );
-				add( module, "to_string", LuanState.class, Object.class );
-				add( module, "type", Object.class );
-				add( module, "values", new Object[0].getClass() );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(BasicLuan.class.getMethod(method,parameterTypes),null) );
-	}
-
 	public static String type(Object obj) {
 		return Luan.type(obj);
 	}

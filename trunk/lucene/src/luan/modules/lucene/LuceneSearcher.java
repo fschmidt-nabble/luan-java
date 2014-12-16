@@ -28,6 +28,7 @@ import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanException;
 import luan.LuanRuntimeException;
+import luan.LuanMethod;
 
 
 public final class LuceneSearcher {
@@ -76,7 +77,7 @@ public final class LuceneSearcher {
 		}
 	}
 
-	public Object[] search( final LuanState luan, Query query, Object nObj, Sort sort ) throws LuanException, IOException {
+	@LuanMethod public Object[] search( final LuanState luan, Query query, Object nObj, Sort sort ) throws LuanException, IOException {
 		if( nObj instanceof LuanFunction ) {
 			final LuanFunction fn = (LuanFunction)nObj;
 			Collector col = new MyCollector() {

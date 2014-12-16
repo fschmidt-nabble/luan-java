@@ -9,40 +9,10 @@ import luan.LuanFunction;
 import luan.LuanJavaFunction;
 import luan.LuanElement;
 import luan.LuanException;
+import luan.LuanMethod;
 
 
 public final class StringLuan {
-
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				add( module, "to_binary", String.class );
-				module.put( "byte", new LuanJavaFunction(StringLuan.class.getMethod( "byte_", String.class ),null) );
-				module.put( "char", new LuanJavaFunction(StringLuan.class.getMethod( "char_", new int[0].getClass() ),null) );
-				add( module, "concat", LuanState.class, new Object[0].getClass() );
-				add( module, "find", String.class, String.class, Integer.class, Boolean.class );
-				add( module, "format", String.class, new Object[0].getClass() );
-				add( module, "gmatch", LuanState.class, String.class, String.class );
-				add( module, "gsub", LuanState.class, String.class, String.class, Object.class, Integer.class );
-				add( module, "len", LuanState.class, String.class );
-				add( module, "lower", LuanState.class, String.class );
-				add( module, "match", String.class, String.class, Integer.class );
-				add( module, "rep", String.class, Integer.TYPE, String.class );
-				add( module, "reverse", LuanState.class, String.class );
-				add( module, "sub", LuanState.class, String.class, Integer.TYPE, Integer.class );
-				add( module, "trim", LuanState.class, String.class );
-				add( module, "upper", LuanState.class, String.class );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(StringLuan.class.getMethod(method,parameterTypes),null) );
-	}
 
 	public static Object __index(LuanState luan,final String s,Object key) throws LuanException {
 		LuanTable mod = (LuanTable)PackageLuan.loaded(luan).get("luan:String");
@@ -156,7 +126,7 @@ public final class StringLuan {
 		return m.find(start) ? new int[]{m.start()+1,m.end()} : null;
 	}
 
-	public static String[] match(String s,String pattern,Integer init) {
+	@LuanMethod public static String[] match(String s,String pattern,Integer init) {
 		int start = start(s,init,0);
 		Matcher m = Pattern.compile(pattern).matcher(s);
 		if( !m.find(start) )
@@ -190,7 +160,7 @@ public final class StringLuan {
 		};
 	}
 
-	public static Object[] gsub(LuanState luan,String s,String pattern,Object repl,Integer n) throws LuanException {
+	@LuanMethod public static Object[] gsub(LuanState luan,String s,String pattern,Object repl,Integer n) throws LuanException {
 		int max = n==null ? Integer.MAX_VALUE : n;
 		final Matcher m = Pattern.compile(pattern).matcher(s);
 		if( repl instanceof String ) {

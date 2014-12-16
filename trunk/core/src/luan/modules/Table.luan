@@ -1,0 +1,10 @@
+import "java:luan.modules.TableLuan"
+
+clone = TableLuan.clone
+concat = TableLuan.concat
+insert = TableLuan.insert
+pack = TableLuan.pack
+remove = TableLuan.remove
+sort = TableLuan.sort
+sub_list = TableLuan.sub_list
+unpack = TableLuan.unpack

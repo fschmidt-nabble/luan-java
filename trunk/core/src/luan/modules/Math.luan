@@ -1,0 +1,27 @@
+import "java:luan.modules.MathLuan"
+local JavaMath = require "java:java.lang.Math"
+
+abs = MathLuan.abs
+acos = MathLuan.acos
+asin = MathLuan.asin
+atan = MathLuan.atan
+atan2 = MathLuan.atan2
+ceil = MathLuan.ceil
+cos = MathLuan.cos
+cosh = MathLuan.cosh
+deg = MathLuan.deg
+exp = MathLuan.exp
+floor = MathLuan.floor
+log = MathLuan.log
+min = MathLuan.min
+max = MathLuan.max
+modf = MathLuan.modf
+pi = JavaMath.PI
+pow = MathLuan.pow
+rad = MathLuan.rad
+random = MathLuan.random
+sin = MathLuan.sin
+sinh = MathLuan.sinh
+sqrt = MathLuan.sqrt
+tan = MathLuan.tan
+tanh = MathLuan.tanh

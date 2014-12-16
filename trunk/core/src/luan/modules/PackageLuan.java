@@ -15,22 +15,6 @@ import luan.LuanException;
 
 public final class PackageLuan {
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			module.put( "loaded", loaded(luan) );
-			try {
-				module.put("require",requireFn);
-				add( module, "load", LuanState.class, String.class );
-//				add( module, "load_lib", LuanState.class, String.class );
-				add( module, "search", LuanState.class, String.class );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
 	public static final LuanFunction requireFn;
 	static {
 		try {
@@ -38,10 +22,6 @@ public final class PackageLuan {
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(PackageLuan.class.getMethod(method,parameterTypes),null) );
 	}
 
 	public static LuanTable loaded(LuanState luan) {
@@ -96,17 +76,6 @@ public final class PackageLuan {
 	public static Object[] search(LuanState luan,String modName) throws LuanException {
 		LuanFunction fn = loader(luan,modName,true,null);
 		return fn==null ? null : new Object[]{fn,modName};
-	}
-
-
-	static LuanFunction load_lib(LuanState luan,String path)
-		throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, LuanException
-	{
-		int i = path.lastIndexOf('.');
-		String clsPath = path.substring(0,i);
-		String fld = path.substring(i+1);
-		Class cls = Class.forName(clsPath);
-		return (LuanFunction)cls.getField(fld).get(null);
 	}
 
 }

@@ -10,45 +10,6 @@ import luan.LuanException;
 
 public final class MathLuan {
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				add( module, "abs", Double.TYPE );
-				add( module, "acos", Double.TYPE );
-				add( module, "asin", Double.TYPE );
-				add( module, "atan", Double.TYPE );
-				add( module, "atan2", Double.TYPE, Double.TYPE );
-				add( module, "ceil", Double.TYPE );
-				add( module, "cos", Double.TYPE );
-				add( module, "cosh", Double.TYPE );
-				add( module, "deg", Double.TYPE );
-				add( module, "exp", Double.TYPE );
-				add( module, "floor", Double.TYPE );
-				add( module, "log", Double.TYPE );
-				add( module, "min", Double.TYPE, new double[0].getClass() );
-				add( module, "max", Double.TYPE, new double[0].getClass() );
-				add( module, "modf", Double.TYPE );
-				module.put("pi",Math.PI);
-				add( module, "pow", Double.TYPE, Double.TYPE );
-				add( module, "rad", Double.TYPE );
-				add( module, "random", Integer.class, Integer.class );
-				add( module, "sin", Double.TYPE );
-				add( module, "sinh", Double.TYPE );
-				add( module, "sqrt", Double.TYPE );
-				add( module, "tan", Double.TYPE );
-				add( module, "tanh", Double.TYPE );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(MathLuan.class.getMethod(method,parameterTypes),null) );
-	}
-
 	public static double abs(double x) {
 		return Math.abs(x);
 	}

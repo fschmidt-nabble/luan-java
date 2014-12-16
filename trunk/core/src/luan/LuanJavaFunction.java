@@ -21,21 +21,17 @@ public final class LuanJavaFunction extends LuanFunction {
 	private final Class<?> varArgCls;
 
 	public LuanJavaFunction(Method method,Object obj) {
-		this(method,obj,false);
-	}
-
-	public LuanJavaFunction(Method method,Object obj,boolean convertArray) {
-		this( JavaMethod.of(method), obj, convertArray );
+		this( JavaMethod.of(method), obj );
 	}
 
 	public LuanJavaFunction(Constructor constr,Object obj) {
-		this( JavaMethod.of(constr), obj, false );
+		this( JavaMethod.of(constr), obj );
 	}
 
-	private LuanJavaFunction(JavaMethod method,Object obj,boolean convertArray) {
+	private LuanJavaFunction(JavaMethod method,Object obj) {
 		this.method = method;
 		this.obj = obj;
-		this.rtnConverter = getRtnConverter(method,convertArray);
+		this.rtnConverter = getRtnConverter(method);
 		this.takesLuaState = takesLuaState(method);
 		this.argConverters = getArgConverters(takesLuaState,method);
 		if( method.isVarArgs() ) {
@@ -208,12 +204,14 @@ public final class LuanJavaFunction extends LuanFunction {
 		}
 	};
 
-	private static RtnConverter getRtnConverter(JavaMethod m,boolean convertArray) {
+	private static RtnConverter getRtnConverter(JavaMethod m) {
 		Class<?> rtnType = m.getReturnType();
 		if( rtnType == Void.TYPE )
 			return RTN_NOTHING;
-		if( convertArray && rtnType.isArray() && !rtnType.getComponentType().isPrimitive() )
+		if( !m.isLuan() && rtnType.isArray() && !rtnType.getComponentType().isPrimitive() ) {
+//System.out.println("qqqqqq "+m);
 			return RTN_ARRAY;
+		}
 		return RTN_SAME;
 	}
 
@@ -544,6 +542,7 @@ public final class LuanJavaFunction extends LuanFunction {
 		abstract Object invoke(Object obj,Object... args)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException;
 		abstract Class<?> getReturnType();
+		abstract boolean isLuan();
 	
 		static JavaMethod of(final Method m) {
 			return new JavaMethod() {
@@ -560,6 +559,9 @@ public final class LuanJavaFunction extends LuanFunction {
 				}
 				@Override Class<?> getReturnType() {
 					return m.getReturnType();
+				}
+				@Override boolean isLuan() {
+					return m.getAnnotation(LuanMethod.class) != null;
 				}
 				@Override public String toString() {
 					return m.toString();
@@ -582,6 +584,9 @@ public final class LuanJavaFunction extends LuanFunction {
 				}
 				@Override Class<?> getReturnType() {
 					return c.getDeclaringClass();
+				}
+				@Override boolean isLuan() {
+					return false;
 				}
 				@Override public String toString() {
 					return c.toString();
