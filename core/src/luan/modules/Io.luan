@@ -8,3 +8,27 @@ stdin = IoLuan.defaultStdin.table()
 socket_server = IoLuan.socket_server
 stdout = IoLuan.textWriter(System.out)
 stderr = IoLuan.textWriter(System.err)
+
+
+import "luan:Package"
+import "luan:Basic"
+import "luan:Table"
+
+function print_to(out,...)
+	local list = {}
+	for _,v in Basic.values(...) do
+		list[#list+1] = to_string(v)
+		list[#list+1] = '\t'
+	end
+	if #list == 0 then
+		out.write( '\n' )
+	else
+		list[#list] = '\n'
+		out.write( Table.unpack(list) )
+	end
+end
+
+function Basic.print(...)
+	print_to(stdout,...)
+end
+Package.global(Basic,"print")

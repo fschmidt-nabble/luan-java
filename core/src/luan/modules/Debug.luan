@@ -1,0 +1,25 @@
+import "luan:Table"
+
+
+function print_if_something(...)
+	if Table.pack(...).n > 0 then
+		print(...)
+	end
+end
+
+function debug(prompt)
+	prompt = prompt or "luan_debug> "
+	local function console()
+		return Io.read_console_line(prompt)
+	end
+	local env = {}
+	for line in console do
+		try
+			local fn = load(line,"stdin",env,true)
+			print_if_something( fn() )
+		catch e do
+			print(e)
+		end
+	end
+end
+
