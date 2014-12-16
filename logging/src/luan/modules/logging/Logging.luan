@@ -1,4 +1,3 @@
-import "luan:Java"
 import "java:org.apache.log4j.Logger"
 import "java:org.apache.log4j.EnhancedPatternLayout"
 import "java:org.apache.log4j.ConsoleAppender"

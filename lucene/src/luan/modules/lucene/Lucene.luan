@@ -1,5 +1,4 @@
 import "luan:Table"
-import "luan:Java"
 import "java:luan.modules.lucene.LuceneIndex"
 import "java:org.apache.lucene.index.Term"
 import "java:org.apache.lucene.search.TermQuery"

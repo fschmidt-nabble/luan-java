@@ -8,36 +8,12 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
-import luan.LuanJavaFunction;
-import luan.LuanElement;
 import luan.LuanException;
 import luan.LuanRuntimeException;
+import luan.LuanMethod;
 
 
 public final class TableLuan {
-
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				add( module, "clone", LuanTable.class );
-				add( module, "concat", LuanState.class, LuanTable.class, String.class, Integer.class, Integer.class );
-				add( module, "insert", LuanTable.class, Integer.TYPE, Object.class );
-				add( module, "pack", new Object[0].getClass() );
-				add( module, "remove", LuanTable.class, Integer.TYPE );
-				add( module, "sort", LuanState.class, LuanTable.class, LuanFunction.class );
-				add( module, "sub_list", LuanTable.class, Integer.TYPE, Integer.TYPE );
-				add( module, "unpack", LuanTable.class, Integer.class, Integer.class );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(TableLuan.class.getMethod(method,parameterTypes),null) );
-	}
 
 	public static String concat(LuanState luan,LuanTable list,String sep,Integer i,Integer j) throws LuanException {
 		int first = i==null ? 1 : i;
@@ -120,7 +96,7 @@ public final class TableLuan {
 		return tbl;
 	}
 
-	public static Object[] unpack(LuanTable tbl,Integer iFrom,Integer iTo) {
+	@LuanMethod public static Object[] unpack(LuanTable tbl,Integer iFrom,Integer iTo) {
 		int from = iFrom!=null ? iFrom : 1;
 		int to = iTo!=null ? iTo : tbl.length();
 		List<Object> list = new ArrayList<Object>();

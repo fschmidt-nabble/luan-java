@@ -35,28 +35,9 @@ import luan.LuanException;
 
 public final class IoLuan {
 
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				add( module, "read_console_line", String.class );
-				module.put( "schemes", newSchemes() );
-				add( module, "Uri", LuanState.class, String.class, Boolean.class );
-				module.put( "stdin", stdin.table() );
-				add( module, "socket_server", Integer.TYPE );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			module.put( "stdout", textWriter(System.out) );
-			module.put( "stderr", textWriter(System.err) );
-			return module;
-		}
-	};
-
 	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
 		t.put( method, new LuanJavaFunction(IoLuan.class.getMethod(method,parameterTypes),null) );
 	}
-
 
 	public static String read_console_line(String prompt) throws IOException {
 		if( prompt==null )
@@ -227,7 +208,7 @@ public final class IoLuan {
 			}
 		}
 
-		LuanTable table() {
+		public LuanTable table() {
 			LuanTable tbl = Luan.newTable();
 			try {
 				tbl.put( "to_string", new LuanJavaFunction(
@@ -258,7 +239,7 @@ public final class IoLuan {
 		}
 	}
 
-	static final LuanIn stdin = new LuanIn() {
+	public static final LuanIn defaultStdin = new LuanIn() {
 
 		@Override InputStream inputStream() {
 			return System.in;
@@ -310,7 +291,7 @@ public final class IoLuan {
 			return binaryWriter(new BufferedOutputStream(outputStream()));
 		}
 
-		@Override LuanTable table() {
+		@Override public LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
 				tbl.put( "write", new LuanJavaFunction(
@@ -348,7 +329,7 @@ public final class IoLuan {
 			return new UrlCall(url).post(postS);
 		}
 
-		@Override LuanTable table() {
+		@Override public LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
 				tbl.put( "post", new LuanJavaFunction(
@@ -408,7 +389,7 @@ public final class IoLuan {
 			return file.renameTo(new File(dest));
 		}
 
-		@Override LuanTable table() {
+		@Override public LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
 				tbl.put( "name", new LuanJavaFunction(
@@ -486,26 +467,6 @@ public final class IoLuan {
 		if( url != null )
 			return new LuanUrl(url).table();
 
-		// try java
-		if( !isLoading )
-			return null;
-		String modName = name.replace('/','.') + "Luan.LOADER";
-//		check(luan,"classpath",modName);
-		try {
-//System.out.println("modName = "+modName);
-			final LuanFunction fn = PackageLuan.load_lib(luan,modName);  // throws exception if not found
-			LuanFunction loader = new LuanFunction() {
-				@Override public Object call(LuanState luan,Object[] args) {
-					return fn;
-				}
-			};
-			LuanTable tbl = Luan.newTable();
-			tbl.put( "loader", loader );
-			return tbl;
-		} catch(ClassNotFoundException e) {
-		} catch(NoSuchFieldException e) {
-		} catch(IllegalAccessException e) {
-		}
 		return null;
 	}
 
@@ -548,7 +509,7 @@ public final class IoLuan {
 		return (LuanTable)io.get("stdin");
 	}
 
-	private static LuanTable newSchemes() {
+	public static LuanTable newSchemes() {
 		LuanTable schemes = Luan.newTable();
 		try {
 			add( schemes, "file", LuanState.class, String.class, Boolean.class );
@@ -623,7 +584,7 @@ public final class IoLuan {
 			new PickleServer(luan,in,out).run();
 		}
 
-		@Override LuanTable table() {
+		@Override public LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
 				tbl.put( "Pickle_client", new LuanJavaFunction(

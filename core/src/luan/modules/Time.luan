@@ -2,7 +2,6 @@
 
 import "luan:String"
 import "luan:Table"
-import "luan:Java"
 import "java:java.lang.System"
 import "java:java.util.Calendar"
 import "java:java.util.Date"

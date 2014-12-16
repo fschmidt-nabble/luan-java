@@ -1,0 +1,18 @@
+import "java:luan.modules.StringLuan"
+
+to_binary = StringLuan.to_binary
+byte = StringLuan.byte_
+char = StringLuan.char_
+concat = StringLuan.concat
+find = StringLuan.find
+format = StringLuan.format
+gmatch = StringLuan.gmatch
+gsub = StringLuan.gsub
+len = StringLuan.len
+lower = StringLuan.lower
+match = StringLuan.match
+rep = StringLuan.rep
+reverse = StringLuan.reverse
+sub = StringLuan.sub
+trim = StringLuan.trim
+upper = StringLuan.upper
