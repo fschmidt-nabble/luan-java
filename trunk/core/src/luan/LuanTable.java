@@ -21,4 +21,6 @@ public interface LuanTable extends Iterable<Map.Entry<Object,Object>> {
 	public LuanTable getMetatable();
 	public void setMetatable(LuanTable metatable);
 	public LuanTable cloneTable();
+	public boolean hasJava();
+	public void setJava();
 }

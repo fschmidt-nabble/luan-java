@@ -1,4 +1,5 @@
 import "luan:Table"
+import "luan:Io"
 
 
 function print_if_something(...)

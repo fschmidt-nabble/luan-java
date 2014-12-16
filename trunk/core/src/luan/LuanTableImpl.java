@@ -18,6 +18,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 	private Map<Object,Object> map = null;
 	private List<Object> list = null;
 	private LuanTable metatable = null;
+	private boolean hasJava = false;
 
 	public LuanTableImpl() {}
 /*
@@ -76,6 +77,7 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 		}
 		if( metatable != null )
 			clone.metatable = cloner.get(metatable);
+		clone.hasJava = hasJava;
 	}
 
 	@Override public boolean isList() {
@@ -352,5 +354,13 @@ class LuanTableImpl extends AbstractLuanTable implements LuanTable, DeepCloneabl
 
 	@Override public void setMetatable(LuanTable metatable) {
 		this.metatable = metatable;
+	}
+
+	@Override public boolean hasJava() {
+		return hasJava;
+	}
+
+	@Override public void setJava() {
+		hasJava = true;
 	}
 }

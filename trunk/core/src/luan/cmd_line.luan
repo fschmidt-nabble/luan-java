@@ -1,6 +1,7 @@
 import "luan:String"
 import "luan:Table"
 import "luan:Io"
+import "luan:Debug"
 
 
 local standalone_usage = [=[

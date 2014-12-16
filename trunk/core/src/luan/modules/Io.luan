@@ -1,3 +1,4 @@
+java()
 import "java:luan.modules.IoLuan"
 import "java:java.lang.System"
 

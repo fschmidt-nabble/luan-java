@@ -1,3 +1,4 @@
+java()
 import "java:luan.modules.StringLuan"
 
 to_binary = StringLuan.to_binary

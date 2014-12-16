@@ -1,3 +1,4 @@
+java()
 import "java:java.lang.System"
 import "java:luan.modules.mail.SmtpCon"
 
