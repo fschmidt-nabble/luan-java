@@ -40,6 +40,7 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	}
 
 	public abstract LuanTable currentEnvironment();
+	public abstract LuanSource currentSource();
 
 	public final LuanTable registry() {
 		return registry;

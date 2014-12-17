@@ -333,7 +333,7 @@ public final class IoLuan {
 
 		private LuanFile(LuanState luan,File file) throws LuanException {
 			this(file);
-			check(luan,"file",file.toString());
+			check(luan,"file:"+file.toString());
 		}
 
 		private LuanFile(File file) {
@@ -424,7 +424,7 @@ public final class IoLuan {
 		if( name.contains("//") )
 			return null;
 		String path = name;
-		check(luan,"classpath",path);
+		check(luan,"classpath:"+path);
 		URL url;
 		if( !path.contains("#") ) {
 			url = ClassLoader.getSystemResource(path);
@@ -595,15 +595,15 @@ public final class IoLuan {
 	// security
 
 	public interface Security {
-		public void check(LuanState luan,String scheme,String name) throws LuanException;
+		public void check(LuanState luan,String name) throws LuanException;
 	}
 
 	private static String SECURITY_KEY = "Io.Security";
 
-	private static void check(LuanState luan,String scheme,String name) throws LuanException {
+	private static void check(LuanState luan,String name) throws LuanException {
 		Security s = (Security)luan.registry().get(SECURITY_KEY);
 		if( s!=null )
-			s.check(luan,scheme,name);
+			s.check(luan,name);
 	}
 
 	public static void setSecurity(LuanState luan,Security s) {

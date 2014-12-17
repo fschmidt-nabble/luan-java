@@ -27,7 +27,8 @@ import luan.LuanElement;
 
 public final class JavaLuan {
 
-	public static void java(LuanState luan) {
+	public static void java(LuanState luan) throws LuanException {
+		check(luan,luan.currentSource().name);
 		luan.currentEnvironment().setJava();
 	}
 
@@ -311,21 +312,6 @@ public final class JavaLuan {
 
 	public static Static load(LuanState luan,String name) throws LuanException {
 		checkJava(luan);
-		@SuppressWarnings("unchecked")
-		Map<String,Static> loaded = (Map<String,Static>)luan.registry().get("Java.loaded");
-		if( loaded == null ) {
-			loaded = new HashMap<String,Static>();
-			luan.registry().put("Java.loaded",loaded);
-		}
-		Static s = loaded.get(name);
-		if( s == null ) {
-			s = getClassStatic(luan,name);
-			loaded.put(name,s);
-		}
-		return s;
-	}
-
-	private static Static getClassStatic(LuanState luan,String name) throws LuanException {
 		Class cls;
 		try {
 			cls = Class.forName(name);
@@ -433,4 +419,25 @@ public final class JavaLuan {
 			}
 		);
 	}
+
+
+
+	// security
+
+	public interface Security {
+		public void check(LuanState luan,String name) throws LuanException;
+	}
+
+	private static String SECURITY_KEY = "Java.Security";
+
+	private static void check(LuanState luan,String name) throws LuanException {
+		Security s = (Security)luan.registry().get(SECURITY_KEY);
+		if( s!=null )
+			s.check(luan,name);
+	}
+
+	public static void setSecurity(LuanState luan,Security s) {
+		luan.registry().put(SECURITY_KEY,s);
+	}
+
 }

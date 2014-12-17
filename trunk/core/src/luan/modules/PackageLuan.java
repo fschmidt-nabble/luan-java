@@ -41,16 +41,20 @@ public final class PackageLuan {
 	}
 
 	public static Object load(LuanState luan,String modName) throws LuanException {
-		if( modName.startsWith("java:") )
-			return JavaLuan.load(luan,modName.substring(5));
 		LuanTable loaded = loaded(luan);
 		Object mod = loaded.get(modName);
 		if( mod == null ) {
-			String src = read(luan,modName+".luan");
-			if( src == null )
-				return null;
-			LuanFunction loader = BasicLuan.load(luan,src,modName,null,false);
-			mod = Luan.first(luan.call(loader,"<require \""+modName+"\">",new Object[]{modName}));
+			if( modName.startsWith("java:") ) {
+				mod = JavaLuan.load(luan,modName.substring(5));
+			} else {
+				String src = read(luan,modName+".luan");
+				if( src == null )
+					return null;
+				LuanFunction loader = BasicLuan.load(luan,src,modName,null,false);
+				mod = Luan.first(
+					luan.call(loader,"<require \""+modName+"\">",new Object[]{modName})
+				);
+			}
 			if( mod != null ) {
 				loaded.put(modName,mod);
 			} else {
@@ -67,6 +71,10 @@ public final class PackageLuan {
 	static String read(LuanState luan,String uri) throws LuanException {
 		LuanTable t = IoLuan.Uri(luan,uri);
 		if( t == null )
+			return null;
+		LuanFunction existsFn = (LuanFunction)t.get("exists");
+		boolean exists = (Boolean)Luan.first(luan.call(existsFn));
+		if( !exists )
 			return null;
 		LuanFunction reader = (LuanFunction)t.get("read_text");
 		return (String)Luan.first(luan.call(reader));

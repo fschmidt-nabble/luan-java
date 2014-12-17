@@ -10,7 +10,7 @@ import luan.DeepCloneable;
 
 
 final class Closure extends LuanFunction implements DeepCloneable<Closure> {
-	private final FnDef fnDef;
+	final FnDef fnDef;
 	private UpValue[] upValues;
 
 	Closure(LuanStateImpl luan,FnDef fnDef) throws LuanException {

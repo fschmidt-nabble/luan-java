@@ -6,29 +6,11 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanFunction;
 import luan.LuanTable;
-import luan.LuanJavaFunction;
 import luan.LuanException;
 import luan.DeepCloner;
 
 
 public final class ThreadLuan {
-
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				add( module, "fork", LuanState.class, LuanFunction.class, new Object[0].getClass() );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(ThreadLuan.class.getMethod(method,parameterTypes),null) );
-	}
-
 	private static final Executor exec = Executors.newCachedThreadPool();
 
 	public static void fork(LuanState luan,LuanFunction fn,Object... args) {
@@ -44,5 +26,4 @@ public final class ThreadLuan {
 			}
 		}});
 	}
-
 }
