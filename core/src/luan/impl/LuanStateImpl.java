@@ -10,6 +10,7 @@ import luan.LuanTable;
 import luan.LuanFunction;
 import luan.LuanException;
 import luan.LuanElement;
+import luan.LuanSource;
 import luan.DeepCloner;
 
 
@@ -111,6 +112,12 @@ final class LuanStateImpl extends LuanState {
 		if( frame==null )
 			return null;
 		return (LuanTable)frame.closure.upValues()[0].get();
+	}
+
+	@Override public LuanSource currentSource(){
+		if( frame==null )
+			return null;
+		return frame.closure.fnDef.se().source;
 	}
 
 }
