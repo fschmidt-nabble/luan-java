@@ -74,8 +74,12 @@ public final class JavaLuan {
 							return new AmbiguousJavaFunction(fns);
 						}
 					}
+/*
 				} else if( "assert".equals(name) ) {
 					return new LuanJavaFunction(assertClass,new AssertClass(cls));
+*/
+				} else if( "luan_proxy".equals(name) ) {
+					return new LuanJavaFunction(luan_proxyMethod,st);
 				} else {
 					List<Member> members = getStaticMembers(cls,name);
 					if( !members.isEmpty() ) {
@@ -308,6 +312,36 @@ public final class JavaLuan {
 		@Override public boolean isSynthetic() {
 			return cls.isSynthetic();
 		}
+
+		public Object luan_proxy(final LuanState luan,final LuanTable t,final Object base) throws LuanException {
+			return Proxy.newProxyInstance(
+				cls.getClassLoader(),
+				new Class[]{cls},
+				new InvocationHandler() {
+					public Object invoke(Object proxy,Method method, Object[] args)
+						throws Throwable
+					{
+						if( args==null )
+							args = new Object[0];
+						String name = method.getName();
+						Object fnObj = t.get(name);
+						if( fnObj==null && base!=null )
+							return method.invoke(base,args);
+						LuanFunction fn = luan.checkFunction(fnObj);
+						return Luan.first(luan.call(fn,name,args));
+					}
+				}
+			);
+		}
+	}
+	private static final Method luan_proxyMethod;
+	static {
+		try {
+			luan_proxyMethod = Static.class.getMethod("luan_proxy",LuanState.class,LuanTable.class,Object.class);
+			luan_proxyMethod.setAccessible(true);
+		} catch(NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static Static load(LuanState luan,String name) throws LuanException {
@@ -371,7 +405,7 @@ public final class JavaLuan {
 		}
 	}
 
-
+/*
 	private static class AssertClass {
 		private final Class cls;
 
@@ -419,6 +453,7 @@ public final class JavaLuan {
 			}
 		);
 	}
+*/
 
 
 
