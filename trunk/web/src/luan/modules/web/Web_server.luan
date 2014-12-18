@@ -1,8 +1,8 @@
 import "luan:String"
 import "luan:Io"
 import "luan:Package"
-import "luan:web/Http"
 import "luan:logging/Logging"  -- initialize logging
+import "luan:web/Http"
 
 java()
 import "java:org.eclipse.jetty.server.Server"
@@ -67,9 +67,6 @@ end
 local hc = HandlerCollection.new()
 hc.setHandlers { SessionHandler.new(), handler_wrapper, DefaultHandler.new(), log_handler }
 
--- override to config server
-function config_server(server)
-end 
 
 function init(dir)
 	dir = dir.gsub("/$","")  -- remove trailing '/' if any
@@ -85,12 +82,15 @@ function init(dir)
 	resource_handler.setResourceBase(Io.Uri(base).to_string())
 	resource_handler.setWelcomeFiles {welcome_file}
 	luan_handler.setWelcomeFile(welcome_file)
+	server = Server.new(port)
+	server.setHandler(hc)
+end
+
+function start()
+	server.start()
 end
 
 function serve(dir)
 	init(dir)
-	local server = Server.new(port)
-	server.setHandler(hc);
-	config_server(server)
-	server.start()
+	start()
 end

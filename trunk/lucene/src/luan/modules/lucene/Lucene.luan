@@ -11,7 +11,16 @@ import "java:org.apache.lucene.search.SortField"
 
 
 function Index(indexDir)
-	local index = LuceneIndex.new(indexDir).table()
+	local index = {}
+	local java_index = LuceneIndex.new(indexDir)
+	index.fields = java_index.fields
+	index.to_string = java_index.to_string
+	index.backup = java_index.backup
+	index.Writer = java_index.Writer
+	index.Searcher = java_index.Searcher
+	index.delete_all = java_index.delete_all
+	index.map_field_name = java_index.map_field_name
+	index.close = java_index.close
 
 	function index.save_document(doc)
 		index.Writer( function(writer)

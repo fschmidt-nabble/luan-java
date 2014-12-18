@@ -39,7 +39,7 @@ public final class LuceneIndex {
 	final IndexWriter writer;
 	private DirectoryReader reader;
 	private LuceneSearcher searcher;
-	final FieldTable fields = new FieldTable();
+	public final FieldTable fields = new FieldTable();
 
 	public LuceneIndex(LuanState luan,String indexDirStr) throws LuanException, IOException {
 		File indexDir = new File(indexDirStr);
@@ -183,24 +183,9 @@ public final class LuceneIndex {
 		}
 	}
 
-	private void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(LuceneIndex.class.getMethod(method,parameterTypes),this) );
-	}
-
-	public LuanTable table() {
-		LuanTable tbl = Luan.newTable();
-		try {
-			tbl.put("fields",fields);
-			add( tbl, "to_string" );
-			add( tbl, "backup", LuanState.class, String.class );
-			add( tbl, "Writer", LuanState.class, LuanFunction.class );
-			add( tbl, "Searcher", LuanState.class, LuanFunction.class );
-			add( tbl, "delete_all" );
-			add( tbl, "map_field_name", String.class );
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-		return tbl;
+	public void close() throws IOException {
+		writer.close();
+		reader.close();
 	}
 
 }
