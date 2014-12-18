@@ -1,0 +1,4 @@
+java()
+import "java:luan.modules.HtmlLuan"
+
+encode = HtmlLuan.encode

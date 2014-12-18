@@ -51,15 +51,16 @@ public final class StringLuan {
 		return i==null ? dflt : end(s,i);
 	}
 
-	public static byte[] to_binary(String s) {
-		return s.getBytes();
-	}
-
-	public static int[] byte_(String s) {
+	@LuanMethod public static Integer[] byte_(String s,Integer i,Integer j) {
+		if( i== null )
+			i = 1;
+		if( j==null )
+			j = i;
+		s = s.substring(i-1,j);
 		char[] a = s.toCharArray();
-		int[] chars = new int[a.length];
-		for( int i=0; i<a.length; i++ ) {
-			chars[i] = a[i];
+		Integer[] chars = new Integer[a.length];
+		for( int k=0; k<a.length; k++ ) {
+			chars[k] = (int)a[k];
 		}
 		return chars;
 	}

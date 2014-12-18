@@ -4,27 +4,10 @@ import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
 import luan.LuanFunction;
-import luan.LuanJavaFunction;
 import luan.LuanException;
 
 
 public final class HtmlLuan {
-
-	public static final LuanFunction LOADER = new LuanFunction() {
-		@Override public Object call(LuanState luan,Object[] args) {
-			LuanTable module = Luan.newTable();
-			try {
-				add( module, "encode", String.class );
-			} catch(NoSuchMethodException e) {
-				throw new RuntimeException(e);
-			}
-			return module;
-		}
-	};
-
-	private static void add(LuanTable t,String method,Class<?>... parameterTypes) throws NoSuchMethodException {
-		t.put( method, new LuanJavaFunction(HtmlLuan.class.getMethod(method,parameterTypes),null) );
-	}
 
 	public static String encode(String s) {
 		char[] a = s.toCharArray();
