@@ -1,7 +1,7 @@
 java()
 import "java:luan.modules.StringLuan"
 
-byte = StringLuan.byte_
+unicode = StringLuan.unicode
 char = StringLuan.char_
 concat = StringLuan.concat
 find = StringLuan.find
