@@ -27,6 +27,10 @@ public final class Utils {
 		checkNotNull(luan,s,"string");
 	}
 
+	public static void checkNotNull(LuanState luan,byte[] b) throws LuanException {
+		checkNotNull(luan,b,"binary");
+	}
+
 	public static void checkNotNull(LuanState luan,LuanTable t) throws LuanException {
 		checkNotNull(luan,t,"table");
 	}

@@ -51,16 +51,13 @@ public final class StringLuan {
 		return i==null ? dflt : end(s,i);
 	}
 
-	@LuanMethod public static Integer[] byte_(String s,Integer i,Integer j) {
-		if( i== null )
-			i = 1;
-		if( j==null )
-			j = i;
-		s = s.substring(i-1,j);
-		char[] a = s.toCharArray();
-		Integer[] chars = new Integer[a.length];
-		for( int k=0; k<a.length; k++ ) {
-			chars[k] = (int)a[k];
+	@LuanMethod public static Integer[] unicode(LuanState luan,String s,Integer i,Integer j) throws LuanException {
+		Utils.checkNotNull(luan,s);
+		int start = start(s,i,1);
+		int end = end(s,j,start+1);
+		Integer[] chars = new Integer[end-start];
+		for( int k=0; k<chars.length; k++ ) {
+			chars[k] = (int)s.charAt(start+k);
 		}
 		return chars;
 	}

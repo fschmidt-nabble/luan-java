@@ -13,6 +13,7 @@ import luan.modules.BasicLuan;
 import luan.modules.PackageLuan;
 import luan.modules.JavaLuan;
 import luan.modules.StringLuan;
+import luan.modules.BinaryLuan;
 
 
 public abstract class LuanState implements DeepCloneable<LuanState> {
@@ -117,6 +118,11 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	public static Object __index(LuanState luan,Object obj,Object key) throws LuanException {
 		if( obj instanceof String ) {
 			Object rtn = StringLuan.__index(luan,(String)obj,key);
+			if( rtn != null )
+				return rtn;
+		}
+		if( obj instanceof byte[] ) {
+			Object rtn = BinaryLuan.__index(luan,(byte[])obj,key);
 			if( rtn != null )
 				return rtn;
 		}

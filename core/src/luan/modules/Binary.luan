@@ -1,5 +1,5 @@
 java()
 import "java:luan.modules.BinaryLuan"
 
-pack = BinaryLuan.pack
-unpack = BinaryLuan.unpack
+byte = BinaryLuan.byte_
+binary = BinaryLuan.binary
