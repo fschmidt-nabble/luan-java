@@ -375,6 +375,10 @@ public final class IoLuan {
 			return file.renameTo(new File(dest));
 		}
 
+		public LuanTable canonical(LuanState luan) throws LuanException, IOException {
+			return new LuanFile(luan,file.getCanonicalFile()).table();
+		}
+
 		@Override public LuanTable table() {
 			LuanTable tbl = super.table();
 			try {
@@ -407,6 +411,9 @@ public final class IoLuan {
 				) );
 				tbl.put( "rename_to", new LuanJavaFunction(
 					LuanFile.class.getMethod( "rename_to", String.class ), this
+				) );
+				tbl.put( "canonical", new LuanJavaFunction(
+					LuanFile.class.getMethod( "canonical", LuanState.class ), this
 				) );
 			} catch(NoSuchMethodException e) {
 				throw new RuntimeException(e);
