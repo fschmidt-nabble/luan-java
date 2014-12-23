@@ -1,3 +1,6 @@
+. check_luan_home.sh
+
+cd $LUAN_HOME
 VERSION=`svnversion`
 
 if echo $VERSION | grep :
@@ -8,8 +11,6 @@ fi
 
 
 LUAN_BUILD=~/luanbuild
-
-. check_luan_home.sh
 
 set -e
 
@@ -65,9 +66,11 @@ cp $LUAN_HOME/logging/ext/* $LUAN_BUILD/luan/jars
 cp $LUAN_HOME/mail/ext/* $LUAN_BUILD/luan/jars
 cp $LUAN_HOME/lucene/ext/* $LUAN_BUILD/luan/jars
 
-cp $LUAN_HOME/dist/scripts/install.sh $LUAN_BUILD/luan
+cp $LUAN_HOME/scripts/install.sh $LUAN_BUILD/luan
 chmod +x $LUAN_BUILD/luan/install.sh
-cp $LUAN_HOME/dist/scripts/uninstall.sh $LUAN_BUILD/luan
+cp $LUAN_HOME/scripts/uninstall.sh $LUAN_BUILD/luan
 
 cd $LUAN_BUILD
 tar -cf luan-$VERSION.tar luan
+
+echo done
