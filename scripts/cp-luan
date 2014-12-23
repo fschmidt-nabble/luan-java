@@ -1,4 +1,4 @@
-. check_luan_home.sh
+LUAN_HOME=~/luan
 
 CLASSPATH=$LUAN_HOME/core/src
 CLASSPATH=$CLASSPATH:$LUAN_HOME/web/src
