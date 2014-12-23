@@ -1,6 +1,9 @@
-. check_luan_home.sh
+set -e
 
-cd $LUAN_HOME
+cd `dirname $0`/..
+LUAN_HOME=`pwd`
+LUAN_BUILD=$LUAN_HOME/build
+
 VERSION=`svnversion`
 
 if echo $VERSION | grep :
@@ -8,11 +11,6 @@ then
 	echo "svn update needed"
 	exit 1
 fi
-
-
-LUAN_BUILD=~/luanbuild
-
-set -e
 
 rm -rf $LUAN_BUILD
 mkdir $LUAN_BUILD
