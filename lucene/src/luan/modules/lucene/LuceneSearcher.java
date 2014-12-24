@@ -21,6 +21,7 @@ import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -77,7 +78,15 @@ public final class LuceneSearcher {
 		}
 	}
 
-	@LuanMethod public Object[] search( final LuanState luan, Query query, Object nObj, Sort sort ) throws LuanException, IOException {
+	@LuanMethod public Object[] search( final LuanState luan, Object queryObj, Object nObj, Sort sort ) throws LuanException, IOException, QueryNodeException {
+		Query query;
+		if( queryObj instanceof Query ) {
+			query = (Query)queryObj;
+		} else if( queryObj instanceof String ) {
+			String s = (String)queryObj;
+			query = index.parse(s);
+		} else
+			throw luan.exception("bad argument #1 (string or Query expected, got "+Luan.type(queryObj)+")");
 		if( nObj instanceof LuanFunction ) {
 			final LuanFunction fn = (LuanFunction)nObj;
 			Collector col = new MyCollector() {
@@ -134,7 +143,7 @@ public final class LuceneSearcher {
 	LuanTable table() {
 		LuanTable tbl = Luan.newTable();
 		try {
-			add( tbl, "search", LuanState.class, Query.class, Object.class, Sort.class );
+			add( tbl, "search", LuanState.class, Object.class, Object.class, Sort.class );
 		} catch(NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}

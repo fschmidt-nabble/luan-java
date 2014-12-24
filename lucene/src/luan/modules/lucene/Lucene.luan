@@ -61,6 +61,8 @@ function Index(indexDir)
 	local Query = {}
 	index.Query = Query
 
+	Query.parse = java_index.parse
+
 	Query.all_docs = MatchAllDocsQuery.new()
 	
 	function Query.term(t)

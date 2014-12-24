@@ -19,8 +19,11 @@ import org.apache.lucene.index.SnapshotDeletionPolicy;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
+import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import luan.modules.Utils;
 import luan.Luan;
 import luan.LuanState;
@@ -186,6 +189,13 @@ public final class LuceneIndex {
 	public void close() throws IOException {
 		writer.close();
 		reader.close();
+	}
+
+
+	public Query parse(String s) throws QueryNodeException {
+		StandardQueryParser qp = new StandardQueryParser();
+		qp.setQueryNodeProcessor(new LuanQueryNodeProcessor(this,qp.getQueryNodeProcessor()));
+		return qp.parse(s,null);
 	}
 
 }

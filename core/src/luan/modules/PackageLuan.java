@@ -46,6 +46,8 @@ public final class PackageLuan {
 		if( mod == null ) {
 			if( modName.startsWith("java:") ) {
 				mod = JavaLuan.load(luan,modName.substring(5));
+				if( mod == null )
+					return null;
 			} else {
 				String src = read(luan,modName+".luan");
 				if( src == null )
