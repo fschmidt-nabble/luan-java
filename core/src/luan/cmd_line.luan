@@ -5,7 +5,7 @@ import "luan:Debug"
 
 
 local standalone_usage = [=[
-usage: java luan.CmdLine [options] [script [args]]
+usage: java luan.Luan [options] [script [args]]
 Available options are:
   -e stat  execute string 'stat'
   -i       enter interactive mode after executing 'script'
@@ -38,12 +38,12 @@ else
 			showVersion = true
 		elseif arg == "-e" then
 			i = i + 1
-			if i == #args then
+			if i > #args then
 				standalone_error "'-e' needs argument"
 				return
 			end
 			local cmd = args[i]
-			local stat = load(cmd,"(command line)",true,true)
+			local stat = load(cmd,"(command line)",{},true)
 			local result = Table.pack( stat() )
 			if result.n > 0 then
 				print( Table.unpack(result,1,result.n) )
