@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.io.StringReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.BufferedInputStream;
@@ -165,8 +166,12 @@ public final class IoLuan {
 		abstract InputStream inputStream() throws IOException;
 		public abstract String to_string();
 
+		public Reader reader() throws IOException {
+			return new InputStreamReader(inputStream());
+		}
+
 		public String read_text() throws IOException {
-			Reader in = new InputStreamReader(inputStream());
+			Reader in = reader();
 			String s = Utils.readAll(in);
 			in.close();
 			return s;
@@ -180,7 +185,7 @@ public final class IoLuan {
 		}
 
 		public LuanFunction read_lines() throws IOException {
-			return lines(new BufferedReader(new InputStreamReader(inputStream())));
+			return lines(new BufferedReader(reader()));
 		}
 
 		public LuanFunction read_blocks(Integer blockSize) throws IOException {
@@ -293,6 +298,34 @@ public final class IoLuan {
 				throw new RuntimeException(e);
 			}
 			return tbl;
+		}
+	}
+
+	public static final class LuanString extends LuanIn {
+		private final String s;
+
+		private LuanString(String s) {
+			this.s = s;
+		}
+
+		@Override InputStream inputStream() throws IOException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override public String to_string() {
+			return "<string>";
+		}
+
+		@Override public Reader reader() {
+			return new StringReader(s);
+		}
+
+		@Override public String read_text() {
+			return s;
+		}
+
+		@Override public boolean exists() {
+			return true;
 		}
 	}
 
@@ -422,6 +455,11 @@ public final class IoLuan {
 		}
 	}
 
+	public static LuanTable string(LuanState luan,String s) throws LuanException {
+		Utils.checkNotNull(luan,s);
+		return new LuanString(s).table();
+	}
+
 	public static LuanTable file(LuanState luan,String name) throws LuanException {
 		File file = new File(name);
 		return new LuanFile(file).table();
@@ -482,6 +520,7 @@ public final class IoLuan {
 	public static LuanTable newSchemes() {
 		LuanTable schemes = Luan.newTable();
 		try {
+			add( schemes, "string", LuanState.class, String.class );
 			add( schemes, "file", LuanState.class, String.class );
 			add( schemes, "classpath", LuanState.class, String.class );
 			add( schemes, "socket", LuanState.class, String.class );
