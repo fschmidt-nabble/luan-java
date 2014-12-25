@@ -111,7 +111,7 @@ public final class HttpServicer {
 			}
 
 			@Override Iterator<String> names() {
-				return new EnumerationIterator(request.getParameterNames());
+				return new EnumerationIterator<String>(request.getParameterNames());
 			}
 
 			@Override protected String type() {
@@ -127,7 +127,7 @@ public final class HttpServicer {
 			}
 
 			@Override Iterator<String> names() {
-				return new EnumerationIterator(request.getHeaderNames());
+				return new EnumerationIterator<String>(request.getHeaderNames());
 			}
 
 			@Override protected String type() {
@@ -138,14 +138,19 @@ public final class HttpServicer {
 		tbl.put( "method", new LuanProperty() { public Object get() {
 			return request.getMethod();
 		} } );
+/*
 		tbl.put( "servlet_path", new LuanProperty() { public Object get() {
 			return request.getServletPath();
+		} } );
+*/
+		tbl.put( "path", new LuanProperty() { public Object get() {
+			return request.getRequestURI();
 		} } );
 		tbl.put( "server_name", new LuanProperty() { public Object get() {
 			return request.getServerName();
 		} } );
-		tbl.put( "current_url", new LuanProperty() { public Object get() {
-			return getCurrentURL(request);
+		tbl.put( "url", new LuanProperty() { public Object get() {
+			return getURL(request);
 		} } );
 		tbl.put( "query_string", new LuanProperty() { public Object get() {
 			return getQueryString(request);
@@ -257,7 +262,7 @@ public final class HttpServicer {
 			}
 
 			@Override Iterator<String> names() {
-				return new EnumerationIterator(request.getSession().getAttributeNames());
+				return new EnumerationIterator<String>(request.getSession().getAttributeNames());
 			}
 
 			@Override public void put(Object key,Object val) {
@@ -352,11 +357,11 @@ public final class HttpServicer {
 		return queryBuf.toString();
 	}
 
-	public static String getCurrentURL(HttpServletRequest request) {
-		return getCurrentURL(request,0);
+	public static String getURL(HttpServletRequest request) {
+		return getURL(request,0);
 	}
 
-	public static String getCurrentURL(HttpServletRequest request,int maxValueLen) {
+	public static String getURL(HttpServletRequest request,int maxValueLen) {
 //		StringBuffer buf = HttpUtils.getRequestURL(request);
 		StringBuffer buf = request.getRequestURL();
 		String qStr = getQueryString(request,maxValueLen);
