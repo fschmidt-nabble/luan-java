@@ -195,7 +195,7 @@ local function basic_style() %>
 
 local function format(v)
 	v = v .. ''
-	return v.gsub('(\d+.\d{1})\d+','$1')
+	return v.gsub([[(\d+\.\d{1})\d+]],'$1')
 end
 
 function html(test_names,tests,results) %>
