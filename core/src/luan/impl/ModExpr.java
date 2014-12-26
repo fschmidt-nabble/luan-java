@@ -16,8 +16,11 @@ final class ModExpr extends BinaryOpExpr {
 		Object o2 = op2.eval(luan);
 		Number n1 = Luan.toNumber(o1);
 		Number n2 = Luan.toNumber(o2);
-		if( n1 != null && n2 != null )
-			return n1.doubleValue() % n2.doubleValue();
+		if( n1 != null && n2 != null ) {
+			double d1 = n1.doubleValue();
+			double d2 = n2.doubleValue();
+			return d1 - Math.floor(d1/d2)*d2;
+		}
 		return arithmetic(luan,"__mod",o1,o2);
 	}
 }
