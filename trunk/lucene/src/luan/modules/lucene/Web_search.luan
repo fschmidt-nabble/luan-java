@@ -29,7 +29,7 @@ local function form() %>
 		<form name="form0" method="post">
 			<p>
 				<span class="label">Query:</span> <input name="query" size="60" value="Query.all_docs" />
-				<div class="tip"><span class="label"></span> Query examples: Query.term{ type = 'user' }</div>
+				<div class="tip"><span class="label"></span> Query examples: <i>Query.term{ type = 'user' }</i> or <i>"type:user AND name:Joe"</i></div>
 			</p>
 			<p><span class="label">Max Rows:</span> <input name="rows" value="100" maxlength="5" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="width:3em"/></p>
 			<p>
