@@ -71,4 +71,6 @@ cp $LUAN_HOME/scripts/uninstall.sh $LUAN_BUILD/luan
 cd $LUAN_BUILD
 tar -cf luan-$VERSION.tar luan
 
+luan/install.sh
+
 echo done
