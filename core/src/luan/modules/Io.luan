@@ -12,12 +12,12 @@ stderr = IoLuan.textWriter(System.err)
 
 
 import "luan:Package"
-import "luan:Basic"
+import "luan:Luan"
 import "luan:Table"
 
 function print_to(out,...)
 	local list = {}
-	for _,v in Basic.values(...) do
+	for _,v in Luan.values(...) do
 		list[#list+1] = to_string(v)
 		list[#list+1] = '\t'
 	end
@@ -29,7 +29,7 @@ function print_to(out,...)
 	end
 end
 
-function Basic.print(...)
+function Luan.print(...)
 	print_to(stdout,...)
 end
-Package.global(Basic,"print")
+Package.global(Luan,"print")
