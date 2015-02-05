@@ -2,3 +2,34 @@ java()
 import "java:luan.modules.HtmlLuan"
 
 encode = HtmlLuan.encode
+parse = HtmlLuan.parse
+_ENV.to_string = HtmlLuan.to_string
+
+
+
+-- extras
+
+function process_url_tags(html)
+	for i, v in ipairs(html) do
+		if type(v) == "table" and v.type == "tag" then
+			if v.name == "url" then
+				local url = v.attributes.url or html[i+1]
+				v.name = "a"
+				v.attributes.url = nil
+				v.attributes.href = url
+			elseif v.name == "/url" then
+				v.name = "/a"
+			end
+		end
+	end
+end
+
+function add_nofollow(html)
+	for i, v in ipairs(html) do
+		if type(v) == "table" and v.type == "tag" then
+			if v.name == "a" then
+				v.attributes.rel = "nofollow"
+			end
+		end
+	end
+end
