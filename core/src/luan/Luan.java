@@ -1,5 +1,6 @@
 package luan;
 
+import java.util.List;
 import luan.modules.BasicLuan;
 
 
@@ -150,6 +151,10 @@ public final class Luan {
 
 	public static LuanTable newTable() {
 		return new LuanTableImpl();
+	}
+
+	public static LuanTable newTable(List<Object> list) {
+		return new LuanTableImpl(list);
 	}
 
 	public static LuanTable newPropertyTable() {
