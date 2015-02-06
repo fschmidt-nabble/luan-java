@@ -19,11 +19,6 @@ public final class LuanCompiler {
 			env = Luan.newTable();
 		UpValue.Getter envGetter = new UpValue.ValueGetter(env);
 		LuanParser parser = new LuanParser(src,envGetter);
-		for( Map.Entry<Object,Object> entry : luan.global() ) {
-			Object key = entry.getKey();
-			if( key instanceof String )
-				parser.addVar( (String)key, entry.getValue() );
-		}
 		FnDef fnDef = parse(luan,parser,allowExpr);
 		final LuanStateImpl luanImpl = (LuanStateImpl)luan;
 		final Closure c = new Closure(luanImpl,fnDef);

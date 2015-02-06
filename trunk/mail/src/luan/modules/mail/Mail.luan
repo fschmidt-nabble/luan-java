@@ -1,6 +1,9 @@
-java()
+java
+import "luan:Luan"
 import "java:java.lang.System"
 import "java:luan.modules.mail.SmtpCon"
+
+local assert_table = Luan.assert_table
 
 
 System.setProperty( "mail.mime.charset", "UTF-8" )

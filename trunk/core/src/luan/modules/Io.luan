@@ -1,4 +1,4 @@
-java()
+java
 import "java:luan.modules.IoLuan"
 import "java:java.lang.System"
 
@@ -11,9 +11,10 @@ stdout = IoLuan.textWriter(System.out)
 stderr = IoLuan.textWriter(System.err)
 
 
-import "luan:Package"
 import "luan:Luan"
 import "luan:Table"
+
+local to_string = Luan.to_string
 
 function print_to(out,...)
 	local list = {}
@@ -29,7 +30,6 @@ function print_to(out,...)
 	end
 end
 
-function Luan.print(...)
+function print(...)
 	print_to(stdout,...)
 end
-Package.global(Luan,"print")

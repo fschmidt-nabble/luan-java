@@ -1,14 +1,6 @@
-java()
+java
 import "java:luan.modules.PackageLuan"
 
 loaded = PackageLuan.loaded()
 require = PackageLuan.requireFn
 load = PackageLuan.load
-
-function global(module,fn_name)
-	local function fn(...)
-		return module[fn_name](...)
-	end
-	_G[fn_name] = fn
-	return fn
-end

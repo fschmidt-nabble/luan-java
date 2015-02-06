@@ -1,4 +1,4 @@
-java()
+java
 import "java:luan.modules.ThreadLuan"
 
 fork = ThreadLuan.fork

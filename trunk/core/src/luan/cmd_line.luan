@@ -1,7 +1,12 @@
+import "luan:Luan"
 import "luan:String"
 import "luan:Table"
 import "luan:Io"
 import "luan:Debug"
+
+local ipairs = Luan.ipairs
+local load = Luan.load
+local load_file = Luan.load_file
 
 
 local standalone_usage = [=[
@@ -63,13 +68,13 @@ end
 if showVersion then print(_VERSION) end
 if i <= #args then
 	local file = args[i]
-	_G.arg = {}
+	local arg = {}
 	for j,v in ipairs(args) do
-		_G.arg[j-i] = v
+		arg[j-i] = v
 	end
 	try
 		local main_file = load_file("file:"..file)
-		main_file( Table.unpack(_G.arg) )
+		main_file( Table.unpack(arg) )
 	catch e do
 		Io.print_to(Io.stderr, e )
 	end

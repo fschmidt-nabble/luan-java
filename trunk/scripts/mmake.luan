@@ -1,28 +1,33 @@
+import "luan:Luan"
 import "luan:Table"
 import "luan:Io"
 import "luan:String"
 import "luan:Time"
 
+local ipairs = Luan.ipairs
+local print = Io.print
+
+
 compiler = Table.concat( { "javac -g -encoding UTF8", ... }, " " )
 
 function mmake(dir)
-	local java = {}
+	local javas = {}
 	local dirs = {}
 	for _, file in ipairs(dir.children()) do
 		local name = file.name()
 		if name.match ".java$" ~= nil then
-			java[#java+1] = name.sub(1,-6)
+			javas[#javas+1] = name.sub(1,-6)
 		end
 		if file.is_directory() and mmake(file) then
 			dirs[#dirs+1] = name
 		end
 	end
-	if #java == 0 and #dirs == 0 then
+	if #javas == 0 and #dirs == 0 then
 		return false;
 	end
 	local out = dir.child("Makefile").text_writer()
 	out.write( header() )
-	for _, s in ipairs(java) do
+	for _, s in ipairs(javas) do
 		out.write( "\\\n\t\t",  s , ".class" )
 	end
 	for _, s in ipairs(dirs) do

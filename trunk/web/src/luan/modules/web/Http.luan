@@ -1,6 +1,13 @@
-java()
+java
+import "luan:Package"
+import "luan:Luan"
 import "luan:Table"
 import "java:luan.modules.web.LuanHandler"
+
+local require = Package.require
+local ipairs = Luan.ipairs
+local to_string = Luan.to_string
+
 
 function new_luan_handler()
 	return LuanHandler.new()

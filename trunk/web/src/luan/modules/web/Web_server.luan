@@ -4,7 +4,7 @@ import "luan:Package"
 import "luan:logging/Logging"  -- initialize logging
 import "luan:web/Http"
 
-java()
+java
 import "java:org.eclipse.jetty.server.Server"
 import "java:org.eclipse.jetty.server.NCSARequestLog"
 import "java:org.eclipse.jetty.server.handler.DefaultHandler"
