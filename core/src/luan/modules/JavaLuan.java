@@ -32,15 +32,6 @@ public final class JavaLuan {
 		luan.currentEnvironment().setJava();
 	}
 
-	public static final LuanFunction javaFn;
-	static {
-		try {
-			javaFn = new LuanJavaFunction(JavaLuan.class.getMethod("java",LuanState.class),null);
-		} catch(NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	private static void checkJava(LuanState luan) throws LuanException {
 		if( !luan.currentEnvironment().hasJava() )
 			throw luan.exception("Java isn't allowed");

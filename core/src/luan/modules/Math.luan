@@ -1,5 +1,8 @@
-java()
+java
+import "luan:Package"
 import "java:luan.modules.MathLuan"
+
+local require = Package.require
 local JavaMath = require "java:java.lang.Math"
 
 abs = MathLuan.abs

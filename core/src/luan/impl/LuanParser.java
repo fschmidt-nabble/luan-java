@@ -250,6 +250,7 @@ final class LuanParser {
 			|| (stmt=FunctionStmt()) != null
 			|| (stmt=LocalFunctionStmt()) != null
 			|| (stmt=ImportStmt()) != null
+			|| (stmt=JavaStmt()) != null
 			|| (stmt=BreakStmt()) != null
 			|| (stmt=ForStmt()) != null
 			|| (stmt=TryStmt()) != null
@@ -385,6 +386,13 @@ final class LuanParser {
 				return false;
 		}
 		return true;
+	}
+
+	private Stmt JavaStmt() throws ParseException {
+		parser.begin();
+		if( !Keyword("java",In.NOTHING) )
+			return parser.failure(null);
+		return parser.success( new JavaStmt() );
 	}
 
 	private Stmt BreakStmt() throws ParseException {
@@ -1148,6 +1156,7 @@ final class LuanParser {
 		"if",
 		"import",
 		"in",
+		"java",
 		"local",
 		"nil",
 		"not",

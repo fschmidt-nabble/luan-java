@@ -21,14 +21,10 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 	final List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
 
 	private LuanTableImpl registry;
-	private LuanTableImpl global;
 	private LuanTableImpl metatable;  // generic metatable
 
 	protected LuanState() {
 		registry = new LuanTableImpl();
-		global = new LuanTableImpl();
-		global.put("_G",global);
-		global.put("java",JavaLuan.javaFn);
 		metatable = newMetatable();
 	}
 
@@ -36,7 +32,6 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 
 	@Override public void deepenClone(LuanState clone,DeepCloner cloner) {
 		clone.registry = cloner.deepClone(registry);
-		clone.global = cloner.deepClone(global);
 		clone.metatable = cloner.deepClone(metatable);
 	}
 
@@ -47,33 +42,24 @@ public abstract class LuanState implements DeepCloneable<LuanState> {
 		return registry;
 	}
 
-	public final LuanTable global() {
-		return global;
-	}
-
 	public static LuanState newStandard() {
 		try {
 			LuanState luan = LuanCompiler.newLuanState();
 			PackageLuan.require(luan,"luan:Luan");
 			PackageLuan.require(luan,"luan:Io");
-//			BasicLuan.do_file(luan,"classpath:luan/init.luan");
 			return luan;
 		} catch(LuanException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public final Object eval(String cmd) {
+	public final Object eval(String cmd) throws LuanException {
 		return eval(cmd,new LuanTableImpl());
 	}
 
-	public final Object eval(String cmd,LuanTable env) {
-		try {
-			LuanFunction fn = BasicLuan.load(this,cmd,"eval",env,true);
-			return call(fn);
-		} catch(LuanException e) {
-			throw new RuntimeException(e);
-		}
+	public final Object eval(String cmd,LuanTable env) throws LuanException {
+		LuanFunction fn = BasicLuan.load(this,cmd,"eval",env,true);
+		return call(fn);
 	}
 
 	public final LuanTable getMetatable(Object obj) {

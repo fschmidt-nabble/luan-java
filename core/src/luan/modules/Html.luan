@@ -1,13 +1,18 @@
-java()
+java
 import "java:luan.modules.HtmlLuan"
 
 encode = HtmlLuan.encode
 parse = HtmlLuan.parse
-_ENV.to_string = HtmlLuan.to_string
+to_string = HtmlLuan.to_string
 
 
 
 -- extras
+
+import "luan:Luan"
+
+local ipairs = Luan.ipairs
+local type = Luan.type
 
 function process_url_tags(html)
 	for i, v in ipairs(html) do

@@ -1,4 +1,5 @@
-java()
+java
+import "luan:Luan"
 import "luan:Table"
 import "java:luan.modules.lucene.LuceneIndex"
 import "java:org.apache.lucene.index.Term"
@@ -8,6 +9,8 @@ import "java:org.apache.lucene.search.BooleanQuery"
 import "java:org.apache.lucene.search.BooleanClause"
 import "java:org.apache.lucene.search.Sort"
 import "java:org.apache.lucene.search.SortField"
+
+local pairs = Luan.pairs
 
 
 function Index(indexDir)

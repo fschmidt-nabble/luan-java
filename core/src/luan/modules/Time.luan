@@ -1,6 +1,6 @@
 -- incomplete, will add as needed
 
-java()
+java
 import "luan:String"
 import "luan:Table"
 import "java:java.lang.System"

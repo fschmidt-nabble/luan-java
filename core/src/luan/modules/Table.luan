@@ -1,4 +1,4 @@
-java()
+java
 import "java:luan.modules.TableLuan"
 
 clone = TableLuan.clone
