@@ -1,5 +1,5 @@
-java
-import "java:luan.modules.BasicLuan"
+java()
+local BasicLuan = require "java:luan.modules.BasicLuan"
 
 assert = BasicLuan.assert_
 assert_boolean = BasicLuan.assert_boolean
@@ -29,5 +29,4 @@ to_string = BasicLuan.to_string
 type = BasicLuan.type
 values = BasicLuan.values
 
-import "classpath:luan/Version"
-VERSION = Version.VERSION
+VERSION = require("classpath:luan/Version").VERSION

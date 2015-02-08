@@ -1,6 +1,12 @@
-import "luan:Io"
-import "luan:web/Http"
-import "luan:String"
+local Luan = require "luan:Luan"
+local load = Luan.load
+local to_number = Luan.to_number
+local pairs = Luan.pairs
+local ipairs = Luan.ipairs
+local range = Luan.range
+local Io = require "luan:Io"
+local Http = require "luan:web/Http"
+local String = require "luan:String"
 
 
 local function basic_style() %>

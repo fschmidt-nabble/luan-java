@@ -1,6 +1,5 @@
-java
-import "java:luan.modules.PackageLuan"
+java()
+local PackageLuan = require "java:luan.modules.PackageLuan"
 
 loaded = PackageLuan.loaded()
-require = PackageLuan.requireFn
 load = PackageLuan.load

@@ -1,16 +1,15 @@
-java
-import "luan:Luan"
-import "luan:Table"
-import "java:luan.modules.lucene.LuceneIndex"
-import "java:org.apache.lucene.index.Term"
-import "java:org.apache.lucene.search.TermQuery"
-import "java:org.apache.lucene.search.MatchAllDocsQuery"
-import "java:org.apache.lucene.search.BooleanQuery"
-import "java:org.apache.lucene.search.BooleanClause"
-import "java:org.apache.lucene.search.Sort"
-import "java:org.apache.lucene.search.SortField"
-
+java()
+local Luan = require "luan:Luan"
 local pairs = Luan.pairs
+local Table = require "luan:Table"
+local LuceneIndex = require "java:luan.modules.lucene.LuceneIndex"
+local Term = require "java:org.apache.lucene.index.Term"
+local TermQuery = require "java:org.apache.lucene.search.TermQuery"
+local MatchAllDocsQuery = require "java:org.apache.lucene.search.MatchAllDocsQuery"
+local BooleanQuery = require "java:org.apache.lucene.search.BooleanQuery"
+local BooleanClause = require "java:org.apache.lucene.search.BooleanClause"
+local Sort = require "java:org.apache.lucene.search.Sort"
+local SortField = require "java:org.apache.lucene.search.SortField"
 
 
 function Index(indexDir)

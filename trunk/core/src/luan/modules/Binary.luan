@@ -1,5 +1,5 @@
-java
-import "java:luan.modules.BinaryLuan"
+java()
+local BinaryLuan = require "java:luan.modules.BinaryLuan"
 
 byte = BinaryLuan.byte_
 binary = BinaryLuan.binary

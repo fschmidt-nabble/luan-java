@@ -1,12 +1,11 @@
-import "luan:Luan"
-import "luan:String"
-import "luan:Table"
-import "luan:Io"
-import "luan:Debug"
-
+local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
 local load = Luan.load
 local load_file = Luan.load_file
+require "luan:String"  -- for String methods
+local Table = require "luan:Table"
+local Io = require "luan:Io"
+local Debug = require "luan:Debug"
 
 
 local standalone_usage = [=[

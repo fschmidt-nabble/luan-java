@@ -1,7 +1,10 @@
-import "luan:Basic"
-import "luan:Io"
-import "luan:Debug"
-import "luan:web/Http"
+local Luan = require "luan:Luan"
+local ipairs = Luan.ipairs
+local load = Luan.load
+local Io = require "luan:Io"
+local print = Io.print
+local Debug = require "luan:Debug"
+local Http = require "luan:web/Http"
 
 per_session = true
 
@@ -10,7 +13,7 @@ local env = {}
 
 Io.stdout = {}
 function Io.stdout.write(...)
-	for _,v in Basic.values(...) do
+	for _,v in Luan.values(...) do
 		history[#history+1] = v
 	end
 end

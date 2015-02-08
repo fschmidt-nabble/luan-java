@@ -1,6 +1,6 @@
-java
-import "java:luan.modules.IoLuan"
-import "java:java.lang.System"
+java()
+local IoLuan = require "java:luan.modules.IoLuan"
+local System = require "java:java.lang.System"
 
 read_console_line = IoLuan.read_console_line
 schemes = IoLuan.newSchemes()
@@ -11,10 +11,9 @@ stdout = IoLuan.textWriter(System.out)
 stderr = IoLuan.textWriter(System.err)
 
 
-import "luan:Luan"
-import "luan:Table"
-
+local Luan = require "luan:Luan"
 local to_string = Luan.to_string
+local Table = require "luan:Table"
 
 function print_to(out,...)
 	local list = {}

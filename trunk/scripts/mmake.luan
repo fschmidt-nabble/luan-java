@@ -1,11 +1,10 @@
-import "luan:Luan"
-import "luan:Table"
-import "luan:Io"
-import "luan:String"
-import "luan:Time"
-
+local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
+local Table = require "luan:Table"
+local Io = require "luan:Io"
 local print = Io.print
+local String = require "luan:String"
+local Time = require "luan:Time"
 
 
 compiler = Table.concat( { "javac -g -encoding UTF8", ... }, " " )

@@ -1,9 +1,8 @@
-java
-import "luan:Luan"
-import "java:java.lang.System"
-import "java:luan.modules.mail.SmtpCon"
-
+java()
+local Luan = require "luan:Luan"
 local assert_table = Luan.assert_table
+local System = require "java:java.lang.System"
+local SmtpCon = require "java:luan.modules.mail.SmtpCon"
 
 
 System.setProperty( "mail.mime.charset", "UTF-8" )
