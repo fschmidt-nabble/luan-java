@@ -1,6 +1,8 @@
-local Table = require "luan:Table"
+local Luan = require "luan:Luan"
+local load = Luan.load
 local Io = require "luan:Io"
 local print = Io.print
+local Table = require "luan:Table"
 
 
 function print_if_something(...)

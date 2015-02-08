@@ -18,7 +18,7 @@ mkdir $LUAN_BUILD/luan
 mkdir $LUAN_BUILD/luan/jars
 
 cd $LUAN_HOME
-echo "VERSION = 'Luan $VERSION'" >core/src/luan/Version.luan
+echo "return 'Luan $VERSION'" >core/src/luan/Version.luan
 
 cd $LUAN_HOME
 SRC=core/src

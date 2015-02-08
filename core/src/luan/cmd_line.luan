@@ -5,6 +5,7 @@ local load_file = Luan.load_file
 require "luan:String"  -- for String methods
 local Table = require "luan:Table"
 local Io = require "luan:Io"
+local print = Io.print
 local Debug = require "luan:Debug"
 
 
@@ -64,7 +65,7 @@ else
 		i = i + 1
 	end
 end
-if showVersion then print(_VERSION) end
+if showVersion then print(Luan.VERSION) end
 if i <= #args then
 	local file = args[i]
 	local arg = {}
