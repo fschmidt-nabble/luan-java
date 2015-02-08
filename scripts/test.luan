@@ -1,1 +1,3 @@
+local do_file = require("luan:Luan").do_file
+
 do_file "luan:web/test.luan"

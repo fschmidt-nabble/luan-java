@@ -1,6 +1,9 @@
-import "luan:Io"
-import "luan:web/Http"
-import "luan:String"
+local Luan = require "luan:Luan"
+local load = Luan.load
+local Io = require "luan:Io"
+local print = Io.print
+local Http = require "luan:web/Http"
+local String = require "luan:String"
 
 local function lines(s)
 	local matcher = s.gmatch "([^\n]*)\n|([^\n])+$"

@@ -1,22 +1,22 @@
-import "luan:String"
-import "luan:Io"
-import "luan:Package"
-import "luan:logging/Logging"  -- initialize logging
-import "luan:web/Http"
+require "luan:String"
+local Io = require "luan:Io"
+local Package = require "luan:Package"
+require "luan:logging/Logging"  -- initialize logging
+local Http = require "luan:web/Http"
 
-java
-import "java:org.eclipse.jetty.server.Server"
-import "java:org.eclipse.jetty.server.NCSARequestLog"
-import "java:org.eclipse.jetty.server.handler.DefaultHandler"
-import "java:org.eclipse.jetty.server.handler.HandlerList"
-import "java:org.eclipse.jetty.server.handler.HandlerCollection"
-import "java:org.eclipse.jetty.server.handler.ResourceHandler"
-import "java:org.eclipse.jetty.server.handler.RequestLogHandler"
-import "java:org.eclipse.jetty.server.handler.ContextHandler"
-import "java:org.eclipse.jetty.server.handler.GzipHandler"
-import "java:org.eclipse.jetty.server.handler.HandlerWrapper"
-import "java:org.eclipse.jetty.server.session.SessionHandler"
-import "java:luan.modules.web.AuthenticationHandler"
+java()
+local Server = require "java:org.eclipse.jetty.server.Server"
+local NCSARequestLog = require "java:org.eclipse.jetty.server.NCSARequestLog"
+local DefaultHandler = require "java:org.eclipse.jetty.server.handler.DefaultHandler"
+local HandlerList = require "java:org.eclipse.jetty.server.handler.HandlerList"
+local HandlerCollection = require "java:org.eclipse.jetty.server.handler.HandlerCollection"
+local ResourceHandler = require "java:org.eclipse.jetty.server.handler.ResourceHandler"
+local RequestLogHandler = require "java:org.eclipse.jetty.server.handler.RequestLogHandler"
+local ContextHandler = require "java:org.eclipse.jetty.server.handler.ContextHandler"
+local GzipHandler = require "java:org.eclipse.jetty.server.handler.GzipHandler"
+local HandlerWrapper = require "java:org.eclipse.jetty.server.handler.HandlerWrapper"
+local SessionHandler = require "java:org.eclipse.jetty.server.session.SessionHandler"
+local AuthenticationHandler = require "java:luan.modules.web.AuthenticationHandler"
 
 
 port = 8080

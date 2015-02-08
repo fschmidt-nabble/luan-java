@@ -249,8 +249,6 @@ final class LuanParser {
 		if( (stmt=ReturnStmt()) != null
 			|| (stmt=FunctionStmt()) != null
 			|| (stmt=LocalFunctionStmt()) != null
-			|| (stmt=ImportStmt()) != null
-			|| (stmt=JavaStmt()) != null
 			|| (stmt=BreakStmt()) != null
 			|| (stmt=ForStmt()) != null
 			|| (stmt=TryStmt()) != null
@@ -346,53 +344,6 @@ final class LuanParser {
 		addSymbol( name );
 		FnDef fnDef = RequiredFunction(In.NOTHING);
 		return parser.success( new SetStmt( new SetLocalVar(symbolsSize()-1), fnDef ) );
-	}
-
-	private Stmt ImportStmt() throws ParseException {
-		int start = parser.begin();
-		if( !Keyword("import",In.NOTHING) )
-			return parser.failure(null);
-		String modName = StringLiteral(In.NOTHING);
-		if( modName==null )
-			return parser.failure(null);
-		int i = modName.lastIndexOf('/');
-		if( i == -1 )
-			i = modName.lastIndexOf('.');
-		if( i == -1 )
-			i = modName.lastIndexOf(':');
-		String varName = modName.substring(i+1);
-		if( !isValidName(varName) )
-			throw parser.exception("invalid variable name '"+varName+"' in import");
-		LuanSource.Element se = se(start);
-		FnCall require = new FnCall( se, new ConstExpr(se,PackageLuan.requireFn), new ConstExpr(se(start,modName),modName) );
-		Settable settable;
-		if( interactive ) {
-			settable = nameVar(se,varName).settable();
-		} else {
-			addSymbol( varName );
-			settable = new SetLocalVar(symbolsSize()-1);
-		}
-		return parser.success( new SetStmt( settable, expr(require) ) );
-	}
-
-	private boolean isValidName(String s) {
-		if( s.length() == 0 )
-			return false;
-		char c = s.charAt(0);
-		if( !('a'<=c && c<='z' || 'A'<=c && c<='Z' || c=='_') )
-			return false;
-		for( int i=1; i<s.length() ; i++ ) {
-			if( !('a'<=c && c<='z' || 'A'<=c && c<='Z' || c=='_' || '0'<=c && c<='9') )
-				return false;
-		}
-		return true;
-	}
-
-	private Stmt JavaStmt() throws ParseException {
-		parser.begin();
-		if( !Keyword("java",In.NOTHING) )
-			return parser.failure(null);
-		return parser.success( new JavaStmt() );
 	}
 
 	private Stmt BreakStmt() throws ParseException {
@@ -1154,9 +1105,7 @@ final class LuanParser {
 		"function",
 		"goto",
 		"if",
-		"import",
 		"in",
-		"java",
 		"local",
 		"nil",
 		"not",

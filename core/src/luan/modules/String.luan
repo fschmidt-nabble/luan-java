@@ -1,5 +1,5 @@
-java
-import "java:luan.modules.StringLuan"
+java()
+local StringLuan = require "java:luan.modules.StringLuan"
 
 unicode = StringLuan.unicode
 char = StringLuan.char_

@@ -1,5 +1,5 @@
-java
-import "java:luan.modules.TableLuan"
+java()
+local TableLuan = require "java:luan.modules.TableLuan"
 
 clone = TableLuan.clone
 concat = TableLuan.concat

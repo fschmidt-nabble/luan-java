@@ -1,12 +1,9 @@
-java
-import "luan:Package"
-import "luan:Luan"
-import "luan:Table"
-import "java:luan.modules.web.LuanHandler"
-
-local require = Package.require
+java()
+local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
 local to_string = Luan.to_string
+local Table = require "luan:Table"
+local LuanHandler = require "java:luan.modules.web.LuanHandler"
 
 
 function new_luan_handler()

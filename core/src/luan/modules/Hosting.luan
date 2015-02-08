@@ -1,6 +1,6 @@
 -- Hosting
 
-import "luan:Io"
+local Io = require "luan:Io"
 
 port = 9101
 
@@ -9,7 +9,7 @@ function put_site(domain,password,dir)
 	local pc = Io.Uri(socket).Pickle_client()
 	local pickle = pc.pickle
 	pc.call(%>
-		import "luan:Hosting"
+		local Hosting = require "luan:Hosting"
 		Hosting.do_put_site(<%=pickle(domain)%>,<%=pickle(password)%>,<%=pickle(dir)%>)
 	<%)
 	pc.close()
@@ -20,7 +20,7 @@ function delete_site(domain,password)
 	local pc = Io.Uri(socket).Pickle_client()
 	local pickle = pc.pickle
 	pc.call(%>
-		import "luan:Hosting"
+		local Hosting = require "luan:Hosting"
 		Hosting.do_delete_site(<%=pickle(domain)%>,<%=pickle(password)%>)
 	<%)
 	pc.close()

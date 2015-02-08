@@ -1,13 +1,13 @@
 -- incomplete, will add as needed
 
-java
-import "luan:String"
-import "luan:Table"
-import "java:java.lang.System"
-import "java:java.util.Calendar"
-import "java:java.util.Date"
-import "java:java.util.TimeZone"
-import "java:java.text.SimpleDateFormat"
+java()
+require "luan:String"
+local Table = require "luan:Table"
+local System = require "java:java.lang.System"
+local Calendar = require "java:java.util.Calendar"
+local Date = require "java:java.util.Date"
+local TimeZone = require "java:java.util.TimeZone"
+local SimpleDateFormat = require "java:java.text.SimpleDateFormat"
 
 
 function now()

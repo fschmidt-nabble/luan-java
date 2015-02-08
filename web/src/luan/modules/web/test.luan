@@ -1,5 +1,7 @@
-import "luan:Io"
-import "luan:web/Http"
+local Luan = require "luan:Luan"
+local assert = Luan.assert
+local Io = require "luan:Io"
+local Http = require "luan:web/Http"
 
 
 local function print(...)
@@ -12,7 +14,7 @@ end
 
 
 Http.init_for_test()
-Http.request.parameters.code = "print 'hi'"
+Http.request.parameters.code = "require('luan:Io').print 'hi'"
 page = Http.get_page "/web_run"
 assert( page.trim() == "hi" )
 

@@ -7,6 +7,8 @@ import luan.LuanSource;
 import luan.LuanElement;
 import luan.LuanTable;
 import luan.Luan;
+import luan.modules.JavaLuan;
+import luan.modules.PackageLuan;
 import java.util.Map;
 
 
@@ -19,6 +21,8 @@ public final class LuanCompiler {
 			env = Luan.newTable();
 		UpValue.Getter envGetter = new UpValue.ValueGetter(env);
 		LuanParser parser = new LuanParser(src,envGetter);
+		parser.addVar( "java", JavaLuan.javaFn );
+		parser.addVar( "require", PackageLuan.requireFn );
 		FnDef fnDef = parse(luan,parser,allowExpr);
 		final LuanStateImpl luanImpl = (LuanStateImpl)luan;
 		final Closure c = new Closure(luanImpl,fnDef);

@@ -1,5 +1,5 @@
-java
-import "java:luan.modules.HtmlLuan"
+java()
+local HtmlLuan = require "java:luan.modules.HtmlLuan"
 
 encode = HtmlLuan.encode
 parse = HtmlLuan.parse
@@ -9,8 +9,7 @@ to_string = HtmlLuan.to_string
 
 -- extras
 
-import "luan:Luan"
-
+local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
 local type = Luan.type
 
