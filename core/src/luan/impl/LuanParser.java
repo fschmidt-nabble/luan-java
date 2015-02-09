@@ -83,11 +83,11 @@ final class LuanParser {
 		}
 
 		In parens() {
-			return parens ? this : new In(true,template);
+			return parens ? this : new In(true,false);
 		}
 
 		In template() {
-			return template ? this : new In(parens,true);
+			return template ? this : new In(false,true);
 		}
 	}
 
@@ -794,7 +794,7 @@ final class LuanParser {
 		List<TableExpr.Field> fields = new ArrayList<TableExpr.Field>();
 		List<Expressions> builder = new ArrayList<Expressions>();
 		while( Field(fields,builder,inParens) && FieldSep(inParens) );
-		Expressions exp = TemplateExpressions(in);
+		Expressions exp = TemplateExpressions(inParens);
 		if( exp != null )
 			builder.add(exp);
 		if( !parser.match('}') )

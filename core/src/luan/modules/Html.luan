@@ -30,10 +30,8 @@ end
 
 function add_nofollow(html)
 	for i, v in ipairs(html) do
-		if type(v) == "table" and v.type == "tag" then
-			if v.name == "a" then
-				v.attributes.rel = "nofollow"
-			end
+		if type(v) == "table" and v.type == "tag" and v.name == "a" then
+			v.attributes.rel = "nofollow"
 		end
 	end
 end
