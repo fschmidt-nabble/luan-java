@@ -3,6 +3,7 @@ local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
 local to_string = Luan.to_string
 local Table = require "luan:Table"
+require "luan:logging/Logging"  -- initialize logging
 local LuanHandler = require "java:luan.modules.web.LuanHandler"
 
 

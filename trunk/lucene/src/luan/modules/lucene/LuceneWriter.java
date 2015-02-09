@@ -59,7 +59,7 @@ public final class LuceneWriter {
 
 	public void save_document(LuanState luan,LuanTable doc) throws LuanException, IOException {
 		if( doc.get("type")==null )
-			throw luan.exception("missing 'type'");
+			throw luan.exception("missing 'type' field");
 		String id = (String)doc.get("id");
 		if( id == null ) {
 			id = nextId(luan);

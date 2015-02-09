@@ -1,3 +1,57 @@
-local do_file = require("luan:Luan").do_file
+local Luan = require "luan:Luan"
+local assert = Luan.assert
+local range = Luan.range
+local Io = require "luan:Io"
+local Http = require "luan:web/Http"
+local Lucene = require "luan:lucene/Lucene"
+local Ab_testing = require "luan:lucene/Ab_testing"
 
-do_file "luan:web/test.luan"
+
+local function print(...)
+	Io.print_to(Io.stderr,...)
+end
+
+function Io.schemes.site(path)
+	return Io.Uri( "luan:web"..path )
+end
+
+
+Http.init_for_test()
+Http.request.parameters.code = "require('luan:Io').print 'hi'"
+page = Http.get_page "/web_run"
+assert( page.trim() == "hi" )
+
+Http.init_for_test()
+Http.request.parameters.cmd = "'ab'..'cd'"
+page = Http.get_page "/web_shell"
+assert( page.find "abcd" )
+
+
+-- lucene
+
+this_file = Io.schemes.file(Luan.arg[0])
+this_dir = this_file.parent()
+lucene_dir = this_dir.parent().child("build").child("lucene_test")
+--print(lucene_dir.to_string())
+db = Lucene.Index(lucene_dir.to_string())
+db.delete_all()
+
+ab_testing = Ab_testing.of(db)
+test_events = {"all"}
+aggregator_factories = {
+	all = Ab_testing.count_all;
+}
+ab_testing.test{ name="All", values={"all"}, events=test_events, aggregator_factories=aggregator_factories }
+ab_testing.test{ name="null", values={"A","B"}, events=test_events, aggregator_factories=aggregator_factories }
+
+for record in range(1,10) do
+	local doc = {type="test"}
+	ab_testing.to_doc(doc)
+	db.save_document(doc)
+end
+
+Http.init_for_test()
+ab_testing.web_page{"All","null"}.service()
+
+
+print "done"

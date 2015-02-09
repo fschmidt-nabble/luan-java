@@ -68,13 +68,13 @@ end
 if showVersion then print(Luan.VERSION) end
 if i <= #args then
 	local file = args[i]
-	local arg = {}
+	Luan.arg = {}
 	for j,v in ipairs(args) do
-		arg[j-i] = v
+		Luan.arg[j-i] = v
 	end
 	try
 		local main_file = load_file("file:"..file)
-		main_file( Table.unpack(arg) )
+		main_file( Table.unpack(Luan.arg) )
 	catch e do
 		Io.print_to(Io.stderr, e )
 	end
