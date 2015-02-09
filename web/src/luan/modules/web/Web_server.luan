@@ -1,7 +1,6 @@
 require "luan:String"
 local Io = require "luan:Io"
 local Package = require "luan:Package"
-require "luan:logging/Logging"  -- initialize logging
 local Http = require "luan:web/Http"
 
 java()

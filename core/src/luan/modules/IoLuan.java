@@ -400,6 +400,13 @@ public final class IoLuan {
 			return list;
 		}
 
+		public LuanTable parent(LuanState luan) throws LuanException, IOException {
+			File parent = file.getParentFile();
+			if( parent==null )
+				parent = file.getCanonicalFile().getParentFile();
+			return new LuanFile(luan,parent).table();
+		}
+
 		@Override public boolean exists() {
 			return file.exists();
 		}
@@ -441,6 +448,9 @@ public final class IoLuan {
 				) );
 				tbl.put( "children", new LuanJavaFunction(
 					LuanFile.class.getMethod( "children", LuanState.class ), this
+				) );
+				tbl.put( "parent", new LuanJavaFunction(
+					LuanFile.class.getMethod( "parent", LuanState.class ), this
 				) );
 				tbl.put( "rename_to", new LuanJavaFunction(
 					LuanFile.class.getMethod( "rename_to", String.class ), this

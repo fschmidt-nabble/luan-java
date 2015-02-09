@@ -1,6 +1,7 @@
 java()
 local Luan = require "luan:Luan"
 local pairs = Luan.pairs
+local type = Luan.type
 local Table = require "luan:Table"
 local LuceneIndex = require "java:luan.modules.lucene.LuceneIndex"
 local Term = require "java:org.apache.lucene.index.Term"

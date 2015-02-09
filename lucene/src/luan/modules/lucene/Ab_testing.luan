@@ -1,8 +1,13 @@
-import "luan:Math"
-import "luan:Table"
-import "luan:Io"
-import "luan:web/Http"
-import "luan:logging/Logging"
+local Luan = require "luan:Luan"
+local pairs = Luan.pairs
+local ipairs = Luan.ipairs
+local error = Luan.error
+local range = Luan.range
+local Math = require "luan:Math"
+local Table = require "luan:Table"
+local Io = require "luan:Io"
+local Http = require "luan:web/Http"
+local Logging = require "luan:logging/Logging"
 
 
 local logger = Logging.logger "Ab_testing"
