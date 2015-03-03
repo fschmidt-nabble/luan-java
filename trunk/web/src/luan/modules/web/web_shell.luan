@@ -5,18 +5,12 @@ local Io = require "luan:Io"
 local print = Io.print
 local Debug = require "luan:Debug"
 local Http = require "luan:web/Http"
+local Html = require "luan:Html"
 
 per_session = true
 
 local history = {}
 local env = {}
-
-Io.stdout = {}
-function Io.stdout.write(...)
-	for _,v in Luan.values(...) do
-		history[#history+1] = v
-	end
-end
 
 function service()
 	if Http.request.parameters.clear ~= nil then
@@ -24,6 +18,12 @@ function service()
 	else
 		local cmd = Http.request.parameters.cmd
 		if cmd ~= nil then
+			Io.stdout = {}
+			function Io.stdout.write(...)
+				for _,v in Luan.values(...) do
+					history[#history+1] = v
+				end
+			end
 			print( "% "..cmd )
 			try
 				local line = load(cmd,"<web_shell>",env,true)
@@ -35,37 +35,27 @@ function service()
 		end
 	end
 
-	local write = Http.response.text_writer().write
-	write(%>
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Luan Shell</title>
-		<style>
-			body {font-family:'Arial',sans-serif;font-size:16px;padding:1em 2em}
-			input {padding:.5em;border-radius:10px;border:1px solid #ccc;font-size:16px}
-			input.btn {background:#3B619D;color:#FFF;padding:.3em 0;font-size:20px;min-width:4em;}
-			h1 {font-weight:bold;font-size: 20px}
-			p {margin:1em 0 .2em}
-		</style>
-	</head>
-	<body>
-		<h1>Luan Shell</h1>
-		<p>This is a command shell.  Enter commands below.</p>
-		<pre><%)
-		for _,v in ipairs(history) do
-			write(v)
-		end
-		write(%></pre>
-		<form name='form0' method='post'>
-			% <input name='cmd' size="60">
-			<input type="submit" class="btn" value="run">
-			<input type="submit" class="btn" name="clear" value="clear">
-		</form>
-
-		<script>document.form0.cmd.focus();</script>
-	</body>
-</html>
-<%)
+	Io.stdout = Http.response.text_writer()
+	Html.simple_html_page{
+		head = function() %>
+			<title>Luan Shell</title>
+<%		end;
+		body = function() %>
+			<div container>
+				<h3>Luan Shell</h3>
+				<p>This is a command shell.  Enter commands below.</p>
+				<pre><%
+				for _,v in ipairs(history) do
+					Io.stdout.write(v)
+				end
+				%></pre>
+				<form name='form0' method='post'>
+					% <input name='cmd' size="80" autofocus>
+					<input type="submit" value="run" textcolor="white" bgcolor="#337ab7">
+					<input type="submit" name="clear" value="clear" textcolor="white" bgcolor="#337ab7">
+				</form>
+			</div>
+<%		end;
+	}
 
 end

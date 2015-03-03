@@ -188,6 +188,7 @@ function percent(x,total)
 	end
 end
 
+-- I will change this to use SimplyHTML when this is used again.
 local function basic_style() %>
 	body {font-family:'Arial',sans-serif;font-size:16px;padding:1em 2em}
 	h1 {font-weight:bold;font-size:20px}
