@@ -12,6 +12,7 @@ to_string = HtmlLuan.to_string
 local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
 local type = Luan.type
+local Io = require "luan:Io"
 
 function process_url_tags(html)
 	for i, v in ipairs(html) do
@@ -34,4 +35,32 @@ function add_nofollow(html)
 			v.attributes.rel = "nofollow"
 		end
 	end
+end
+
+
+function simple_html_page(parts)
+	local head = parts.head
+%>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<% head and head() %>
+		
+		<link href="http://www.simplyhtml.org/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="http://www.simplyhtml.org/assets/font-awesome/css/font-awesome.min.css">
+		<script src="http://www.simplyhtml.org/assets/jquery/jquery.min.js"></script>
+
+		<link href="http://www.simplyhtml.org/assets/simplyhtml/simplyhtml.css" rel="stylesheet"/>
+		<script src="http://www.simplyhtml.org/assets/simplyhtml/simplyhtml.js"></script>
+	</head>
+	<body>
+		<% parts.body() %>
+		
+		<script src="http://www.simplyhtml.org/assets/bootstrap/js/bootstrap.min.js"></script>
+	</body>
+</html>
+<%
 end

@@ -53,11 +53,9 @@ public final class HttpServicer {
 					session.putValue("luan",luan);
 				}
 				tbl = (LuanTable)PackageLuan.require(luan,modName);
-				fn = (LuanFunction)tbl.get("service");
+				fn = getService(luan,tbl);
 			} else {
-				fn = (LuanFunction)tbl.get("service");
-				if( fn == null )
-					throw luan.exception( "function 'service' is not defined" );
+				fn = getService(luan,tbl);
 				DeepCloner cloner = new DeepCloner();
 				luan = cloner.deepClone(luan);
 				fn = cloner.get(fn);
@@ -89,6 +87,16 @@ public final class HttpServicer {
 		return true;
 	}
 
+	private static LuanFunction getService(LuanState luan,LuanTable tbl)
+		throws LuanException
+	{
+		Object service = tbl.get("service");
+		if( service == null )
+			throw luan.exception( "function 'service' is not defined" );
+		if( !(service instanceof LuanFunction) )
+			throw luan.exception( "'service' must be a function but is a " + Luan.type(service) );
+		return (LuanFunction)service;
+	}
 
 
 	private final HttpServletRequest request;

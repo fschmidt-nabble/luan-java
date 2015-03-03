@@ -4,6 +4,7 @@ local Io = require "luan:Io"
 local print = Io.print
 local Http = require "luan:web/Http"
 local String = require "luan:String"
+local Html = require "luan:Html"
 
 local function lines(s)
 	local matcher = s.gmatch "([^\n]*)\n|([^\n])+$"
@@ -21,33 +22,27 @@ local function print_with_line_numbers(s)
 	end
 end
 
-local function basic_style() %>
-	body {font-family:'Arial',sans-serif;font-size:16px;text-align:center;padding:1em 2em}
-	input,textarea {padding:.5em;border-radius:10px;border:1px solid #ccc;font-size:16px;display:block}
-	textarea {width:50%;margin:0 auto}
-	input.btn {background:#3B619D;color:#FFF;padding:.5em 2em;font-size:20px;margin:.5em auto}
-	h1 {font-weight:bold;font-size: 20px}
-	p {margin:1em 0 .2em}
-<% end
-
-local function form() %>
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Run Luan Code</title>
-		<style><% basic_style() %></style>
-	</head>
-	<body>
-		<h1>Run Luan Code</h1>
-		<form name="form0" method="post">
-			<input type="hidden" name="content_type" value="text/plain" />
-			<textarea name="code" rows="20" cols="90" wrap="off"></textarea>
-			<input type="submit" class="btn" value="Execute Luan Code"/>
-		</form>
-		<script>document.form0.code.focus();</script>
-	</body>
-</html>
-<% end
+local function form()
+	Html.simple_html_page{
+		head = function() %>
+			<title>Run Luan Code</title>
+<%		end;
+		body = function() %>
+			<center margin-top=10>
+				<h3>Run Luan Code</h3>
+			</center>
+			<form name="form0" method="post">
+				<input type="hidden" name="content_type" value="text/plain" />
+				<center>
+					<textarea name="code" rows="20" cols="90" wrap="off" autofocus></textarea>
+				</center>
+				<center margin-top=5>
+					<input type="submit" value="Execute Luan Code" textcolor="white" bgcolor="#337ab7"/>
+				</center>
+			</form>
+<%		end;
+	}
+end
 
 function service()
 	Io.stdout = Http.response.text_writer()

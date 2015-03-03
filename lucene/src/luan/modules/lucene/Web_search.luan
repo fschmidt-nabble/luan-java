@@ -7,78 +7,98 @@ local range = Luan.range
 local Io = require "luan:Io"
 local Http = require "luan:web/Http"
 local String = require "luan:String"
+local Html = require "luan:Html"
 
 
-local function basic_style() %>
-	body {font-family:'Arial',sans-serif;font-size:16px;padding:1em 2em}
-	input {padding:.5em;border-radius:10px;border:1px solid #ccc;font-size:16px}
-	input.btn {background:#3B619D;color:#FFF;padding:.5em 2em;font-size:20px}
-	h1 {font-weight:bold;font-size: 20px}
-	p {margin:1em 0 .2em}
-	span.label {min-width:100px;display:inline-block;text-align:right}
-	div.tip{color:#888;font-size:80%}
-	table.results {margin-top:2em;border-collapse:collapse;font-size:90%}
-	table.results th {background:#eee}
-	table.results th,table.results td {border-left:1px solid #bbb;padding:.4em}
-	table.results tr:nth-child(odd) td {background:#f8f8f8}
-<% end
+local function form()
+	Html.simple_html_page{
+		head = function() %>
+			<title>Lucene Query</title>
+<%		end;
+		body = function() %>
+			<div container>
+				<h3 margin-top="1.5em">Lucene Query</h3>
+				<form horizontal name="form0" method="post" margin-top="2em">
+					<div row>
+						<div colspan=2 align="right">
+							<label>Query:</label>
+						</div>
+						<div colspan=10>
+							<input name="query" size="80" value="Query.all_docs" autofocus />
+							<div textcolor="#888">Query examples: <i>Query.term{ type = 'user' }</i> or <i>"type:user AND name:Joe"</i></div>
+						</div>
+					</div>
+					<div row margin-top="1em">
+						<div colspan=2 align="right">
+							<label>Max Rows:</label>
+						</div>
+						<div colspan=10>
+							<input name="rows" value="100" size="3" maxlength="5" /></p>
+						</div>
+					</div>
+					<div row margin-top="1em">
+						<div colspan=2 align="right">
+							<label>Sort:</label>
+						</div>
+						<div colspan=10>
+							<input name="sort" size="60" />
+							<div textcolor="#888">Sort examples: Query.sort{{ field = 'id', type='int' }}</div>
+						</div>
+					</div>
+					<div row margin-top="1em">
+						<div colspan=2></div>
+						<div colspan=10>
+							<input type="submit" textcolor="white" bgcolor="#337ab7" large/>
+						</div>
+					</div>
+				</form>
+			</div>
+<%		end;
+	}
+end
 
-local function form() %>
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Lucene Query</title>
-		<style><% basic_style() %></style>
-	</head>
-	<body>
-		<h1>Lucene Query</h1>
-		<form name="form0" method="post">
-			<p>
-				<span class="label">Query:</span> <input name="query" size="60" value="Query.all_docs" />
-				<div class="tip"><span class="label"></span> Query examples: <i>Query.term{ type = 'user' }</i> or <i>"type:user AND name:Joe"</i></div>
-			</p>
-			<p><span class="label">Max Rows:</span> <input name="rows" value="100" maxlength="5" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="width:3em"/></p>
-			<p>
-				<span class="label">Sort:</span> <input name="sort" size="60" />
-				<div class="tip"><span class="label"></span> Sort examples: Query.sort{{ field = 'id', type='int' }}</div>
-			</p>
-			<p><input type="submit" class="btn"/></p>
-		</form>
-		<script>document.form0.query.focus();</script>
-	</body>
-</html>
-<% end
 
-
-local function result(query,sort,headers,table) %>
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<style><% basic_style() %></style>
-	</head>
-	<body>
-		<h1>Lucene Query Results</h1>
-			<p><span class="label">Query:</span> <b><%=query%></b></p>
-			<p><span class="label">Sort:</span> <b><%=sort%></b></p>
-			<table class="results">
-				<tr>
-					<th></th>
-					<% for _, header in ipairs(headers) do %>
-						<th><%=header%></th>
-					<% end %>
-				</tr>
-				<% for i, row in ipairs(table) do %>
+local function result(query,sort,headers,table)
+	Html.simple_html_page{
+		body = function() %>
+			<div container>
+				<h3 margin-top="1.5em">Lucene Query Results</h3>
+				<div row>
+					<div colspan=2 align="right">
+						<label>Query:</label>
+					</div>
+					<div colspan=10>
+						<b><%=query%></b></p>
+					</div>
+				</div>
+				<div row>
+					<div colspan=2 align="right">
+						<label>Sort:</label>
+					</div>
+					<div colspan=10>
+						<b><%=sort%></b></p>
+					</div>
+				</div>
+				<table border condensed margin-top="1.5em">
 					<tr>
-						<td><%=i%></td>
-						<% for col in range(1, #headers) do %>
-							<td><%= row[col] or "" %></td>
+						<th></th>
+						<% for _, header in ipairs(headers) do %>
+							<th><%=header%></th>
 						<% end %>
 					</tr>
-				<% end %>
-			</table>
-	</body>
-</html>
-<% end
+					<% for i, row in ipairs(table) do %>
+						<tr>
+							<td><%=i%></td>
+							<% for col in range(1, #headers) do %>
+								<td><%= row[col] or "" %></td>
+							<% end %>
+						</tr>
+					<% end %>
+				</table>
+			</div>
+<%		end;
+	}
+end
 
 
 local function index_of(tbl,val)
