@@ -83,7 +83,7 @@ function init(dir)
 	luan_handler.setWelcomeFile(welcome_file)
 	server = Server.new(port)
 	server.setHandler(hc)
-	Package.load("site:/"..welcome_file)
+	Package.load("site:/init")
 end
 
 function start()
