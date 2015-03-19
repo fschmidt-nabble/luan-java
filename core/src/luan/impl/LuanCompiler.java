@@ -16,8 +16,7 @@ public final class LuanCompiler {
 	private LuanCompiler() {}  // never
 
 	public static LuanFunction compile(LuanState luan,LuanSource src,LuanTable env,boolean allowExpr) throws LuanException {
-		boolean passedEnv = env != null;
-		if( !passedEnv )
+		if( env==null )
 			env = Luan.newTable();
 		UpValue.Getter envGetter = new UpValue.ValueGetter(env);
 		LuanParser parser = new LuanParser(src,envGetter);
@@ -25,17 +24,7 @@ public final class LuanCompiler {
 		parser.addVar( "require", PackageLuan.requireFn );
 		FnDef fnDef = parse(luan,parser,allowExpr);
 		final LuanStateImpl luanImpl = (LuanStateImpl)luan;
-		final Closure c = new Closure(luanImpl,fnDef);
-		if( passedEnv )
-			return c;
-		return new LuanFunction() {
-			@Override public Object call(LuanState luan,Object[] args) throws LuanException {
-				Object rtn = c.call(luan,args);
-				if( rtn instanceof Object[] && ((Object[])rtn).length==0 )
-					rtn = c.upValues()[0].get();
-				return rtn;
-			}
-		};
+		return new Closure(luanImpl,fnDef);
 	}
 
 	private static FnDef parse(LuanState luan,LuanParser parser,boolean allowExpr) throws LuanException {

@@ -3,7 +3,8 @@ package luan.modules;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import luan.Luan;
 import luan.LuanState;
 import luan.LuanTable;
@@ -46,25 +47,46 @@ public final class PackageLuan {
 		if( mod == null ) {
 			if( modName.startsWith("java:") ) {
 				mod = JavaLuan.load(luan,modName.substring(5));
-				if( mod == null )
-					return null;
+				if( mod != null )
+					loaded.put(modName,mod);
 			} else {
 				String src = read(luan,modName+".luan");
 				if( src == null )
 					return null;
-				LuanFunction loader = BasicLuan.load(luan,src,modName,null,false);
-				mod = Luan.first(
-					luan.call(loader,"<require \""+modName+"\">",new Object[]{modName})
-				);
-			}
-			if( mod != null ) {
-				loaded.put(modName,mod);
-			} else {
-				mod = loaded.get(modName);
-				if( mod==null ) {
-					mod = true;
-					loaded.put(modName,mod);
+				LuanTable env = Luan.newTable();
+				LuanFunction loader = BasicLuan.load(luan,src,modName,env,false);
+				loaded.put(modName,env);
+				@SuppressWarnings("unchecked")
+				Set<String> loading = (Set<String>)luan.registry().get("Package.loading");
+				boolean top = loading==null;
+				if(top) {
+					loading = new HashSet<String>();
+					luan.registry().put("Package.loading",loading);
 				}
+				loading.add(modName);
+				boolean ok = false;
+				try {
+					mod = Luan.first(
+						luan.call(loader,"<require \""+modName+"\">",new Object[]{modName})
+					);
+					ok = true;
+				} finally {
+					if( !ok ) {
+						if(top) {
+							for( String mn : loading ) {
+								loaded.put(mn,null);
+							}
+						} else {
+							loaded.put(modName,null);
+						}
+					}
+					if(top)
+						luan.registry().put("Package.loading",null);
+				}
+				if( mod != null )
+					loaded.put(modName,mod);
+				else
+					mod = env;
 			}
 		}
 		return mod;
