@@ -1,5 +1,6 @@
 local Luan = require "luan:Luan"
 local load = Luan.load
+local try = Luan.try
 local Io = require "luan:Io"
 local print = Io.print
 local Http = require "luan:web/Http"
@@ -59,14 +60,17 @@ function service()
 		request = Http.request;
 		response = Http.response;
 	}
-	try
-		local run = load(code,"<web_run>",env)
-		run()
-	catch e do
-		Http.response.content_type = "text/plain"
-		print(e)
-		print()
-		print()
-		print_with_line_numbers(code)
-	end
+	try {
+		function()
+			local run = load(code,"<web_run>",env)
+			run()
+		end;
+		catch = function(e)
+			Http.response.content_type = "text/plain"
+			print(e)
+			print()
+			print()
+			print_with_line_numbers(code)
+		end;
+	}
 end

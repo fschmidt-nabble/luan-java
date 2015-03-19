@@ -2,6 +2,7 @@ local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
 local load = Luan.load
 local load_file = Luan.load_file
+local try = Luan.try
 require "luan:String"  -- for String methods
 local Table = require "luan:Table"
 local Io = require "luan:Io"
@@ -72,12 +73,15 @@ if i <= #args then
 	for j,v in ipairs(args) do
 		Luan.arg[j-i] = v
 	end
-	try
-		local main_file = load_file("file:"..file)
-		main_file( Table.unpack(Luan.arg) )
-	catch e do
-		Io.print_to(Io.stderr, e )
-	end
+	try {
+		function()
+			local main_file = load_file("file:"..file)
+			main_file( Table.unpack(Luan.arg) )
+		end;
+		catch = function(e)
+			Io.print_to(Io.stderr, e )
+		end;
+	}
 end
 if interactive then
 	Debug.debug("> ")
