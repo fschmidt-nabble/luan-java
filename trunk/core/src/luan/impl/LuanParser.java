@@ -251,7 +251,6 @@ final class LuanParser {
 			|| (stmt=LocalFunctionStmt()) != null
 			|| (stmt=BreakStmt()) != null
 			|| (stmt=ForStmt()) != null
-			|| (stmt=TryStmt()) != null
 			|| (stmt=DoStmt()) != null
 			|| (stmt=WhileStmt()) != null
 			|| (stmt=FunctionStmt()) != null
@@ -370,22 +369,6 @@ final class LuanParser {
 		RequiredKeyword("end",In.NOTHING);
 		Stmt stmt = new ForStmt( se(start), stackStart, symbolsSize() - stackStart, expr, loop );
 		popSymbols( symbolsSize() - stackStart );
-		return parser.success(stmt);
-	}
-
-	private Stmt TryStmt() throws ParseException {
-		parser.begin();
-		if( !Keyword("try",In.NOTHING) )
-			return parser.failure(null);
-		Stmt tryBlock = RequiredBlock();
-		RequiredKeyword("catch",In.NOTHING);
-		String name = RequiredName(In.NOTHING);
-		addSymbol(name);
-		RequiredKeyword("do",In.NOTHING);
-		Stmt catchBlock = RequiredBlock();
-		RequiredKeyword("end",In.NOTHING);
-		Stmt stmt = new TryStmt( tryBlock, symbolsSize()-1, catchBlock );
-		popSymbols(1);
 		return parser.success(stmt);
 	}
 
@@ -1095,7 +1078,6 @@ final class LuanParser {
 	private static final Set<String> keywords = new HashSet<String>(Arrays.asList(
 		"and",
 		"break",
-		"catch",
 		"do",
 		"else",
 		"elseif",
@@ -1114,7 +1096,6 @@ final class LuanParser {
 		"return",
 		"then",
 		"true",
-		"try",
 		"until",
 		"while"
 	));

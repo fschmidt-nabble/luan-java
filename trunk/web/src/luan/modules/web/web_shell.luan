@@ -1,6 +1,7 @@
 local Luan = require "luan:Luan"
 local ipairs = Luan.ipairs
 local load = Luan.load
+local try = Luan.try
 local Io = require "luan:Io"
 local print = Io.print
 local Debug = require "luan:Debug"
@@ -25,13 +26,16 @@ function service()
 				end
 			end
 			print( "% "..cmd )
-			try
-				local line = load(cmd,"<web_shell>",env,true)
-				Debug.print_if_something( line() )
-			catch e do
-				Io.print_to(Io.stderr,e)
-				print(e)
-			end
+			try {
+				function()
+					local line = load(cmd,"<web_shell>",env,true)
+					Debug.print_if_something( line() )
+				end;
+				catch = function(e)
+					Io.print_to(Io.stderr,e)
+					print(e)
+				end;
+			}
 		end
 	end
 

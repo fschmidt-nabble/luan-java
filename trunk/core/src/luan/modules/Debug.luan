@@ -1,5 +1,6 @@
 local Luan = require "luan:Luan"
 local load = Luan.load
+local try = Luan.try
 local Io = require "luan:Io"
 local print = Io.print
 local Table = require "luan:Table"
@@ -18,12 +19,15 @@ function debug(prompt)
 	end
 	local env = {}
 	for line in console do
-		try
-			local fn = load(line,"stdin",env,true)
-			print_if_something( fn() )
-		catch e do
-			print(e)
-		end
+		try {
+			function()
+				local fn = load(line,"stdin",env,true)
+				print_if_something( fn() )
+			end;
+			catch = function(e)
+				print(e)
+			end;
+		}
 	end
 end
 

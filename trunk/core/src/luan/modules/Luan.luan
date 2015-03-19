@@ -16,6 +16,7 @@ ipairs = BasicLuan.ipairs
 load = BasicLuan.load
 load_file = BasicLuan.load_file
 pairs = BasicLuan.pairs
+pcall = BasicLuan.pcall
 range = BasicLuan.range
 raw_equal = BasicLuan.raw_equal
 raw_get = BasicLuan.raw_get
@@ -26,6 +27,7 @@ set_metatable = BasicLuan.set_metatable
 to_boolean = BasicLuan.to_boolean
 to_number = BasicLuan.to_number
 to_string = BasicLuan.to_string
+try = BasicLuan.try_
 type = BasicLuan.type
 values = BasicLuan.values
 

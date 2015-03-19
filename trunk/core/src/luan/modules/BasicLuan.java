@@ -15,6 +15,7 @@ import luan.LuanJavaFunction;
 import luan.LuanException;
 import luan.LuanSource;
 import luan.LuanElement;
+import luan.LuanMethod;
 import luan.impl.LuanCompiler;
 
 
@@ -198,6 +199,58 @@ public final class BasicLuan {
 				return new Object[]{i,args[i-1]};
 			}
 		};
+	}
+
+	private LuanFunction fn(Object obj) {
+		return obj instanceof LuanFunction ? (LuanFunction)obj : null;
+	}
+
+	public static void try_(LuanState luan,LuanTable blocks) throws LuanException {
+		Utils.checkNotNull(luan,blocks);
+		Object obj = blocks.get(1);
+		if( obj == null )
+			throw luan.exception("missing 'try' value");
+		if( !(obj instanceof LuanFunction) )
+			throw luan.exception("bad 'try' value (function expected, got "+Luan.type(obj)+")");
+		LuanFunction tryFn = (LuanFunction)obj;
+		LuanFunction catchFn = null;
+		obj = blocks.get("catch");
+		if( obj != null ) {
+			if( !(obj instanceof LuanFunction) )
+				throw luan.exception("bad 'catch' value (function expected, got "+Luan.type(obj)+")");
+			catchFn = (LuanFunction)obj;
+		}
+		LuanFunction finallyFn = null;
+		obj = blocks.get("finally");
+		if( obj != null ) {
+			if( !(obj instanceof LuanFunction) )
+				throw luan.exception("bad 'finally' value (function expected, got "+Luan.type(obj)+")");
+			finallyFn = (LuanFunction)obj;
+		}
+		try {
+			luan.call(tryFn);
+		} catch(LuanException e) {
+			if( catchFn == null )
+				throw e;
+			luan.call(catchFn,new Object[]{e});
+		} finally {
+			if( finallyFn != null )
+				luan.call(finallyFn);
+		}
+	}
+
+	@LuanMethod public static Object[] pcall(LuanState luan,LuanFunction f,Object... args) {
+		try {
+			Object[] r = Luan.array(luan.call(f,args));
+			Object[] rtn = new Object[r.length+1];
+			rtn[0] = true;
+			for( int i=0; i<r.length; i++ ) {
+				rtn[i+1] = r[i];
+			}
+			return rtn;
+		} catch(LuanException e) {
+			return new Object[]{false,e};
+		}
 	}
 
 }
